@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Accessory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class AccessoryController extends Controller
 {
@@ -30,9 +31,22 @@ class AccessoryController extends Controller
             'jenis' => ['required','string','max:100'],
             'stok' => ['required','integer','min:0'],
             'harga_per_hari' => ['required','numeric','min:0'],
-            'gambar' => ['nullable','string','max:255'],
+            'gambar' => ['nullable','image','max:2048'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
+
+        if ($request->hasFile('gambar')) {
+            $path = $request->file('gambar')->store('images/accessories', 'public');
+            $validated['gambar'] = $path;
+        } else {
+            unset($validated['gambar']);
+        }
+
+        // Kompatibilitas kolom lama
+        $validated['name'] = $validated['nama'];
+        $validated['type'] = $validated['jenis'];
+        $validated['stock'] = $validated['stok'];
+        $validated['price_per_day'] = $validated['harga_per_hari'];
 
         Accessory::create($validated);
         return redirect()->route('admin.accessories.index')->with('status', 'Aksesoris dibuat');
@@ -52,9 +66,25 @@ class AccessoryController extends Controller
             'jenis' => ['required','string','max:100'],
             'stok' => ['required','integer','min:0'],
             'harga_per_hari' => ['required','numeric','min:0'],
-            'gambar' => ['nullable','string','max:255'],
+            'gambar' => ['nullable','image','max:2048'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
+
+        if ($request->hasFile('gambar')) {
+            if ($accessory->gambar && Storage::disk('public')->exists($accessory->gambar)) {
+                Storage::disk('public')->delete($accessory->gambar);
+            }
+            $path = $request->file('gambar')->store('images/accessories', 'public');
+            $validated['gambar'] = $path;
+        } else {
+            unset($validated['gambar']);
+        }
+
+        // Kompatibilitas kolom lama
+        $validated['name'] = $validated['nama'];
+        $validated['type'] = $validated['jenis'];
+        $validated['stock'] = $validated['stok'];
+        $validated['price_per_day'] = $validated['harga_per_hari'];
 
         $accessory->update($validated);
         return redirect()->route('admin.accessories.index')->with('status', 'Aksesoris diperbarui');
