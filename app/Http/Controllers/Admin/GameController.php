@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Game;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class GameController extends Controller
 {
@@ -31,9 +32,21 @@ class GameController extends Controller
             'genre' => ['nullable','string','max:100'],
             'stok' => ['required','integer','min:0'],
             'harga_per_hari' => ['required','numeric','min:0'],
-            'gambar' => ['nullable','string','max:255'],
+            'gambar' => ['nullable','image','max:2048'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
+
+        if ($request->hasFile('gambar')) {
+            $path = $request->file('gambar')->store('images/games', 'public');
+            $validated['gambar'] = $path;
+        } else {
+            unset($validated['gambar']);
+        }
+
+        // Map ke kolom lama agar kompatibel dengan skema awal
+        $validated['title'] = $validated['judul'];
+        $validated['stock'] = $validated['stok'];
+        $validated['price_per_day'] = $validated['harga_per_hari'];
 
         Game::create($validated);
         return redirect()->route('admin.games.index')->with('status', 'Game dibuat');
@@ -54,9 +67,24 @@ class GameController extends Controller
             'genre' => ['nullable','string','max:100'],
             'stok' => ['required','integer','min:0'],
             'harga_per_hari' => ['required','numeric','min:0'],
-            'gambar' => ['nullable','string','max:255'],
+            'gambar' => ['nullable','image','max:2048'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
+
+        if ($request->hasFile('gambar')) {
+            if ($game->gambar && Storage::disk('public')->exists($game->gambar)) {
+                Storage::disk('public')->delete($game->gambar);
+            }
+            $path = $request->file('gambar')->store('images/games', 'public');
+            $validated['gambar'] = $path;
+        } else {
+            unset($validated['gambar']);
+        }
+
+        // Map ke kolom lama agar kompatibel dengan skema awal
+        $validated['title'] = $validated['judul'];
+        $validated['stock'] = $validated['stok'];
+        $validated['price_per_day'] = $validated['harga_per_hari'];
 
         $game->update($validated);
         return redirect()->route('admin.games.index')->with('status', 'Game diperbarui');
