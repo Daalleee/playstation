@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\UnitPS;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class UnitPSController extends Controller
 {
@@ -33,9 +34,23 @@ class UnitPSController extends Controller
             'harga_per_jam' => ['required','numeric','min:0'],
             'stok' => ['required','integer','min:0'],
             'status' => ['required','in:available,rented,maintenance'],
-            'foto' => ['nullable','string','max:255'],
+            'foto' => ['nullable','image','max:2048'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
+
+        if ($request->hasFile('foto')) {
+            $path = $request->file('foto')->store('images/unitps', 'public');
+            $validated['foto'] = $path;
+        } else {
+            unset($validated['foto']);
+        }
+
+        // Kompatibilitas kolom lama
+        $validated['name'] = $validated['nama'];
+        $validated['brand'] = $validated['merek'];
+        $validated['serial_number'] = $validated['nomor_seri'];
+        $validated['price_per_hour'] = $validated['harga_per_jam'];
+        $validated['stock'] = $validated['stok'];
 
         UnitPS::create($validated);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dibuat');
@@ -58,9 +73,26 @@ class UnitPSController extends Controller
             'harga_per_jam' => ['required','numeric','min:0'],
             'stok' => ['required','integer','min:0'],
             'status' => ['required','in:available,rented,maintenance'],
-            'foto' => ['nullable','string','max:255'],
+            'foto' => ['nullable','image','max:2048'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
+
+        if ($request->hasFile('foto')) {
+            if ($unitp->foto && Storage::disk('public')->exists($unitp->foto)) {
+                Storage::disk('public')->delete($unitp->foto);
+            }
+            $path = $request->file('foto')->store('images/unitps', 'public');
+            $validated['foto'] = $path;
+        } else {
+            unset($validated['foto']);
+        }
+
+        // Kompatibilitas kolom lama
+        $validated['name'] = $validated['nama'];
+        $validated['brand'] = $validated['merek'];
+        $validated['serial_number'] = $validated['nomor_seri'];
+        $validated['price_per_hour'] = $validated['harga_per_jam'];
+        $validated['stock'] = $validated['stok'];
 
         $unitp->update($validated);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS diperbarui');
