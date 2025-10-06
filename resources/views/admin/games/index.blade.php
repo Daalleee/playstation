@@ -1,3 +1,4 @@
+@include('admin.partials.nav')
 <h1>Kelola Game</h1>
 <a href="{{ route('admin.games.create') }}">Tambah Game</a>
 
@@ -8,6 +9,7 @@
 <table border="1" cellpadding="6" cellspacing="0">
     <thead>
         <tr>
+            <th>Gambar</th>
             <th>Judul</th>
             <th>Platform</th>
             <th>Genre</th>
@@ -19,6 +21,11 @@
     <tbody>
         @foreach($games as $g)
         <tr>
+            <td>
+                @if($g->gambar)
+                    <img src="{{ asset('storage/'.$g->gambar) }}" alt="gambar" style="max-height:60px">
+                @endif
+            </td>
             <td>{{ $g->judul }}</td>
             <td>{{ $g->platform }}</td>
             <td>{{ $g->genre }}</td>

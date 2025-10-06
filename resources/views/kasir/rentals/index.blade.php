@@ -1,3 +1,4 @@
+@include('kasir.partials.nav')
 <h1>Daftar Rental</h1>
 <a href="{{ route('kasir.rentals.create') }}">Buat Rental</a>
 

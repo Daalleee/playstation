@@ -1,5 +1,6 @@
+@include('admin.partials.nav')
 <h1>Tambah Unit PS</h1>
-<form method="POST" action="{{ route('admin.unitps.store') }}">
+<form method="POST" action="{{ route('admin.unitps.store') }}" enctype="multipart/form-data">
     @csrf
 <div><label>Nama</label><input type="text" name="nama" value="{{ old('nama') }}" required>@error('nama')<div>{{ $message }}</div>@enderror</div>
 <div><label>Merek</label><input type="text" name="merek" value="{{ old('merek','Sony') }}" required>@error('merek')<div>{{ $message }}</div>@enderror</div>
@@ -16,7 +17,7 @@
         </select>
         @error('status')<div>{{ $message }}</div>@enderror
     </div>
-    <div><label>Foto (URL)</label><input type="text" name="foto" value="{{ old('foto') }}">@error('foto')<div>{{ $message }}</div>@enderror</div>
+    <div><label>Foto (File)</label><input type="file" name="foto" accept="image/*">@error('foto')<div>{{ $message }}</div>@enderror</div>
     <div><label>Kondisi</label><input type="text" name="kondisi" value="{{ old('kondisi') }}">@error('kondisi')<div>{{ $message }}</div>@enderror</div>
     <button type="submit">Simpan</button>
 </form>

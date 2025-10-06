@@ -1,5 +1,6 @@
+@include('admin.partials.nav')
 <h1>Edit Unit PS</h1>
-<form method="POST" action="{{ route('admin.unitps.update', $unit) }}">
+<form method="POST" action="{{ route('admin.unitps.update', $unit) }}" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 <div><label>Nama</label><input type="text" name="nama" value="{{ old('nama', $unit->nama) }}" required>@error('nama')<div>{{ $message }}</div>@enderror</div>
@@ -17,7 +18,14 @@
         </select>
         @error('status')<div>{{ $message }}</div>@enderror
     </div>
-    <div><label>Foto (URL)</label><input type="text" name="foto" value="{{ old('foto', $unit->foto) }}">@error('foto')<div>{{ $message }}</div>@enderror</div>
+    <div>
+        <label>Foto (File)</label>
+        <input type="file" name="foto" accept="image/*">
+        @if($unit->foto)
+            <div>Foto saat ini: <img src="{{ asset('storage/'.$unit->foto) }}" alt="foto" style="max-height:80px"></div>
+        @endif
+        @error('foto')<div>{{ $message }}</div>@enderror
+    </div>
     <div><label>Kondisi</label><input type="text" name="kondisi" value="{{ old('kondisi', $unit->kondisi) }}">@error('kondisi')<div>{{ $message }}</div>@enderror</div>
     <button type="submit">Update</button>
 </form>

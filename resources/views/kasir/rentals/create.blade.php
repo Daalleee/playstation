@@ -1,3 +1,4 @@
+@include('kasir.partials.nav')
 <h1>Buat Rental</h1>
 <form method="POST" action="{{ route('kasir.rentals.store') }}">
     @csrf

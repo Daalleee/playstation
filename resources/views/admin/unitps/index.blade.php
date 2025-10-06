@@ -1,3 +1,4 @@
+@include('admin.partials.nav')
 <h1>Kelola Unit PS</h1>
 <a href="{{ route('admin.unitps.create') }}">Tambah Unit</a>
 
@@ -8,6 +9,7 @@
 <table border="1" cellpadding="6" cellspacing="0">
     <thead>
         <tr>
+            <th>Foto</th>
             <th>Nama</th>
             <th>Merek</th>
             <th>Model</th>
@@ -21,6 +23,11 @@
     <tbody>
         @foreach($units as $u)
         <tr>
+            <td>
+                @if($u->foto)
+                    <img src="{{ asset('storage/'.$u->foto) }}" alt="foto" style="max-height:60px">
+                @endif
+            </td>
             <td>{{ $u->nama }}</td>
             <td>{{ $u->merek }}</td>
             <td>{{ $u->model }}</td>

@@ -1,3 +1,4 @@
+@include('admin.partials.nav')
 <h1>Buat Akun {{ ucfirst($role) }}</h1>
 
 @if ($errors->any())

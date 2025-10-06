@@ -1,3 +1,4 @@
+@include('kasir.partials.nav')
 <h1>Detail Rental #{{ $rental->id }}</h1>
 
 @if(session('status'))

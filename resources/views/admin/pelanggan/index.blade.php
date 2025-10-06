@@ -1,3 +1,4 @@
+@include('admin.partials.nav')
 <h1>Kelola Pelanggan</h1>
 <a href="{{ route('admin.pelanggan.create') }}">Tambah Pelanggan</a>
 

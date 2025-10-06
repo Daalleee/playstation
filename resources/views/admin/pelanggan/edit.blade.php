@@ -1,3 +1,4 @@
+@include('admin.partials.nav')
 <h1>Edit Pelanggan</h1>
 <form method="POST" action="{{ route('admin.pelanggan.update', $pelanggan) }}">
     @csrf

@@ -1,3 +1,4 @@
+@include('admin.partials.nav')
 <h1>Manajemen Staff (Role: {{ $role }})</h1>
 
 @if (session('status'))

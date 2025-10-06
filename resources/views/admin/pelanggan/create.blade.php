@@ -1,3 +1,4 @@
+@include('admin.partials.nav')
 <h1>Tambah Pelanggan</h1>
 <form method="POST" action="{{ route('admin.pelanggan.store') }}">
     @csrf
