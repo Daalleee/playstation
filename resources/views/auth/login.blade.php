@@ -1,45 +1,42 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @endif
-</head>
-<body class="antialiased p-6">
-    <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
-        <h1 class="text-2xl font-semibold mb-4">Login</h1>
+@extends('layouts.app')
+@section('content')
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">Masuk</h1>
         @if ($errors->any())
-            <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
-                <ul class="list-disc list-inside">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
+          <div class="alert alert-danger">
+            <ul class="mb-0 ps-3">
+              @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
         @endif
-        <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
-            @csrf
-            <div>
-                <label class="block mb-1">Email</label>
-                <input type="email" name="email" value="{{ old('email') }}" required class="w-full border rounded p-2">
-            </div>
-            <div>
-                <label class="block mb-1">Password</label>
-                <input type="password" name="password" required class="w-full border rounded p-2">
-            </div>
-            <label class="inline-flex items-center">
-                <input type="checkbox" name="remember" class="mr-2"> Ingat saya
-            </label>
-            <div class="flex items-center justify-between">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Masuk</button>
-                <a href="{{ route('register.show') }}" class="text-blue-600">Daftar</a>
-            </div>
+        <form method="POST" action="{{ route('login.post') }}" class="gy-3">
+          @csrf
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" value="{{ old('email') }}" required class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" required class="form-control" />
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="remember" id="remember">
+            <label class="form-check-label" for="remember">Ingat saya</label>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <button type="submit" class="btn btn-primary">Masuk</button>
+            <a href="{{ route('register.show') }}">Daftar</a>
+          </div>
         </form>
+      </div>
     </div>
- </body>
-</html>
+  </div>
+</div>
+@endsection
 
 
