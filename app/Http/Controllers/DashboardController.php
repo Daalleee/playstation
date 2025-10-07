@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use App\Models\UnitPS;
+use App\Models\Game;
+use App\Models\Accessory;
 
 class DashboardController extends Controller
 {
@@ -28,7 +31,10 @@ class DashboardController extends Controller
     public function pelanggan()
     {
         Gate::authorize('access-pelanggan');
-        return view('dashboards.pelanggan');
+        $unitps = UnitPS::latest()->take(6)->get();
+        $games = Game::latest()->take(6)->get();
+        $accessories = Accessory::latest()->take(6)->get();
+        return view('dashboards.pelanggan', compact('unitps', 'games', 'accessories'));
     }
 }
 
