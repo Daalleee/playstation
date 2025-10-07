@@ -22,6 +22,7 @@ class Rental extends Model
         'discount',
         'total',
         'paid',
+        'notes',
     ];
 
     protected $casts = [
