@@ -12,7 +12,16 @@ use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\AccessoryController;
 use App\Http\Controllers\Kasir\RentalController as KasirRentalController;
 use App\Http\Controllers\Kasir\PaymentController as KasirPaymentController;
+use App\Http\Controllers\Pelanggan\UnitPSController as PelangganUnitPSController;
+use App\Http\Controllers\Pelanggan\GameController as PelangganGameController;
+use App\Http\Controllers\Pelanggan\AccessoryController as PelangganAccessoryController;
+use App\Http\Controllers\Pelanggan\ProfileController as PelangganProfileController;
+use App\Http\Controllers\Pelanggan\CartController as PelangganCartController;
+use App\Http\Controllers\Pelanggan\RentalController as PelangganRentalController;
 use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Owner\StatusProdukController;
+use App\Http\Controllers\Owner\LaporanController;
+use App\Http\Controllers\Kasir\TransaksiController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -25,7 +34,7 @@ Route::get('/', function () {
             default => redirect()->route('dashboard.pelanggan'),
         };
     }
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::get('/register', [RegisterController::class, 'show'])->name('register.show');
@@ -71,13 +80,38 @@ Route::middleware(['web', 'auth'])->group(function () {
 });
 
 Route::middleware(['web', 'auth'])->group(function () {
-    // Kasir - Rentals
-    Route::get('kasir/rentals', [KasirRentalController::class, 'index'])->name('kasir.rentals.index');
-    Route::get('kasir/rentals/create', [KasirRentalController::class, 'create'])->name('kasir.rentals.create');
-    Route::post('kasir/rentals', [KasirRentalController::class, 'store'])->name('kasir.rentals.store');
-    Route::get('kasir/rentals/{rental}', [KasirRentalController::class, 'show'])->name('kasir.rentals.show');
-    Route::post('kasir/rentals/{rental}/return', [KasirRentalController::class, 'return'])->name('kasir.rentals.return');
+    // Pelanggan - Profile
+    Route::get('pelanggan/profile', [PelangganProfileController::class, 'show'])->name('pelanggan.profile.show');
+    Route::get('pelanggan/profile/edit', [PelangganProfileController::class, 'edit'])->name('pelanggan.profile.edit');
+    Route::put('pelanggan/profile', [PelangganProfileController::class, 'update'])->name('pelanggan.profile.update');
 
-    // Kasir - Payments
-    Route::post('kasir/rentals/{rental}/payments', [KasirPaymentController::class, 'store'])->name('kasir.rentals.payments.store');
+    // Pelanggan - View Catalog
+    Route::get('pelanggan/unitps', [PelangganUnitPSController::class, 'index'])->name('pelanggan.unitps.index');
+    Route::get('pelanggan/games', [PelangganGameController::class, 'index'])->name('pelanggan.games.index');
+    Route::get('pelanggan/accessories', [PelangganAccessoryController::class, 'index'])->name('pelanggan.accessories.index');
+
+    // Pelanggan - Cart
+    Route::get('pelanggan/cart', [PelangganCartController::class, 'index'])->name('pelanggan.cart.index');
+    Route::post('pelanggan/cart/add', [PelangganCartController::class, 'add'])->name('pelanggan.cart.add');
+    Route::post('pelanggan/cart/update', [PelangganCartController::class, 'update'])->name('pelanggan.cart.update');
+    Route::post('pelanggan/cart/remove', [PelangganCartController::class, 'remove'])->name('pelanggan.cart.remove');
+    Route::post('pelanggan/cart/clear', [PelangganCartController::class, 'clear'])->name('pelanggan.cart.clear');
+
+    // Pelanggan - Rentals
+    Route::get('pelanggan/rentals', [PelangganRentalController::class, 'index'])->name('pelanggan.rentals.index');
+    Route::get('pelanggan/rentals/create', [PelangganRentalController::class, 'create'])->name('pelanggan.rentals.create');
+    Route::post('pelanggan/rentals', [PelangganRentalController::class, 'store'])->name('pelanggan.rentals.store');
+    Route::get('pelanggan/rentals/{rental}', [PelangganRentalController::class, 'show'])->name('pelanggan.rentals.show');
+});
+
+Route::middleware(['web', 'auth', 'can:access-pemilik'])->prefix('pemilik')->name('pemilik.')->group(function () {
+    Route::get('status-produk', [StatusProdukController::class, 'index'])->name('status_produk');
+    Route::get('laporan', [LaporanController::class, 'index'])->name('laporan');
+    Route::get('laporan/download', [LaporanController::class, 'download'])->name('laporan.download');
+});
+
+Route::middleware(['web', 'auth', 'can:access-kasir'])->prefix('kasir')->name('kasir.')->group(function () {
+    Route::get('transaksi', [TransaksiController::class, 'index'])->name('transaksi.index'); // form cari
+    Route::get('transaksi/{rental}', [TransaksiController::class, 'show'])->name('transaksi.show'); // detail
+    Route::post('transaksi/{rental}/pengembalian', [TransaksiController::class, 'pengembalian'])->name('transaksi.pengembalian'); // konfirmasi
 });
