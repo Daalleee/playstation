@@ -3,7 +3,7 @@
 <form method="POST" action="{{ route('logout') }}">
     @csrf
     <button type="submit">Logout</button>
-    </form>
+</form>
 
 <nav style="margin-top: 1rem;">
     <ul>
@@ -15,4 +15,4 @@
         <li><a href="{{ route('admin.staff.index', ['role' => 'pemilik']) }}">Manajemen Staff (Pemilik)</a></li>
         <li><a href="{{ route('admin.staff.index', ['role' => 'admin']) }}">Manajemen Staff (Admin)</a></li>
     </ul>
- </nav>
+</nav>
