@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Owner\StatusProdukController;
 use App\Http\Controllers\Owner\LaporanController;
 use App\Http\Controllers\Kasir\TransaksiController;
+use App\Http\Controllers\Admin\ImpersonateController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -114,4 +115,9 @@ Route::middleware(['web', 'auth', 'can:access-kasir'])->prefix('kasir')->name('k
     Route::get('transaksi', [TransaksiController::class, 'index'])->name('transaksi.index'); // form cari
     Route::get('transaksi/{rental}', [TransaksiController::class, 'show'])->name('transaksi.show'); // detail
     Route::post('transaksi/{rental}/pengembalian', [TransaksiController::class, 'pengembalian'])->name('transaksi.pengembalian'); // konfirmasi
+});
+
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('admin/impersonate/{user}', [ImpersonateController::class, 'impersonate'])->name('admin.impersonate');
+    Route::post('admin/impersonate/leave', [ImpersonateController::class, 'leaveImpersonate'])->name('admin.impersonate.leave');
 });
