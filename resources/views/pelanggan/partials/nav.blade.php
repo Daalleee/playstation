@@ -10,4 +10,10 @@
         @csrf
         <button type="submit">Logout</button>
     </form>
+    @if(session('impersonate_admin_id'))
+        <form action="{{ route('admin.impersonate.leave') }}" method="POST" style="display:inline;">
+            @csrf
+            <button type="submit" style="background:#fd7e14; color:white; border:none; padding:4px 12px; border-radius:4px;">Kembali ke Admin</button>
+        </form>
+    @endif
 </nav>
