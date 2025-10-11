@@ -108,7 +108,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 Route::middleware(['web', 'auth', 'can:access-pemilik'])->prefix('pemilik')->name('pemilik.')->group(function () {
     Route::get('status-produk', [StatusProdukController::class, 'index'])->name('status_produk');
     Route::get('laporan', [LaporanController::class, 'index'])->name('laporan');
-    Route::get('laporan/download', [LaporanController::class, 'download'])->name('laporan.download');
+    Route::get('laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
 });
 
 Route::middleware(['web', 'auth', 'can:access-kasir'])->prefix('kasir')->name('kasir.')->group(function () {
