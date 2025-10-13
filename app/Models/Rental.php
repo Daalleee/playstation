@@ -23,6 +23,7 @@ class Rental extends Model
         'total',
         'paid',
         'notes',
+        'kode', // kode transaksi unik
     ];
 
     protected $casts = [
@@ -49,6 +50,26 @@ class Rental extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Generate kode transaksi unik 4 karakter (AA01, AB12, ...)
+     */
+    public static function generateKodeUnik(): string
+    {
+        $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $maxTry = 100;
+        for ($i = 0; $i < $maxTry; $i++) {
+            $huruf1 = $alphabet[rand(0,25)];
+            $huruf2 = $alphabet[rand(0,25)];
+            $angka = str_pad(strval(rand(1,99)), 2, '0', STR_PAD_LEFT);
+            $kode = $huruf1.$huruf2.$angka;
+            if (!self::where('kode', $kode)->exists()) {
+                return $kode;
+            }
+        }
+        // fallback kode unik panjang jika semua terpakai
+        return strtoupper(substr(uniqid(), -4));
     }
 }
 
