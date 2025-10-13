@@ -115,6 +115,7 @@ Route::middleware(['web', 'auth', 'can:access-kasir'])->prefix('kasir')->name('k
     Route::get('transaksi', [TransaksiController::class, 'index'])->name('transaksi.index'); // form cari
     Route::get('transaksi/{rental}', [TransaksiController::class, 'show'])->name('transaksi.show'); // detail
     Route::post('transaksi/{rental}/pengembalian', [TransaksiController::class, 'pengembalian'])->name('transaksi.pengembalian'); // konfirmasi
+    Route::post('transaksi/{rental}/aktifkan', [TransaksiController::class, 'aktifkan'])->name('transaksi.aktifkan'); // aktifkan sewa setelah dibayar
 });
 
 Route::middleware(['web', 'auth'])->group(function () {
