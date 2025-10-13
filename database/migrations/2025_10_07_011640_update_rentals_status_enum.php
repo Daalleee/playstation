@@ -10,7 +10,7 @@ return new class extends Migration
     public function up(): void
     {
         // Update enum values untuk status di tabel rentals
-        DB::statement("ALTER TABLE rentals MODIFY COLUMN status ENUM('draft', 'pending', 'ongoing', 'returned', 'overdue', 'cancelled') DEFAULT 'draft'");
+        DB::statement("ALTER TABLE rentals MODIFY COLUMN status ENUM('draft', 'pending', 'paid', 'ongoing', 'active', 'returned', 'overdue', 'cancelled') DEFAULT 'draft'");
     }
 
     public function down(): void
