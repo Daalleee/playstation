@@ -13,11 +13,17 @@ class TransaksiController extends Controller
     public function index(Request $request)
     {
         Gate::authorize('access-kasir');
+        $rentals = Rental::with('customer')->orderByDesc('start_at')->paginate(10); // tampilkan semua
         $rental = null;
-        if ($request->filled('rental_id')) {
-            $rental = Rental::with('items.rentable')->where('id', $request->rental_id)->first();
+        if ($request->filled('rental_kode')) {
+            $kode = $request->rental_kode;
+            $rental = Rental::where('kode', $kode)->with('customer','items.rentable')->first();
+            if (!$rental) {
+                return view('kasir.transaksi.index', compact('rentals'))
+                    ->with('status', 'Kode transaksi tidak ditemukan.');
+            }
         }
-        return view('kasir.transaksi.index', compact('rental'));
+        return view('kasir.transaksi.index', compact('rental', 'rentals'));
     }
 
     public function show(Rental $rental)
@@ -25,6 +31,17 @@ class TransaksiController extends Controller
         Gate::authorize('access-kasir');
         $rental->load('items.rentable');
         return view('kasir.transaksi.show', compact('rental'));
+    }
+
+    public function aktifkan(Rental $rental)
+    {
+        Gate::authorize('access-kasir');
+        if ($rental->status !== 'paid') {
+            return back()->with('status', 'Transaksi harus sudah dibayar untuk diaktifkan!');
+        }
+        $rental->status = 'active';
+        $rental->save();
+        return back()->with('status', 'Transaksi sewa sudah diaktifkan, barang sudah diberikan ke pelanggan.');
     }
 
     public function pengembalian(Request $request, Rental $rental)
