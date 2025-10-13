@@ -48,4 +48,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Relasi dengan rentals
+    public function rentals()
+    {
+        return $this->hasMany(Rental::class, 'user_id');
+    }
+
+    // Relasi dengan carts
+    public function carts()
+    {
+        return $this->hasMany(Cart::class);
+    }
 }
