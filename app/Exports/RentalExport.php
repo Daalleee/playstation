@@ -39,7 +39,7 @@ class RentalExport implements FromCollection, WithHeadings, WithMapping
                 $row['Tanggal Kembali'] = $rental->due_at ? $rental->due_at->format('d/m/Y') : '-';
                 $row['Pelanggan'] = $rental->customer ? $rental->customer->name : '-';
                 $row['Total'] = $rental->total;
-                $row['Status'] = $rental->status;
+                $row['Status'] = $rental->status == 'returned' ? 'Dikembalikan' : 'Menunggu';
                 if ($item->rentable_type === 'App\\Models\\UnitPS') {
                     $row['Jenis'] = 'Unit PS';
                     $row['Nama/Judul'] = $item->rentable->nama ?? $item->rentable->name ?? '-';
