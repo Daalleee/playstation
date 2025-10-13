@@ -65,6 +65,7 @@ class RentalController extends Controller
                 'due_at' => $validated['return_date'],
                 'status' => 'pending',
                 'notes' => $validated['notes'] ?? null,
+                'kode' => Rental::generateKodeUnik(),
             ]);
 
             $totalAmount = 0;
