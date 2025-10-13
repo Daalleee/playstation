@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <h1>Status Produk</h1>
+<a href="{{ route('dashboard.pemilik') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
 
 <h2>Unit PS</h2>
 <table border="1" cellpadding="8" cellspacing="0" style="width:100%;margin-bottom:2rem;">

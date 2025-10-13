@@ -1,5 +1,6 @@
 @include('pelanggan.partials.nav')
 <h1>Riwayat Penyewaan</h1>
+<a href="{{ route('dashboard.pelanggan') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
 
 @if(session('status'))
     <div style="background: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
@@ -29,27 +30,15 @@
             <tbody>
                 @foreach($rentals as $rental)
                 <tr>
-                    <td>#{{ $rental->id }}</td>
+                    <td>#{{ $rental->kode ?? $rental->id }}</td>
                     <td>{{ \Carbon\Carbon::parse($rental->start_at)->format('d M Y') }}</td>
                     <td>{{ \Carbon\Carbon::parse($rental->due_at)->format('d M Y') }}</td>
                     <td>
-                        @switch($rental->status)
-                            @case('pending')
-                                <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Menunggu</span>
-                                @break
-                            @case('confirmed')
-                                <span style="background: #17a2b8; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikonfirmasi</span>
-                                @break
-                            @case('active')
-                                <span style="background: #28a745; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Aktif</span>
-                                @break
-                            @case('returned')
-                                <span style="background: #6c757d; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikembalikan</span>
-                                @break
-                            @case('cancelled')
-                                <span style="background: #dc3545; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dibatalkan</span>
-                                @break
-                        @endswitch
+                        @if($rental->status == 'returned')
+                            <span style="background: #6c757d; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikembalikan</span>
+                        @else
+                            <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Menunggu</span>
+                        @endif
                     </td>
                     <td>Rp {{ number_format($rental->total, 0, ',', '.') }}</td>
                     <td>

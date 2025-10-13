@@ -1,5 +1,6 @@
 @include('admin.partials.nav')
 <h1>Kelola Game</h1>
+<a href="{{ route('dashboard.admin') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
 <a href="{{ route('admin.games.create') }}">Tambah Game</a>
 
 @if(session('status'))

@@ -1,5 +1,6 @@
 @include('pelanggan.partials.nav')
 <h1>Edit Profil</h1>
+<a href="{{ route('pelanggan.profile.show') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Profil</a>
 
 @if($errors->any())
     <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">

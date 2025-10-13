@@ -17,23 +17,11 @@
             </div>
             <div style="margin-bottom: 1rem;">
                 <strong>Status:</strong> 
-                @switch($rental->status)
-                    @case('pending')
-                        <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Menunggu Konfirmasi</span>
-                        @break
-                    @case('confirmed')
-                        <span style="background: #17a2b8; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikonfirmasi</span>
-                        @break
-                    @case('active')
-                        <span style="background: #28a745; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Aktif</span>
-                        @break
-                    @case('returned')
-                        <span style="background: #6c757d; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikembalikan</span>
-                        @break
-                    @case('cancelled')
-                        <span style="background: #dc3545; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dibatalkan</span>
-                        @break
-                @endswitch
+                @if($rental->status == 'returned')
+                    <span style="background: #6c757d; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikembalikan</span>
+                @else
+                    <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Menunggu</span>
+                @endif
             </div>
             <div style="margin-bottom: 1rem;">
                 <strong>Total:</strong> Rp {{ number_format($rental->total, 0, ',', '.') }}

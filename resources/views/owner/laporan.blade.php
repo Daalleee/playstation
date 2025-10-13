@@ -2,6 +2,7 @@
 @section('content')
 <div class="container">
     <h1 class="mb-4">Laporan Transaksi</h1>
+    <a href="{{ route('dashboard.pemilik') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
     <div class="mb-2">
         <strong>Filter berdasarkan rentang tanggal (Tgl Sewa):</strong>
     </div>
@@ -28,6 +29,9 @@
             <th>Tgl Sewa</th>
             <th>Tgl Kembali</th>
             <th>Pelanggan</th>
+            <th>Email</th>
+            <th>No. HP</th>
+            <th>Alamat</th>
             <th>Total</th>
             <th>Status</th>
             <th>Detail Sewa</th>
@@ -36,7 +40,7 @@
         <tbody>
         @if (count($rentals) === 0)
         <tr>
-            <td colspan="7" class="text-center text-muted">Tidak ada laporan.</td>
+            <td colspan="10" class="text-center text-muted">Tidak ada laporan.</td>
         </tr>
         @endif
         @foreach ($rentals as $rental)
@@ -45,8 +49,17 @@
                 <td>{{ $rental->start_at ? $rental->start_at->format('d/m/Y') : '-' }}</td>
                 <td>{{ $rental->due_at ? $rental->due_at->format('d/m/Y') : '-' }}</td>
                 <td>{{ $rental->customer ? $rental->customer->name : '-' }}</td>
+                <td>{{ $rental->customer ? $rental->customer->email : '-' }}</td>
+                <td>{{ $rental->customer ? $rental->customer->phone : '-' }}</td>
+                <td>{{ $rental->customer ? $rental->customer->address : '-' }}</td>
                 <td>Rp{{ number_format($rental->total,0,',','.') }}</td>
-                <td>{{ ucfirst($rental->status) }}</td>
+                <td>
+                    @if($rental->status == 'returned')
+                        <span style="background: #6c757d; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikembalikan</span>
+                    @else
+                        <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Menunggu</span>
+                    @endif
+                </td>
                 <td>
                     <table class="table table-bordered table-sm mb-0">
                         <thead>
