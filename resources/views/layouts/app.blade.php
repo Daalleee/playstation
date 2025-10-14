@@ -13,7 +13,8 @@
         }
 
         .app-navbar {
-            background: #0d6efd;
+            background: linear-gradient(90deg, #0b3d91, #1e40af);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
         }
 
         .app-navbar .navbar-brand,
@@ -29,6 +30,7 @@
 </head>
 
 <body>
+    @unless (request()->routeIs(['login.show','register.show','dashboard.*','pelanggan.*']))
     <nav class="navbar navbar-expand-lg app-navbar">
         <div class="container">
             <a class="navbar-brand fw-semibold" href="/">Rental Playstation</a>
@@ -54,9 +56,14 @@
             </div>
         </div>
     </nav>
-    <div class="container py-4">
+    @endunless
+    @if (request()->routeIs(['login.show','register.show','dashboard.*','pelanggan.*']))
         @yield('content')
-    </div>
+    @else
+        <div class="container py-4">
+            @yield('content')
+        </div>
+    @endif
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
     </script>
