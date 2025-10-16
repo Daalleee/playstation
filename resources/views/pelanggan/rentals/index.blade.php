@@ -1,66 +1,81 @@
-@include('pelanggan.partials.nav')
-<h1>Riwayat Penyewaan</h1>
-<a href="{{ route('dashboard.pelanggan') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
+@extends('layouts.app')
+@section('content')
+<style>
+  .dash-dark{ background:#2b3156; color:#e7e9ff; border-radius:0; min-height:100dvh; }
+  .dash-layout{ display:flex; gap:1rem; }
+  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); position:sticky; top:1rem; min-height:calc(100dvh - 2rem); }
+  .dash-main{ flex:1; }
+  .page-hero{ text-align:center; padding:1rem; }
+  .page-hero h2{ font-weight:800; margin:0; }
+  .card-dark{ background:#1f2446; border:none; border-radius:1rem; padding:1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); }
+  table.dark{ width:100%; color:#e7e9ff; border-collapse:collapse; }
+  table.dark th, table.dark td{ border:1px solid #2f3561; padding:.5rem .6rem; }
+  table.dark thead th{ background:#23284a; font-weight:800; }
+  .badge-ok{ background:#1f9d62; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
+  .badge-warn{ background:#d97a2b; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
+  .btn-detail{ background:#6f7dd6; color:#fff; border:none; padding:.3rem .6rem; border-radius:.4rem; text-decoration:none; }
+</style>
 
-@if(session('status'))
-    <div style="background: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-        {{ session('status') }}
-    </div>
-@endif
+<div class="dash-dark p-3">
+  <div class="dash-layout">
+    @include('pelanggan.partials.sidebar')
 
-@if(session('error'))
-    <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-        {{ session('error') }}
-    </div>
-@endif
+    <main class="dash-main">
+      <div class="page-hero">
+        <h2>Riwayat Penyewaan</h2>
+      </div>
 
-@if($rentals->count() > 0)
-    <div style="margin-top: 2rem;">
-        <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+      @if(session('status'))
+        <div class="alert alert-success">{{ session('status') }}</div>
+      @endif
+      @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+      @endif
+
+      <div class="card-dark">
+        <div class="table-responsive">
+          <table class="dark">
             <thead>
-                <tr style="background: #f8f9fa;">
-                    <th>ID Rental</th>
-                    <th>Tanggal Sewa</th>
-                    <th>Tanggal Kembali</th>
-                    <th>Status</th>
-                    <th>Total</th>
-                    <th>Aksi</th>
-                </tr>
+              <tr>
+                <th>ID Transaksi</th>
+                <th>Unit/Game</th>
+                <th>Tanggal Sewa</th>
+                <th>Durasi</th>
+                <th>Biaya</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
             </thead>
             <tbody>
-                @foreach($rentals as $rental)
+              @forelse($rentals as $rental)
+                @php
+                  $start = \Carbon\Carbon::parse($rental->start_at);
+                  $due = \Carbon\Carbon::parse($rental->due_at);
+                  $hours = $start->diffInHours($due);
+                  $firstItem = optional($rental->items->first());
+                  $itemName = $firstItem->name ?? ($rental->kode ? 'Transaksi '.$rental->kode : 'Item');
+                  $st = strtolower($rental->status ?? 'pending');
+                @endphp
                 <tr>
-                    <td>#{{ $rental->kode ?? $rental->id }}</td>
-                    <td>{{ \Carbon\Carbon::parse($rental->start_at)->format('d M Y') }}</td>
-                    <td>{{ \Carbon\Carbon::parse($rental->due_at)->format('d M Y') }}</td>
-                    <td>
-                        @if($rental->status == 'returned')
-                            <span style="background: #6c757d; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikembalikan</span>
-                        @else
-                            <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Menunggu</span>
-                        @endif
-                    </td>
-                    <td>Rp {{ number_format($rental->total, 0, ',', '.') }}</td>
-                    <td>
-                        <a href="{{ route('pelanggan.rentals.show', $rental) }}" style="background: #007bff; color: white; padding: 0.25rem 0.5rem; text-decoration: none; border-radius: 3px;">
-                            Detail
-                        </a>
-                    </td>
+                  <td>{{ $rental->kode ?? ('TRX'.$rental->id) }}</td>
+                  <td>{{ $itemName }}</td>
+                  <td>{{ $start->format('Y-m-d') }}</td>
+                  <td>{{ $hours }} Jam</td>
+                  <td>Rp {{ number_format($rental->total, 0, ',', '.') }}</td>
+                  <td><span class="{{ in_array($st,['returned','selesai']) ? 'badge-ok' : 'badge-warn' }}">{{ ucfirst($st) }}</span></td>
+                  <td><a href="{{ route('pelanggan.rentals.show', $rental) }}" class="btn-detail">Detail</a></td>
                 </tr>
-                @endforeach
+              @empty
+                <tr><td colspan="7" class="text-center">Belum ada riwayat.</td></tr>
+              @endforelse
             </tbody>
-        </table>
-        
-        <div style="margin-top: 2rem;">
-            {{ $rentals->links() }}
+          </table>
         </div>
-    </div>
-@else
-    <div style="text-align: center; margin-top: 3rem;">
-        <h3>Belum Ada Riwayat Penyewaan</h3>
-        <p>Anda belum pernah melakukan penyewaan.</p>
-        <a href="{{ route('pelanggan.unitps.index') }}" style="background: #007bff; color: white; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px;">
-            Mulai Berbelanja
-        </a>
-    </div>
-@endif
+        <div class="mt-3">
+          {{ method_exists($rentals,'links') ? $rentals->links() : '' }}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+@endsection

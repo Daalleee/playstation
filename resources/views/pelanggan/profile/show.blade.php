@@ -3,7 +3,7 @@
 <style>
   .dash-dark{ background:#2b3156; color:#e7e9ff; border-radius:0; min-height:100dvh; }
   .dash-layout{ display:flex; gap:1rem; }
-  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); position:sticky; top:1rem; height:fit-content; }
+  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); position:sticky; top:1rem; min-height:calc(100dvh - 2rem); }
   .dash-logo{ width:100%; display:grid; place-items:center; margin-bottom:1rem; }
   .dash-logo .circle{ width:96px; height:96px; border-radius:50%; background:#0b3d91; display:grid; place-items:center; box-shadow:inset 0 -8px 14px rgba(0,0,0,.25); }
   .dash-menu{ list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.4rem; }
