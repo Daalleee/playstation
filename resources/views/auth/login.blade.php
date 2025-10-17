@@ -17,6 +17,7 @@
   .login-title { text-align: center; font-weight: 800; color: #ffffff; margin-bottom: 14px; letter-spacing: .2px; }
   .form-underline { position: relative; margin-bottom: 16px; }
   .form-underline input { width: 100%; border: none; outline: none; background: transparent; padding: 12px 12px 12px 36px; border-bottom: 2px solid rgba(255,255,255,.9); color: #ffffff; font-size: 15px; border-radius: 0; }
+  .form-underline input { font-size: 16px; }
   .form-underline input::placeholder { color: rgba(255,255,255,.82); }
   .form-underline input:focus { border-bottom-color: #ffffff; box-shadow: none; }
   .form-underline .icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,.92); opacity: 1; }
@@ -29,6 +30,14 @@
   .btn-google img { width: 18px; height: 18px; }
   .auth-alt { text-align: center; margin-top: 10px; }
   .auth-alt a { color: #f6f7ff; text-decoration: none; font-size: 14px; }
+  @media (max-width: 575.98px) {
+    .auth-hero { height: 28vh; margin: 10px; border-radius: 14px; }
+    .auth-panel { padding: 16px; }
+    .panel-inner { margin: 0 10px; }
+    .login-card { max-width: 100%; padding: 24px 18px; border-radius: 22px; }
+    .login-title { font-size: 1.35rem; }
+    .btn-primary-login, .btn-google { padding: 12px 14px; }
+  }
   @media (min-width: 576px) { .panel-inner { margin: 0 5%; } }
   @media (min-width: 480px) { .login-card { padding: 32px 26px; border-radius: 30px; } }
   @media (min-width: 992px) {
@@ -100,10 +109,10 @@
 
           <button type="submit" class="btn-primary-login mb-3">Login</button>
 
-          <button type="button" class="btn-google" onclick="alert('Google Sign-In belum dikonfigurasi');">
+          <a class="btn-google" href="{{ route('auth.google.redirect') }}">
             <img alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" />
             <span>Login With Google</span>
-          </button>
+          </a>
 
           <div class="auth-alt mt-2">
             <small>Belum punya akun? <a href="{{ route('register.show') }}">Registrasi di sini</a></small>

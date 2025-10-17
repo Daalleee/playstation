@@ -24,10 +24,11 @@
   }
   .dash-logo{ width:100%; display:grid; place-items:center; margin-bottom:1rem; }
   .dash-logo .circle{ width:96px; height:96px; border-radius:50%; background:#0b3d91; display:grid; place-items:center; box-shadow:inset 0 -8px 14px rgba(0,0,0,.25); }
-  .dash-menu{ list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.4rem; }
-  .dash-menu a{ display:flex; align-items:center; gap:.6rem; padding:.6rem .8rem; border-radius:.6rem; color:#e9e9ff; text-decoration:none; font-weight:700; background:transparent; }
-  .dash-menu a:hover{ background:rgba(255,255,255,.06); }
+  .dash-menu{ list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.5rem; }
+  .dash-menu a{ display:flex; align-items:center; gap:.6rem; padding:.65rem .9rem; border-radius:.6rem; color:#b8baf0; text-decoration:none; font-weight:700; background:transparent; }
+  .dash-menu a:hover, .dash-menu a.active{ background:rgba(255,255,255,.06); color:#fff; }
   .dash-icon{ width:22px; height:22px; display:inline-grid; place-items:center; }
+  .dash-logout{ margin-top:1rem; }
 </style>
 <button type="button" class="dash-toggle" aria-label="Buka/Tutup menu">☰</button>
 <div class="dash-overlay"></div>
@@ -39,17 +40,17 @@
     </div>
   </div>
   <ul class="dash-menu">
-    <li><a href="{{ route('dashboard.pelanggan') }}"><span class="dash-icon">🏠</span> <span>Beranda</span></a></li>
-    <li><a href="{{ route('pelanggan.profile.show') }}"><span class="dash-icon">👤</span> <span>Profil</span></a></li>
-    <li><a href="{{ route('pelanggan.unitps.index') }}"><span class="dash-icon">🎮</span> <span>Lihat Unit & Game</span></a></li>
-    <li><a href="{{ route('pelanggan.accessories.index') }}"><span class="dash-icon">🧩</span> <span>Aksesoris</span></a></li>
-    <li><a href="{{ route('pelanggan.rentals.create') }}"><span class="dash-icon">🛒</span> <span>Penyewaan</span></a></li>
-    <li><a href="{{ route('pelanggan.rentals.index') }}"><span class="dash-icon">🔁</span> <span>Riwayat Penyewaan</span></a></li>
-    <li>
-      <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><span class="dash-icon">↩️</span> <span>Logout</span></a>
-      <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
-    </li>
+    <li><a href="{{ route('dashboard.pelanggan') }}" class="{{ request()->routeIs('dashboard.pelanggan') ? 'active' : '' }}"><span class="dash-icon">🏠</span> <span>Beranda</span></a></li>
+    <li><a href="{{ route('pelanggan.profile.show') }}" class="{{ request()->routeIs('pelanggan.profile.*') ? 'active' : '' }}"><span class="dash-icon">👤</span> <span>Profil</span></a></li>
+    <li><a href="{{ route('pelanggan.unitps.index') }}" class="{{ request()->routeIs('pelanggan.unitps.*') ? 'active' : '' }}"><span class="dash-icon">🎮</span> <span>Lihat Unit & Game</span></a></li>
+    <li><a href="{{ route('pelanggan.accessories.index') }}" class="{{ request()->routeIs('pelanggan.accessories.*') ? 'active' : '' }}"><span class="dash-icon">🧩</span> <span>Aksesoris</span></a></li>
+    <li><a href="{{ route('pelanggan.rentals.create') }}" class="{{ request()->routeIs('pelanggan.rentals.create') ? 'active' : '' }}"><span class="dash-icon">🛒</span> <span>Penyewaan</span></a></li>
+    <li><a href="{{ route('pelanggan.rentals.index') }}" class="{{ request()->routeIs('pelanggan.rentals.index') ? 'active' : '' }}"><span class="dash-icon">🔁</span> <span>Riwayat Penyewaan</span></a></li>
   </ul>
+  <form id="logout-form" action="{{ route('logout') }}" method="POST" class="dash-logout">
+    @csrf
+    <button type="submit" class="btn btn-danger w-100"><span class="me-2">↩️</span> Logout</button>
+  </form>
 </aside>
 <script>
   (function(){
