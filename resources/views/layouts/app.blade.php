@@ -30,7 +30,7 @@
 </head>
 
 <body>
-    @unless (request()->routeIs(['login.show','register.show','dashboard.*','pelanggan.*']))
+    @unless (request()->routeIs(['login.show','register.show','dashboard.*','pelanggan.*','admin.*']))
     <nav class="navbar navbar-expand-lg app-navbar">
         <div class="container">
             <a class="navbar-brand fw-semibold" href="/">Rental Playstation</a>
@@ -57,7 +57,7 @@
         </div>
     </nav>
     @endunless
-    @if (request()->routeIs(['login.show','register.show','dashboard.*','pelanggan.*']))
+    @if (request()->routeIs(['login.show','register.show','dashboard.*','pelanggan.*','admin.*']))
         @yield('content')
     @else
         <div class="container py-4">

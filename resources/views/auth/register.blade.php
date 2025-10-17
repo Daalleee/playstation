@@ -13,12 +13,21 @@
   .login-title { text-align: center; font-weight: 800; color: #ffffff; margin-bottom: 14px; letter-spacing: .2px; }
   .form-underline { position: relative; margin-bottom: 14px; }
   .form-underline input { width: 100%; border: none; outline: none; background: transparent; padding: 12px 12px 12px 36px; border-bottom: 2px solid rgba(255,255,255,.9); color: #ffffff; font-size: 15px; border-radius: 0; }
+  .form-underline input { font-size: 16px; }
   .form-underline input::placeholder { color: rgba(255,255,255,.82); }
   .form-underline input:focus { border-bottom-color: #ffffff; box-shadow: none; }
   .form-underline .icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,.92); opacity: 1; }
   .toggle-pass { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: 0; padding: 4px 6px; color: #ffffff; }
   .btn-primary-login { display: block; width: 100%; background: linear-gradient(90deg,#5a35ff,#6d56ff); color: #fff; font-weight: 700; border: none; padding: 10px 16px; border-radius: 999px; }
   .auth-alt a { color: #f6f7ff; text-decoration: none; font-size: 14px; }
+  @media (max-width: 575.98px) {
+    .auth-hero { height: 28vh; margin: 10px; border-radius: 14px; }
+    .auth-panel { padding: 16px; }
+    .panel-inner { margin: 0 10px; }
+    .login-card { max-width: 100%; padding: 24px 18px; border-radius: 22px; }
+    .login-title { font-size: 1.35rem; }
+    .btn-primary-login { padding: 12px 14px; }
+  }
   @media (min-width: 520px) { .login-card { border-radius: 32px; padding: 38px 28px; } }
   @media (min-width: 992px) {
     .auth-split { flex-direction: row; }

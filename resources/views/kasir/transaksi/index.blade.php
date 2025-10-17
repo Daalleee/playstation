@@ -1,70 +1,80 @@
-@include('kasir.partials.nav')
-<h1>Cari Transaksi Penyewaan</h1>
-<a href="{{ route('dashboard.kasir') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
-@if(session('status'))
-    <div style="background: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-        {{ session('status') }}
-    </div>
-@endif
-<form method="GET" action="">
-    <label>Kode Transaksi:
-        <input type="text" name="rental_kode" value="{{ request('rental_kode') }}">
-    </label>
-    <button type="submit">Cari</button>
-</form>
-@if(isset($rental) && $rental)
-    @if($rental->status == 'returned')
-        <div style="background: #e2e3e5; color: #383d41; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-            Barang pada transaksi kode <b>{{ $rental->kode ?? $rental->id }}</b> sudah dikembalikan oleh pelanggan!
-        </div>
-    @else
-        <hr>
-        <h2>Detail Transaksi #{{ $rental->kode ?? $rental->id }}</h2>
-        <p>Status: <b>{{ ucfirst($rental->status) }}</b></p>
-        <a href="{{ route('kasir.transaksi.show', $rental) }}">Lihat Detail & Pengembalian</a>
+@extends('kasir.layout')
+@section('title','Transaksi - Kasir')
+@section('kasir_content')
+    @if(session('status'))
+        <div class="alert alert-success">{{ session('status') }}</div>
     @endif
-@endif
-<hr>
-<h2>Daftar Semua Transaksi</h2>
-<table border="1" cellpadding="8" cellspacing="0" style="width:100%">
-    <thead>
-        <tr>
-            <th>Kode Transaksi</th>
-            <th>Nama Pelanggan</th>
-            <th>Status</th>
-            <th>Total</th>
-            <th>Lihat</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach($rentals as $r)
-        <tr>
-            <td>{{ $r->kode ?? $r->id }}</td>
-            <td>{{ $r->customer ? $r->customer->name : '-' }}</td>
-            <td>
-                @switch($r->status)
-                    @case('pending')
-                        <span style="background: #ffc107; color: #000; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Menunggu Pembayaran</span>
-                        @break
-                    @case('paid')
-                        <span style="background: #198754; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Sudah Dibayar</span>
-                        @break
-                    @case('active')
-                        <span style="background: #0d6efd; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Aktif (Sedang Disewa)</span>
-                        @break
-                    @case('returned')
-                        <span style="background: #6c757d; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikembalikan</span>
-                        @break
-                    @case('cancelled')
-                        <span style="background: #dc3545; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dibatalkan</span>
-                        @break
-                    @default
-                        <span>{{ ucfirst($r->status) }}</span>
-                @endswitch
-            </td>
-            <td>Rp{{ number_format($r->total,0,',','.') }}</td>
-            <td><a href="{{ route('kasir.transaksi.show', $r) }}">Detail & Pengembalian</a></td>
-        </tr>
-    @endforeach
-    </tbody>
-</table>
+
+    <div class="card p-3 mb-3">
+        <form method="GET" action="" class="row g-2 align-items-end">
+            <div class="col-sm-6 col-md-4">
+                <label class="form-label">Kode Transaksi</label>
+                <input type="text" name="rental_kode" value="{{ request('rental_kode') }}" class="form-control" placeholder="Masukkan kode / ID">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i> Cari</button>
+            </div>
+            <div class="col-auto">
+                <a href="{{ route('dashboard.kasir') }}" class="btn btn-secondary">Kembali</a>
+            </div>
+        </form>
+        @if(isset($rental) && $rental)
+            <hr class="text-white-50">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted">Transaksi ditemukan</div>
+                    <div class="h6 mb-0">#{{ $rental->kode ?? $rental->id }}</div>
+                </div>
+                <a href="{{ route('kasir.transaksi.show', $rental) }}" class="btn btn-light">Lihat Detail</a>
+            </div>
+        @endif
+    </div>
+
+    <div class="card p-3">
+        <h6 class="mb-3 text-light">Daftar Semua Transaksi</h6>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Pelanggan</th>
+                        <th>Status</th>
+                        <th class="text-end">Total</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach($rentals as $r)
+                    <tr>
+                        <td>{{ $r->kode ?? $r->id }}</td>
+                        <td>{{ $r->customer->name ?? '-' }}</td>
+                        <td>
+                            @switch($r->status)
+                                @case('pending')
+                                    <span class="badge text-bg-warning text-dark">Menunggu</span>
+                                    @break
+                                @case('paid')
+                                    <span class="badge text-bg-success">Dibayar</span>
+                                    @break
+                                @case('active')
+                                    <span class="badge text-bg-primary">Aktif</span>
+                                    @break
+                                @case('returned')
+                                    <span class="badge text-bg-secondary">Dikembalikan</span>
+                                    @break
+                                @case('cancelled')
+                                    <span class="badge text-bg-danger">Dibatalkan</span>
+                                    @break
+                                @default
+                                    <span class="badge text-bg-dark">{{ ucfirst($r->status) }}</span>
+                            @endswitch
+                        </td>
+                        <td class="text-end">Rp {{ number_format($r->total,0,',','.') }}</td>
+                        <td><a href="{{ route('kasir.transaksi.show', $r) }}" class="btn btn-light btn-sm">Detail</a></td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+@endsection

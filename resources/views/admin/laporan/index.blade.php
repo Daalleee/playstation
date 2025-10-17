@@ -1,0 +1,86 @@
+@extends('admin.layout')
+@section('title','Laporan - Admin')
+@section('admin_content')
+        <style>
+            .metric{background:var(--panel-soft);border-radius:12px;padding:16px}
+            .metric .text-muted{color:#b8baf0 !important}
+            .metric .fs-4,.metric .fs-5{color:#e6e8ff}
+            .table-container{ max-height: 420px; overflow:auto; border-radius:12px; }
+            .table thead th{ position: sticky; top: 0; z-index: 1; }
+            @media (max-width: 575.98px){ .metric{ padding:12px } }
+        </style>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h4 m-0">Laporan</h1>
+        </div>
+        <div class="container-fluid px-2 px-md-0">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="metric">
+                        <div class="text-muted">Pendapatan Hari Ini</div>
+                        <div class="fs-4 fw-bold">Rp {{ number_format($revenueToday ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric">
+                        <div class="text-muted">Pendapatan Bulan Ini</div>
+                        <div class="fs-4 fw-bold">Rp {{ number_format($revenueMonth ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric">
+                        <div class="text-muted">Total Pendapatan</div>
+                        <div class="fs-4 fw-bold">Rp {{ number_format($revenueTotal ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-4">
+                    <div class="metric">
+                        <div class="text-muted">Total Transaksi</div>
+                        <div class="fs-5 fw-semibold">{{ $rentalsTotal ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric">
+                        <div class="text-muted">Transaksi Aktif</div>
+                        <div class="fs-5 fw-semibold">{{ $rentalsActive ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="metric">
+                        <div class="text-muted">Transaksi Selesai</div>
+                        <div class="fs-5 fw-semibold">{{ $rentalsReturned ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 mt-3">
+                <h6 class="mb-3 text-light">Pembayaran Terbaru</h6>
+                <div class="table-responsive table-container">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Customer</th>
+                                <th>Metode</th>
+                                <th class="text-end">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse(($latestPayments ?? []) as $pay)
+                            <tr>
+                                <td>{{ $pay->paid_at?->format('d M Y H:i') }}</td>
+                                <td>{{ $pay->rental?->customer?->name ?? '-' }}</td>
+                                <td>{{ strtoupper($pay->method ?? '-') }}</td>
+                                <td class="text-end">Rp {{ number_format($pay->amount ?? 0, 0, ',', '.') }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="text-center text-muted">Belum ada pembayaran</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+@endsection
