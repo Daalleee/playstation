@@ -3,9 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\UnitPSController;
 use App\Http\Controllers\Admin\GameController;
@@ -35,14 +37,34 @@ Route::get('/', function () {
             default => redirect()->route('dashboard.pelanggan'),
         };
     }
-    return view('auth.login');
+    return view('landing');
 });
+
+// Public landing page (direct link)
+Route::view('/landing', 'landing')->name('landing');
+
+// Serve files from the public disk without requiring the /public/storage symlink
+Route::get('/media/{path}', function (string $path) {
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+    return Storage::disk('public')->response($path);
+})->where('path', '.*')->name('media');
 
 Route::get('/register', [RegisterController::class, 'show'])->name('register.show');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 
 Route::get('/login', [LoginController::class, 'show'])->name('login.show');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+
+// Google OAuth
+Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google.redirect');
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+
+// Alias for default auth middleware redirect (expects route name 'login')
+Route::get('/auth', function () {
+    return redirect()->route('login.show');
+})->name('login');
 
 Route::middleware(['web', 'auth'])->group(function () {
     // Admin - Pelanggan
@@ -70,6 +92,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/dashboard/kasir', [DashboardController::class, 'kasir'])->name('dashboard.kasir');
     Route::get('/dashboard/pemilik', [DashboardController::class, 'pemilik'])->name('dashboard.pemilik');
     Route::get('/dashboard/pelanggan', [DashboardController::class, 'pelanggan'])->name('dashboard.pelanggan');
+    Route::get('admin/laporan', [DashboardController::class, 'adminReport'])->name('admin.laporan');
 
     // Logout (POST)
     Route::post('/logout', function (Request $request) {

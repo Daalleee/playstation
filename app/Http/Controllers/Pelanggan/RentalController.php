@@ -128,31 +128,41 @@ class RentalController extends Controller
                 ];
             }
             $orderId = 'ORD-'.date('Ymd').'-'.$rental->id.'-'.substr(uniqid(), -5);
-            $params = [
-                'transaction_details' => [
-                    'order_id' => $orderId,
-                    'gross_amount' => (int) $totalAmount,
-                ],
-                'item_details' => $items,
-                'customer_details' => [
-                    'first_name' => auth()->user()->name,
-                    'email' => auth()->user()->email,
-                    'phone' => auth()->user()->phone ?? '',
-                    'billing_address' => [
-                        'first_name' => auth()->user()->name,
-                        'phone' => auth()->user()->phone ?? '',
+
+            // Fallback: jika local/dev atau key Midtrans tidak terpasang, lewati Snap dan langsung ke halaman detail
+            $serverKey = config('midtrans.server_key');
+            $clientKey = config('midtrans.client_key');
+            $useSnap = app()->environment('production') && !empty($serverKey) && !empty($clientKey);
+
+            if ($useSnap) {
+                $params = [
+                    'transaction_details' => [
+                        'order_id' => $orderId,
+                        'gross_amount' => (int) $totalAmount,
                     ],
-                    'shipping_address' => [
+                    'item_details' => $items,
+                    'customer_details' => [
                         'first_name' => auth()->user()->name,
+                        'email' => auth()->user()->email,
                         'phone' => auth()->user()->phone ?? '',
+                        'billing_address' => [
+                            'first_name' => auth()->user()->name,
+                            'phone' => auth()->user()->phone ?? '',
+                        ],
+                        'shipping_address' => [
+                            'first_name' => auth()->user()->name,
+                            'phone' => auth()->user()->phone ?? '',
+                        ],
                     ],
-                ],
-            ];
-            $snapToken = $midtrans->createSnapToken($params);
+                ];
+                $snapToken = $midtrans->createSnapToken($params);
+
+                DB::commit();
+                return view('pelanggan.payment.midtrans', compact('rental', 'snapToken', 'orderId'));
+            }
 
             DB::commit();
-
-            return view('pelanggan.payment.midtrans', compact('rental', 'snapToken', 'orderId'));
+            return redirect()->route('pelanggan.rentals.show', $rental)->with('status', 'Penyewaan dibuat (mode lokal, pembayaran dilewati).');
 
         } catch (\Exception $e) {
             DB::rollBack();

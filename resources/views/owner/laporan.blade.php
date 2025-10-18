@@ -1,5 +1,5 @@
-@extends('layouts.app')
-@section('content')
+@extends('owner.layout')
+@section('owner_content')
 <div class="container">
     <h1 class="mb-4">Laporan Transaksi</h1>
     <a href="{{ route('dashboard.pemilik') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
@@ -22,19 +22,21 @@
             <a href="{{ route('pemilik.laporan.export', ['format' => 'csv', 'dari' => request('dari'), 'sampai' => request('sampai')]) }}" class="btn btn-secondary">Download CSV</a>
         </div>
     </form>
-    <table class="table table-bordered table-striped">
+    <div class="small">
+    <div class="table-responsive">
+    <table class="table table-sm table-bordered table-striped align-middle mb-0">
         <thead>
         <tr>
-            <th>No</th>
-            <th>Tgl Sewa</th>
-            <th>Tgl Kembali</th>
-            <th>Pelanggan</th>
-            <th>Email</th>
-            <th>No. HP</th>
+            <th class="text-nowrap">No</th>
+            <th class="text-nowrap">Tgl Sewa</th>
+            <th class="text-nowrap">Tgl Kembali</th>
+            <th class="text-nowrap">Pelanggan</th>
+            <th class="text-nowrap">Email</th>
+            <th class="text-nowrap">No. HP</th>
             <th>Alamat</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Detail Sewa</th>
+            <th class="text-nowrap">Total</th>
+            <th class="text-nowrap">Status</th>
+            <th class="text-nowrap">Detail Sewa</th>
         </tr>
         </thead>
         <tbody>
@@ -45,14 +47,14 @@
         @endif
         @foreach ($rentals as $rental)
             <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $rental->start_at ? $rental->start_at->format('d/m/Y') : '-' }}</td>
-                <td>{{ $rental->due_at ? $rental->due_at->format('d/m/Y') : '-' }}</td>
-                <td>{{ $rental->customer ? $rental->customer->name : '-' }}</td>
-                <td>{{ $rental->customer ? $rental->customer->email : '-' }}</td>
-                <td>{{ $rental->customer ? $rental->customer->phone : '-' }}</td>
+                <td class="text-nowrap">{{ $loop->iteration }}</td>
+                <td class="text-nowrap">{{ $rental->start_at ? $rental->start_at->format('d/m/Y') : '-' }}</td>
+                <td class="text-nowrap">{{ $rental->due_at ? $rental->due_at->format('d/m/Y') : '-' }}</td>
+                <td class="text-nowrap">{{ $rental->customer ? $rental->customer->name : '-' }}</td>
+                <td class="text-nowrap">{{ $rental->customer ? $rental->customer->email : '-' }}</td>
+                <td class="text-nowrap">{{ $rental->customer ? $rental->customer->phone : '-' }}</td>
                 <td>{{ $rental->customer ? $rental->customer->address : '-' }}</td>
-                <td>Rp{{ number_format($rental->total,0,',','.') }}</td>
+                <td class="text-nowrap">Rp{{ number_format($rental->total,0,',','.') }}</td>
                 <td>
                     @if($rental->status == 'returned')
                         <span style="background: #6c757d; color: #fff; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">Dikembalikan</span>
@@ -61,7 +63,7 @@
                     @endif
                 </td>
                 <td>
-                    <table class="table table-bordered table-sm mb-0">
+                    <table class="table table-sm table-bordered mb-0 align-middle">
                         <thead>
                             <tr>
                                 <th>Jenis</th>
@@ -100,5 +102,7 @@
         @endforeach
         </tbody>
     </table>
+    </div>
+    </div>
 </div>
 @endsection

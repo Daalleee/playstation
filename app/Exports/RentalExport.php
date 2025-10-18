@@ -30,7 +30,7 @@ class RentalExport implements FromCollection, WithHeadings, WithMapping
         }
         $rentals = $query->orderByDesc('start_at')->get();
 
-        // Flat row table: 1 item/baris
+
         $allRows = collect();
         foreach ($rentals as $rental) {
             foreach ($rental->items as $item) {
