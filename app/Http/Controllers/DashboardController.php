@@ -60,7 +60,36 @@ class DashboardController extends Controller
     public function pemilik()
     {
         Gate::authorize('access-pemilik');
-        return view('dashboards.pemilik');
+        // KPI: Unit tersedia dan total transaksi hari ini
+        $availableUnits = UnitPS::where(function($q){
+                $q->where('status', 'available')
+                  ->orWhereNull('status');
+            })->count();
+        $todaysTransactions = Rental::whereDate('created_at', now()->toDateString())->count();
+
+        // Tabel: Transaksi terbaru
+        $recentTransactions = Rental::with(['customer'])
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        // Chart: Pendapatan 7 hari terakhir
+        $start = now()->copy()->subDays(6)->startOfDay();
+        $end = now()->endOfDay();
+        $payments = Payment::whereBetween('paid_at', [$start, $end])
+            ->get()
+            ->groupBy(function($p){ return $p->paid_at?->timezone(config('app.timezone'))?->format('Y-m-d'); });
+        $revLabels = [];
+        $revData = [];
+        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
+            $key = $d->format('Y-m-d');
+            $revLabels[] = $d->format('d M');
+            $sum = isset($payments[$key]) ? $payments[$key]->sum('amount') : 0;
+            $revData[] = (int) $sum;
+        }
+
+        return view('dashboards.pemilik', compact(
+            'availableUnits', 'todaysTransactions', 'recentTransactions', 'revLabels', 'revData'
+        ));
     }
 
     public function pelanggan()

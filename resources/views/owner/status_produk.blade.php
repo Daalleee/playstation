@@ -1,5 +1,5 @@
-@extends('layouts.app')
-@section('content')
+@extends('owner.layout')
+@section('owner_content')
 <h1>Status Produk</h1>
 <a href="{{ route('dashboard.pemilik') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
 
