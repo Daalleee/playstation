@@ -93,9 +93,15 @@ class GameController extends Controller
     public function destroy(Game $game)
     {
         Gate::authorize('access-admin');
+        $hasActiveRentals = $game->rentalItems()
+            ->whereHas('rental', function ($q) {
+                $q->where('status', '!=', 'returned');
+            })
+            ->exists();
+        if ($hasActiveRentals) {
+            return redirect()->route('admin.games.index')->with('status', 'Game tidak bisa dihapus karena masih terkait transaksi yang belum dikembalikan');
+        }
         $game->delete();
         return redirect()->route('admin.games.index')->with('status', 'Game dihapus');
     }
 }
-
-

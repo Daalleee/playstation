@@ -27,7 +27,7 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label">No HP</label>
-                <input type="text" name="phone" value="{{ old('phone', $pelanggan->phone) }}" class="form-control">
+                <input type="text" id="admin_phone_edit" name="phone" value="{{ old('phone', $pelanggan->phone) }}" class="form-control" placeholder="Contoh: +6281234567890 (8-20 digit setelah +62)" inputmode="tel" pattern="^\+62[0-9]{8,20}$" title="Masukkan nomor dengan format: +62 diikuti 8-20 digit angka">
                 @error('phone')<div class="text-danger small">{{ $message }}</div>@enderror
             </div>
             <div class="col-12">
@@ -40,4 +40,21 @@
             </div>
         </form>
     </div>
+    <script>
+      (function(){
+        const input = document.getElementById('admin_phone_edit');
+        if (input) {
+          const prefix = '+62';
+          function ensurePrefix(){
+            if (!input.value || !input.value.startsWith(prefix)){
+              const digits = input.value.replace(/[^0-9]/g,'');
+              input.value = prefix + digits;
+            }
+          }
+          input.addEventListener('focus', ensurePrefix);
+          input.addEventListener('input', ensurePrefix);
+          ensurePrefix();
+        }
+      })();
+    </script>
 @endsection

@@ -58,7 +58,7 @@
             </div>
             <div class="col-md-6">
               <label for="phone" class="label">Telepon</label>
-              <input type="text" id="phone" name="phone" value="{{ old('phone', $user->phone) }}" class="input-dark">
+              <input type="text" id="profile_phone" name="phone" value="{{ old('phone', $user->phone ?? '+62') }}" class="input-dark" placeholder="Contoh: +6281234567890 (8-20 digit setelah +62)" inputmode="tel" pattern="^\+62[0-9]{8,20}$" title="Masukkan nomor dengan format: +62 diikuti 8-20 digit angka">
             </div>
             <div class="col-md-6">
               <label for="address" class="label">Alamat</label>
@@ -89,6 +89,23 @@
           </div>
         </form>
       </div>
+      <script>
+        (function(){
+          const input = document.getElementById('profile_phone');
+          if (input) {
+            const prefix = '+62';
+            function ensurePrefix(){
+              if (!input.value || !input.value.startsWith(prefix)){
+                const digits = input.value.replace(/[^0-9]/g,'');
+                input.value = prefix + digits;
+              }
+            }
+            input.addEventListener('focus', ensurePrefix);
+            input.addEventListener('input', ensurePrefix);
+            ensurePrefix();
+          }
+        })();
+      </script>
     </main>
   </div>
 </div>
