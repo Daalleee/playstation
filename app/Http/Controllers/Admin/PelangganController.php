@@ -28,10 +28,10 @@ class PelangganController extends Controller
         Gate::authorize('access-admin');
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email', 'regex:/@gmail\\.com$/i'],
             'password' => ['required', 'string', 'min:8'],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^\\+62[0-9]{8,20}$/'],
         ]);
 
         User::create([
@@ -59,10 +59,10 @@ class PelangganController extends Controller
         abort_unless($pelanggan->role === 'pelanggan', 404);
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$pelanggan->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$pelanggan->id, 'regex:/@gmail\\.com$/i'],
             'password' => ['nullable', 'string', 'min:8'],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^\\+62[0-9]{8,20}$/'],
         ]);
 
         $pelanggan->name = $validated['name'];

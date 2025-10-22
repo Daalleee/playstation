@@ -93,9 +93,15 @@ class AccessoryController extends Controller
     public function destroy(Accessory $accessory)
     {
         Gate::authorize('access-admin');
+        $hasActiveRentals = $accessory->rentalItems()
+            ->whereHas('rental', function ($q) {
+                $q->where('status', '!=', 'returned');
+            })
+            ->exists();
+        if ($hasActiveRentals) {
+            return redirect()->route('admin.accessories.index')->with('status', 'Aksesoris tidak bisa dihapus karena masih terkait transaksi yang belum dikembalikan');
+        }
         $accessory->delete();
         return redirect()->route('admin.accessories.index')->with('status', 'Aksesoris dihapus');
     }
 }
-
-

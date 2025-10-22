@@ -101,9 +101,15 @@ class UnitPSController extends Controller
     public function destroy(UnitPS $unitp)
     {
         Gate::authorize('access-admin');
+        $hasActiveRentals = $unitp->rentalItems()
+            ->whereHas('rental', function ($q) {
+                $q->where('status', '!=', 'returned');
+            })
+            ->exists();
+        if ($hasActiveRentals) {
+            return redirect()->route('admin.unitps.index')->with('status', 'Unit PS tidak bisa dihapus karena masih terkait transaksi yang belum dikembalikan');
+        }
         $unitp->delete();
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dihapus');
     }
 }
-
-
