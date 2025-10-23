@@ -25,9 +25,10 @@
                 @error('model')<div class="text-danger small">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-6">
-                <label class="form-label">Nomor Seri</label>
-                <input type="text" name="nomor_seri" value="{{ old('nomor_seri') }}" required class="form-control">
+                <label class="form-label">Nomor Seri <small class="text-white" style="opacity: 0.9;">(Hanya angka)</small></label>
+                <input type="text" name="nomor_seri" value="{{ old('nomor_seri') }}" required class="form-control" pattern="[0-9]+" title="Nomor seri hanya boleh berisi angka" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Contoh: 123456789">
                 @error('nomor_seri')<div class="text-danger small">{{ $message }}</div>@enderror
+                <small class="text-white" style="opacity: 0.85;">Masukkan hanya angka tanpa huruf atau karakter khusus</small>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Harga per Jam</label>
