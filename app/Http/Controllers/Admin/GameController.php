@@ -30,9 +30,9 @@ class GameController extends Controller
             'judul' => ['required','string','max:255'],
             'platform' => ['required','string','max:50'],
             'genre' => ['nullable','string','max:100'],
-            'stok' => ['required','integer','min:0'],
-            'harga_per_hari' => ['required','numeric','min:0'],
-            'gambar' => ['nullable','image','max:2048'],
+            'stok' => ['required','integer','min:0','max:1000'],
+            'harga_per_hari' => ['required','numeric','min:0','max:999999'],
+            'gambar' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
 
@@ -65,9 +65,9 @@ class GameController extends Controller
             'judul' => ['required','string','max:255'],
             'platform' => ['required','string','max:50'],
             'genre' => ['nullable','string','max:100'],
-            'stok' => ['required','integer','min:0'],
-            'harga_per_hari' => ['required','numeric','min:0'],
-            'gambar' => ['nullable','image','max:2048'],
+            'stok' => ['required','integer','min:0','max:1000'],
+            'harga_per_hari' => ['required','numeric','min:0','max:999999'],
+            'gambar' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
 
