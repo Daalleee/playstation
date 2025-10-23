@@ -53,7 +53,6 @@ return new class extends Migration
         DB::table('unit_ps')->update([
             'nama' => DB::raw('COALESCE(nama, name)'),
             'merek' => DB::raw('COALESCE(merek, brand)'),
-            'model' => DB::raw('COALESCE(unit_ps.model, unit_ps.model)'),
             'nomor_seri' => DB::raw('COALESCE(nomor_seri, serial_number)'),
             'harga_per_jam' => DB::raw('COALESCE(harga_per_jam, price_per_hour)'),
             'stok' => DB::raw('COALESCE(stok, stock)'),
