@@ -16,6 +16,84 @@
   .btn-blue{ background:#007bff; color:#fff; border:none; border-radius:.3rem; padding:.25rem .5rem; }
   .btn-red{ background:#dc3545; color:#fff; border:none; border-radius:.3rem; padding:.25rem .5rem; }
   .input-qty{ width:70px; background:#23284a; color:#eef1ff; border:1px solid #2f3561; border-radius:.4rem; padding:.25rem .4rem; }
+  
+  /* Empty Cart Styles */
+  .empty-cart-container{ 
+    background: linear-gradient(135deg, #1f2446 0%, #2b3156 100%); 
+    border-radius:1.5rem; 
+    padding:4rem 2rem; 
+    text-align:center; 
+    box-shadow:0 1rem 3rem rgba(0,0,0,.3);
+    margin:2rem 1rem;
+  }
+  .empty-cart-icon{ 
+    font-size:6rem; 
+    margin-bottom:1.5rem; 
+    opacity:0.3;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+  .empty-cart-title{ 
+    font-size:2rem; 
+    font-weight:800; 
+    color:#e7e9ff; 
+    margin-bottom:1rem;
+  }
+  .empty-cart-text{ 
+    font-size:1.1rem; 
+    color:#b8bfdd; 
+    margin-bottom:2rem;
+    line-height:1.6;
+  }
+  .cta-buttons{ 
+    display:flex; 
+    gap:1rem; 
+    justify-content:center; 
+    flex-wrap:wrap;
+    margin-top:2rem;
+  }
+  .btn-cta-primary{ 
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color:#fff; 
+    border:none; 
+    border-radius:.8rem; 
+    padding:1rem 2.5rem; 
+    font-size:1.1rem;
+    font-weight:700;
+    text-decoration:none;
+    box-shadow:0 .5rem 1rem rgba(46, 204, 113, 0.3);
+    transition: all 0.3s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+  }
+  .btn-cta-primary:hover{ 
+    transform: translateY(-3px);
+    box-shadow:0 .8rem 1.5rem rgba(46, 204, 113, 0.4);
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  }
+  .btn-cta-secondary{ 
+    background:rgba(255,255,255,0.1); 
+    color:#e7e9ff; 
+    border:2px solid rgba(255,255,255,0.2); 
+    border-radius:.8rem; 
+    padding:1rem 2rem; 
+    font-size:1rem;
+    font-weight:600;
+    text-decoration:none;
+    transition: all 0.3s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+  }
+  .btn-cta-secondary:hover{ 
+    background:rgba(255,255,255,0.15);
+    border-color:rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+  }
 </style>
 
 <div class="dash-dark p-3">
@@ -89,10 +167,22 @@
           </div>
         </div>
       @else
-        <div class="text-center" style="margin-top:2rem;">
-          <h4>Keranjang Kosong</h4>
-          <p>Belum ada item di keranjang Anda.</p>
-          <a href="{{ route('pelanggan.unitps.index') }}" class="btn-blue" style="padding:.45rem .8rem; text-decoration:none;">Mulai Berbelanja</a>
+        <div class="empty-cart-container">
+          <div class="empty-cart-icon">🛒</div>
+          <h3 class="empty-cart-title">Keranjang Anda Masih Kosong!</h3>
+          <p class="empty-cart-text">
+            Yuk, mulai petualangan gaming Anda! 🎮<br>
+            Pilih dari ratusan PlayStation, game seru, dan aksesoris keren yang siap menemani waktu luang Anda.
+          </p>
+          
+          <div class="cta-buttons">
+            <a href="{{ route('pelanggan.unitps.index') }}" class="btn-cta-primary">
+              🎮 Sewa PlayStation Sekarang
+            </a>
+            <a href="{{ route('pelanggan.games.index') }}" class="btn-cta-secondary">
+              🎯 Lihat Koleksi Game
+            </a>
+          </div>
         </div>
       @endif
     </main>

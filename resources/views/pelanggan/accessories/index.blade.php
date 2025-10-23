@@ -7,9 +7,9 @@
   .dash-main{ flex:1; }
   .page-hero{ text-align:center; padding:1rem; }
   .page-hero h2{ font-weight:800; margin:0; }
-  .filter-row{ display:grid; grid-template-columns: repeat(12,1fr); gap:.75rem; margin:0 1rem 1rem; }
+  .filter-row{ display:grid; grid-template-columns: 1fr 2fr auto; gap:1rem; margin:0 1rem 1rem; align-items:end; }
   .select-dark, .input-dark{ width:100%; background:#23284a; color:#eef1ff; border:1px solid #2f3561; border-radius:.6rem; padding:.55rem .75rem; }
-  .btn-cta{ background:#2ecc71; border:none; color:#0e1a2f; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; }
+  .btn-cta{ background:#2ecc71; border:none; color:#0e1a2f; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; min-width:120px; }
   .card-dark{ background:#1f2446; border:none; border-radius:1rem; padding:1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); }
   table.dark{ width:100%; color:#e7e9ff; border-collapse:collapse; }
   table.dark th, table.dark td{ border:1px solid #2f3561; padding:.5rem .6rem; }
@@ -36,16 +36,16 @@
       </div>
 
       <form method="GET" class="filter-row">
-        <div class="col-span-4">
-          <label class="mb-1 d-block">Jenis</label>
+        <div>
+          <label class="mb-1 d-block fw-bold">Jenis</label>
           <input type="text" name="jenis" value="{{ request('jenis') }}" class="input-dark" placeholder="Jenis aksesoris" />
         </div>
-        <div class="col-span-3">
-          <label class="mb-1 d-block">Cari</label>
+        <div>
+          <label class="mb-1 d-block fw-bold">Cari Aksesoris</label>
           <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari aksesoris" class="input-dark" />
         </div>
-        <div class="col-span-1 d-flex align-items-end">
-          <button class="btn-cta" type="submit">Cari</button>
+        <div>
+          <button class="btn-cta w-100" type="submit">Cari</button>
         </div>
       </form>
 
