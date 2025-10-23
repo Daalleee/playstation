@@ -7,17 +7,23 @@
   .dash-main{ flex:1; }
   .page-hero{ text-align:center; padding:1rem; }
   .page-hero h2{ font-weight:800; margin:0; }
-  .filter-row{ display:grid; grid-template-columns: repeat(12,1fr); gap:.75rem; margin:0 1rem 1rem; }
+  .filter-row{ display:grid; grid-template-columns: 1fr 1fr 2fr auto; gap:1rem; margin:0 1rem 1rem; align-items:end; }
   .select-dark, .input-dark{ width:100%; background:#23284a; color:#eef1ff; border:1px solid #2f3561; border-radius:.6rem; padding:.55rem .75rem; }
   .btn-cta{ background:#2ecc71; border:none; color:#0e1a2f; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; }
   .card-dark{ background:#1f2446; border:none; border-radius:1rem; padding:1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); }
   table.dark{ width:100%; color:#e7e9ff; border-collapse:collapse; }
   table.dark th, table.dark td{ border:1px solid #2f3561; padding:.5rem .6rem; }
   table.dark thead th{ background:#23284a; font-weight:800; }
-  .badge-ok{ background:#1f9d62; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .badge-warn{ background:#d97a2b; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .btn-detail{ background:#6f7dd6; color:#fff; border:none; padding:.3rem .6rem; border-radius:.4rem; text-decoration:none; }
-  @media (max-width: 991.98px){ .dash-layout{ flex-direction:column; } .dash-sidebar{ position:static; } .filter-row{ grid-template-columns:1fr; } }
+  .badge-ok{ background:#1a7a4f; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
+  .badge-warn{ background:#b8651f; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
+  .badge-danger{ background:#c0392b; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
+  .badge-success{ background:#1e8449; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; font-weight:700; }
+  .badge-warning{ background:#d68910; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; font-weight:700; }
+  .btn-detail{ background:#5b6bb8; color:#fff; border:none; padding:.3rem .6rem; border-radius:.4rem; text-decoration:none; }
+  .btn-cta{ background:#1e8449; border:none; color:#fff; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; cursor:pointer; }
+  .btn-cta:hover{ background:#27ae60; }
+  .btn-cta:disabled{ background:#7f8c8d; cursor:not-allowed; opacity:0.6; }
+  @media (max-width: 991.98px){ .dash-layout{ flex-direction:column; } .dash-sidebar{ position:static; } .filter-row{ grid-template-columns:1fr; gap:.75rem; } .filter-row div button{ width:100%; } }
 </style>
 
 <div class="dash-dark p-3">
@@ -29,9 +35,9 @@
         <h2>Daftar Unit/Game</h2>
       </div>
 
-      <form method="GET" class="filter-row">
-        <div class="col-span-4">
-          <label class="mb-1 d-block">Tipe</label>
+      <form method="GET" action="{{ route('pelanggan.unitps.index') }}" class="filter-row">
+        <div>
+          <label class="mb-1 d-block fw-bold">Tipe</label>
           <select name="model" class="select-dark">
             <option value="">Semua</option>
             @foreach (['PS3','PS4','PS5'] as $opt)
@@ -39,19 +45,19 @@
             @endforeach
           </select>
         </div>
-        <div class="col-span-4">
-          <label class="mb-1 d-block">Platform</label>
+        <div>
+          <label class="mb-1 d-block fw-bold">Platform</label>
           <select name="brand" class="select-dark">
             <option value="">Semua</option>
             <option value="Sony" @selected(request('brand')==='Sony')>Sony</option>
           </select>
         </div>
-        <div class="col-span-3">
-          <label class="mb-1 d-block">Cari</label>
+        <div>
+          <label class="mb-1 d-block fw-bold">Cari unit</label>
           <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari unit/game" class="input-dark" />
         </div>
-        <div class="col-span-1 d-flex align-items-end">
-          <button class="btn-cta" type="submit">Cari</button>
+        <div>
+          <button class="btn-cta" type="submit" style="width:120px; padding:.65rem 1.5rem;">Cari</button>
         </div>
       </form>
 
@@ -63,6 +69,7 @@
                 <th>ID</th>
                 <th>Nama</th>
                 <th>Tipe/Platform</th>
+                <th>Stok</th>
                 <th>Status</th>
                 <th>Aksi</th>
               </tr>
@@ -73,6 +80,13 @@
                   <td>{{ $unit->id }}</td>
                   <td>{{ $unit->name ?? $unit->nama }}</td>
                   <td>{{ $unit->model }}</td>
+                  <td>
+                    @php 
+                      $stok = $unit->stok ?? 0;
+                      $badgeClass = $stok > 5 ? 'badge-success' : ($stok > 0 ? 'badge-warning' : 'badge-danger');
+                    @endphp
+                    <span class="{{ $badgeClass }}">{{ $stok }} Unit</span>
+                  </td>
                   <td>
                     @php $st = strtolower($unit->status); @endphp
                     <span class="{{ in_array($st,['available','tersedia']) ? 'badge-ok' : 'badge-warn' }}">{{ ucfirst($unit->status) }}</span>
@@ -86,13 +100,13 @@
                         <input type="hidden" name="id" value="{{ $unit->id }}">
                         <input type="hidden" name="price_type" value="per_jam">
                         <input type="hidden" name="quantity" value="1">
-                        <button type="submit" class="btn-cta">Tambah ke Keranjang</button>
+                        <button type="submit" class="btn-cta" {{ $stok <= 0 ? 'disabled' : '' }}>{{ $stok > 0 ? 'Tambah ke Keranjang' : 'Stok Habis' }}</button>
                       </form>
                     </div>
                   </td>
                 </tr>
               @empty
-                <tr><td colspan="5" class="text-center">Tidak ada data.</td></tr>
+                <tr><td colspan="6" class="text-center">Tidak ada data.</td></tr>
               @endforelse
             </tbody>
           </table>
