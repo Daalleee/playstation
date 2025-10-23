@@ -45,10 +45,23 @@ class RentalController extends Controller
         Gate::authorize('access-pelanggan');
         
         $validated = $request->validate([
-            'rental_date' => ['required', 'date', 'after_or_equal:today'],
-            'return_date' => ['required', 'date', 'after:rental_date'],
+            'rental_date' => ['required', 'date', 'after_or_equal:today', 'before:+1 year'],
+            'return_date' => ['required', 'date', 'after:rental_date', 'before:+1 year'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
+        
+        // Additional business logic validation
+        $rentalDate = \Carbon\Carbon::parse($validated['rental_date']);
+        $returnDate = \Carbon\Carbon::parse($validated['return_date']);
+        $daysDiff = $rentalDate->diffInDays($returnDate);
+        
+        if ($daysDiff > 30) {
+            return back()->withErrors(['return_date' => 'Maksimal durasi sewa adalah 30 hari.'])->withInput();
+        }
+        
+        if ($daysDiff < 1) {
+            return back()->withErrors(['return_date' => 'Durasi sewa minimal 1 hari.'])->withInput();
+        }
 
         $cartItems = Cart::where('user_id', auth()->id())->get();
         if ($cartItems->isEmpty()) {
@@ -80,8 +93,16 @@ class RentalController extends Controller
 
                 $rentable = $model::lockForUpdate()->find($item->item_id);
                 
-                if (!$rentable || ($rentable->stok ?? 0) < $item->quantity) {
-                    throw new \Exception("Stok tidak mencukupi untuk {$item->name}");
+                if (!$rentable) {
+                    throw new \Exception("Item {$item->name} tidak ditemukan");
+                }
+                
+                if (($rentable->stok ?? 0) < $item->quantity) {
+                    throw new \App\Exceptions\InsufficientStockException(
+                        $item->name, 
+                        $item->quantity, 
+                        $rentable->stok ?? 0
+                    );
                 }
 
                 // Calculate duration (simplified)
