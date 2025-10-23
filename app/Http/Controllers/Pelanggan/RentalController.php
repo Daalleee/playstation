@@ -78,7 +78,7 @@ class RentalController extends Controller
                     'accessory' => Accessory::class,
                 };
 
-                $rentable = $model::find($item->item_id);
+                $rentable = $model::lockForUpdate()->find($item->item_id);
                 
                 if (!$rentable || ($rentable->stok ?? 0) < $item->quantity) {
                     throw new \Exception("Stok tidak mencukupi untuk {$item->name}");
@@ -102,8 +102,9 @@ class RentalController extends Controller
                     'total' => $subtotal,
                 ]);
 
-                // Update stock
-                $rentable->decrement('stok', $item->quantity);
+                // Update stock with pessimistic locking to prevent race condition
+                $rentable->stok -= $item->quantity;
+                $rentable->save();
 
                 $totalAmount += $subtotal;
             }

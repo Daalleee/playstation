@@ -77,7 +77,7 @@ class RentalController extends Controller
                         abort(422, 'Stok Unit PS tidak cukup');
                     }
                     $rentable->stok -= $item['quantity'];
-                    if ($rentable->stock === 0) {
+                    if ($rentable->stok === 0) {
                         $rentable->status = 'rented';
                     }
                     $rentable->save();
@@ -119,8 +119,8 @@ class RentalController extends Controller
     public function return(Rental $rental)
     {
         Gate::authorize('access-kasir');
-        if ($rental->status !== 'ongoing') {
-            return back()->with('status', 'Rental tidak dalam status ongoing');
+        if (!in_array($rental->status, ['ongoing', 'active'])) {
+            return back()->with('status', 'Rental tidak dalam status ongoing/active');
         }
 
         DB::transaction(function () use ($rental) {
