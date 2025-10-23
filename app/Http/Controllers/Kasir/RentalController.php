@@ -19,7 +19,7 @@ class RentalController extends Controller
     public function index()
     {
         Gate::authorize('access-kasir');
-        $rentals = Rental::latest()->paginate(10);
+        $rentals = Rental::with(['customer', 'items.rentable'])->latest()->paginate(10);
         return view('kasir.rentals.index', compact('rentals'));
     }
 
