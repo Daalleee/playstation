@@ -16,23 +16,29 @@ class DashboardController extends Controller
     public function admin()
     {
         Gate::authorize('access-admin');
-        // Hitung statistik inventaris
-        $unitAvailable = UnitPS::all()->sum(function ($u) { return ($u->stok ?? $u->stock ?? 0); });
-        $unitRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
+        // Hitung statistik inventaris dengan efficient aggregate queries
+        $unitAvailable = UnitPS::sum('stok');
+        $unitRented = RentalItem::whereHas('rental', function ($q) { 
+                $q->whereIn('status', ['active', 'ongoing']); 
+            })
             ->where('rentable_type', UnitPS::class)
             ->sum('quantity');
         $unitDamaged = UnitPS::where('kondisi', 'rusak')->count();
         $unitTotal = $unitAvailable + $unitRented;
 
-        $gameAvailable = Game::all()->sum(function ($g) { return ($g->stok ?? $g->stock ?? 0); });
-        $gameRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
+        $gameAvailable = Game::sum('stok');
+        $gameRented = RentalItem::whereHas('rental', function ($q) { 
+                $q->whereIn('status', ['active', 'ongoing']); 
+            })
             ->where('rentable_type', Game::class)
             ->sum('quantity');
         $gameDamaged = Game::where('kondisi', 'rusak')->count();
         $gameTotal = $gameAvailable + $gameRented;
 
-        $accAvailable = Accessory::all()->sum(function ($a) { return ($a->stok ?? $a->stock ?? 0); });
-        $accRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
+        $accAvailable = Accessory::sum('stok');
+        $accRented = RentalItem::whereHas('rental', function ($q) { 
+                $q->whereIn('status', ['active', 'ongoing']); 
+            })
             ->where('rentable_type', Accessory::class)
             ->sum('quantity');
         $accDamaged = Accessory::where('kondisi', 'rusak')->count();
