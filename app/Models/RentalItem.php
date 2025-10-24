@@ -18,6 +18,7 @@ class RentalItem extends Model
         'quantity',
         'price',
         'total',
+        'kondisi_kembali',
     ];
 
     public function rental(): BelongsTo

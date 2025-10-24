@@ -80,7 +80,7 @@
         <span class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.1.37 2.29.57 3.58.6a1 1 0 011 1V20a1 1 0 01-1 1C10.85 21 3 13.15 3 3a1 1 0 011-1h2.46a1 1 0 011 1.01c.03 1.29.23 2.48.6 3.58a1 1 0 01-.24 1.01l-2.2 2.2z"/></svg>
         </span>
-        <input type="text" name="phone" value="{{ old('phone') }}" required placeholder="Nomor Telepon (11-12 digit)" inputmode="numeric" autocomplete="tel" minlength="11" maxlength="12" pattern="[0-9]{11,12}" title="Masukkan 11-12 digit angka" />
+        <input type="text" id="reg_phone" name="phone" value="{{ old('phone', '+62') }}" required placeholder="Nomor Telepon (+62 diikuti 8-20 digit)" inputmode="tel" autocomplete="tel" pattern="^\+62[0-9]{8,20}$" title="Masukkan nomor dengan format: +62 diikuti 8-20 digit angka" />
         @error('phone')<small class="error-text">{{ $message }}</small>@enderror
       </div>
 
@@ -139,6 +139,19 @@
     }
     setupToggle('togglePassword','password');
     setupToggle('togglePassword2','password_confirmation');
+    const phoneInput = document.getElementById('reg_phone');
+    if (phoneInput) {
+      const prefix = '+62';
+      function ensurePrefix() {
+        if (!phoneInput.value || !phoneInput.value.startsWith(prefix)) {
+          const digits = phoneInput.value.replace(/[^0-9]/g,'');
+          phoneInput.value = prefix + digits;
+        }
+      }
+      phoneInput.addEventListener('focus', ensurePrefix);
+      phoneInput.addEventListener('input', ensurePrefix);
+      ensurePrefix();
+    }
   })();
 </script>
 @endsection

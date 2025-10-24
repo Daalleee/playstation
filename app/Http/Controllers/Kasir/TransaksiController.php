@@ -36,9 +36,17 @@ class TransaksiController extends Controller
     public function aktifkan(Rental $rental)
     {
         Gate::authorize('access-kasir');
-        if ($rental->status !== 'paid') {
-            return back()->with('status', 'Transaksi harus sudah dibayar untuk diaktifkan!');
+        
+        // Validasi status transition yang valid
+        if (!in_array($rental->status, ['paid', 'pending'])) {
+            return back()->withErrors(['error' => 'Transaksi hanya bisa diaktifkan dari status paid/pending. Status saat ini: ' . $rental->status]);
         }
+        
+        // Cek apakah sudah pernah aktif/returned
+        if (in_array($rental->status, ['active', 'returned', 'cancelled'])) {
+            return back()->withErrors(['error' => 'Transaksi sudah pernah diaktifkan atau sudah selesai.']);
+        }
+        
         $rental->status = 'active';
         $rental->save();
         return back()->with('status', 'Transaksi sewa sudah diaktifkan, barang sudah diberikan ke pelanggan.');
@@ -49,25 +57,35 @@ class TransaksiController extends Controller
         Gate::authorize('access-kasir');
         $validated = $request->validate([
             'items' => ['required', 'array'],
+            'items.*' => ['required', 'exists:rental_items,id'],
             'kondisi' => ['required', 'array'],
+            'kondisi.*' => ['required', 'string', 'max:255'],
         ]);
-        foreach ($rental->items as $item) {
-            $itemId = $item->id;
-            if (isset($validated['items'][$itemId])) {
-                // Update stok barang jika dikembalikan
-                $rentable = $item->rentable;
-                $rentable->stok = ($rentable->stok ?? $rentable->stock) + $item->quantity;
-                $rentable->save();
-                // Update kondisi jika perlu
-                if (isset($validated['kondisi'][$itemId])) {
-                    $item->kondisi_kembali = $validated['kondisi'][$itemId];
-                    $item->save();
+        
+        \DB::transaction(function() use ($rental, $validated) {
+            foreach ($rental->items as $item) {
+                $itemId = $item->id;
+                if (isset($validated['items'][$itemId])) {
+                    // Update stok barang dengan pessimistic locking
+                    $rentable = $item->rentable()->lockForUpdate()->first();
+                    if ($rentable) {
+                        $rentable->stok = ($rentable->stok ?? $rentable->stock ?? 0) + $item->quantity;
+                        $rentable->save();
+                    }
+                    
+                    // Update kondisi jika perlu
+                    if (isset($validated['kondisi'][$itemId])) {
+                        $item->kondisi_kembali = $validated['kondisi'][$itemId];
+                        $item->save();
+                    }
                 }
             }
-        }
-        $rental->status = 'returned';
-        $rental->returned_at = now();
-        $rental->save();
+            
+            $rental->status = 'returned';
+            $rental->returned_at = now();
+            $rental->save();
+        });
+        
         return redirect()->route('kasir.transaksi.index')->with('status', 'Pengembalian berhasil dikonfirmasi.');
     }
 }

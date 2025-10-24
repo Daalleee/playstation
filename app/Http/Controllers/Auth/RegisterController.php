@@ -20,10 +20,10 @@ class RegisterController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email', 'regex:/@gmail\\.com$/i'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'address' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'regex:/^\\d{11,12}$/'],
+            'phone' => ['required', 'string', 'regex:/^[0-9]{8,20}$/'],
         ]);
 
         $user = User::create([

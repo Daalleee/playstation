@@ -155,22 +155,7 @@
             <a href="{{ route('register.show') }}" class="btn btn-cta transition-link"><i class="bi bi-rocket-takeoff me-1"></i>Mulai Sekarang</a>
             <a href="{{ route('login.show') }}" class="btn btn-ghost transition-link"><i class="bi bi-box-arrow-in-right me-1"></i>Masuk</a>
           </div>
-          <div class="marquee mt-4">
-            <div class="track">
-              <span class="me-4">🎮 PS5</span>
-              <span class="me-4">🎮 PS4</span>
-              <span class="me-4">🕹️ Aksesoris</span>
-              <span class="me-4">🔥 Game Terbaru</span>
-              <span class="me-4">⚡ Proses Cepat</span>
-              <span class="me-4">💳 Pembayaran Aman</span>
-              <span class="me-4">🎮 PS5</span>
-              <span class="me-4">🎮 PS4</span>
-              <span class="me-4">🕹️ Aksesoris</span>
-              <span class="me-4">🔥 Game Terbaru</span>
-              <span class="me-4">⚡ Proses Cepat</span>
-              <span class="me-4">💳 Pembayaran Aman</span>
-            </div>
-          </div>
+          <!-- Marquee removed per request (contained inline badges like Aksesoris, Game Terbaru, etc.) -->
         </div>
         <div class="col-12 col-lg-6">
           <div class="row g-3">

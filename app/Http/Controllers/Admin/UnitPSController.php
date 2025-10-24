@@ -13,7 +13,7 @@ class UnitPSController extends Controller
     public function index()
     {
         Gate::authorize('access-admin');
-        $units = UnitPS::latest()->paginate(10);
+        $units = UnitPS::withCount('rentalItems')->latest()->paginate(10);
         return view('admin.unitps.index', compact('units'));
     }
 
@@ -29,12 +29,21 @@ class UnitPSController extends Controller
         $validated = $request->validate([
             'nama' => ['required','string','max:255'],
             'merek' => ['required','string','max:255'],
-            'model' => ['required','string','max:100'],
+            'model' => ['required','string','max:100'], 
             'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri'],
             'harga_per_jam' => ['required','numeric','min:0'],
             'stok' => ['required','integer','min:0'],
             'foto' => ['nullable','image','max:2048'],
+            'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri','regex:/^[0-9]+$/'],
+            'harga_per_jam' => ['required','numeric','min:0','max:999999'],
+            'stok' => ['required','integer','min:0','max:1000'],
+            'status' => ['required','in:available,rented,maintenance'],
+            'foto' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
+
             'kondisi' => ['nullable','string','max:255'],
+        ], [
+            'nomor_seri.regex' => 'Nomor seri hanya boleh berisi angka.',
+            'nomor_seri.unique' => 'Nomor seri sudah digunakan.',
         ]);
 
         if ($request->hasFile('foto')) {
@@ -74,7 +83,17 @@ class UnitPSController extends Controller
             'harga_per_jam' => ['required','numeric','min:0'],
             'stok' => ['required','integer','min:0'],
             'foto' => ['nullable','image','max:2048'],
+
+            'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri,'.$unitp->id,'regex:/^[0-9]+$/'],
+            'harga_per_jam' => ['required','numeric','min:0','max:999999'],
+            'stok' => ['required','integer','min:0','max:1000'],
+            'status' => ['required','in:available,rented,maintenance'],
+            'foto' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
+
             'kondisi' => ['nullable','string','max:255'],
+        ], [
+            'nomor_seri.regex' => 'Nomor seri hanya boleh berisi angka.',
+            'nomor_seri.unique' => 'Nomor seri sudah digunakan.',
         ]);
 
         if ($request->hasFile('foto')) {
@@ -103,9 +122,15 @@ class UnitPSController extends Controller
     public function destroy(UnitPS $unitp)
     {
         Gate::authorize('access-admin');
+        $hasActiveRentals = $unitp->rentalItems()
+            ->whereHas('rental', function ($q) {
+                $q->where('status', '!=', 'returned');
+            })
+            ->exists();
+        if ($hasActiveRentals) {
+            return redirect()->route('admin.unitps.index')->with('status', 'Unit PS tidak bisa dihapus karena masih terkait transaksi yang belum dikembalikan');
+        }
         $unitp->delete();
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dihapus');
     }
 }
-
-

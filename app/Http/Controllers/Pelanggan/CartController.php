@@ -16,8 +16,7 @@ class CartController extends Controller
     public function index()
     {
         Gate::authorize('access-pelanggan');
-        $user = Auth::user();
-        $cart = Cart::where('user_id', $user->id)->get();
+        $cart = Cart::where('user_id', auth()->id())->get();
         $total = $cart->sum(function($item) {
             return $item->price * $item->quantity;
         });
@@ -33,7 +32,6 @@ class CartController extends Controller
             'price_type' => ['required', 'in:per_jam,per_hari'],
             'quantity' => ['nullable', 'integer', 'min:1'],
         ]);
-        $user = Auth::user();
 
         // Ambil data dari DB sesuai type/id
         $modelClass = match($validated['type']) {
@@ -60,7 +58,7 @@ class CartController extends Controller
         }
 
         // Cek apakah sudah ada item yang sama di cart
-        $cartItem = Cart::where('user_id', $user->id)
+        $cartItem = Cart::where('user_id', auth()->id())
             ->where('type', $validated['type'])
             ->where('item_id', $validated['id'])
             ->first();
@@ -72,7 +70,7 @@ class CartController extends Controller
             $cartItem->save();
         } else {
             Cart::create([
-                'user_id' => $user->id,
+                'user_id' => auth()->id(),
                 'type' => $validated['type'],
                 'item_id' => $validated['id'],
                 'name' => $name,
@@ -91,8 +89,7 @@ class CartController extends Controller
             'cart_id' => ['required', 'integer'],
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
-        $user = Auth::user();
-        $cartItem = Cart::where('user_id', $user->id)->where('id', $validated['cart_id'])->first();
+        $cartItem = Cart::where('user_id', auth()->id())->where('id', $validated['cart_id'])->first();
         if ($cartItem) {
             $cartItem->quantity = $validated['quantity'];
             $cartItem->save();
@@ -106,16 +103,14 @@ class CartController extends Controller
         $validated = $request->validate([
             'cart_id' => ['required', 'integer'],
         ]);
-        $user = Auth::user();
-        Cart::where('user_id', $user->id)->where('id', $validated['cart_id'])->delete();
+        Cart::where('user_id', auth()->id())->where('id', $validated['cart_id'])->delete();
         return redirect()->route('pelanggan.cart.index')->with('status', 'Item dihapus dari keranjang');
     }
 
     public function clear()
     {
         Gate::authorize('access-pelanggan');
-        $user = Auth::user();
-        Cart::where('user_id', $user->id)->delete();
+        Cart::where('user_id', auth()->id())->delete();
         return redirect()->route('pelanggan.cart.index')->with('status', 'Keranjang dikosongkan');
     }
 }

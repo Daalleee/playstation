@@ -124,7 +124,9 @@ Route::middleware(['web', 'auth'])->group(function () {
     // Pelanggan - Rentals
     Route::get('pelanggan/rentals', [PelangganRentalController::class, 'index'])->name('pelanggan.rentals.index');
     Route::get('pelanggan/rentals/create', [PelangganRentalController::class, 'create'])->name('pelanggan.rentals.create');
-    Route::post('pelanggan/rentals', [PelangganRentalController::class, 'store'])->name('pelanggan.rentals.store');
+    Route::post('pelanggan/rentals', [PelangganRentalController::class, 'store'])
+        ->middleware('throttle:3,1') // Max 3 requests per minute
+        ->name('pelanggan.rentals.store');
     Route::get('pelanggan/rentals/{rental}', [PelangganRentalController::class, 'show'])->name('pelanggan.rentals.show');
 });
 
