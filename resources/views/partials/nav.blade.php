@@ -9,7 +9,7 @@
                 ['label' => 'Games', 'route' => route('admin.games.index')],
                 ['label' => 'Aksesoris', 'route' => route('admin.accessories.index')],
                 ['label' => 'Pelanggan', 'route' => route('admin.pelanggan.index')],
-                ['label' => 'Staff', 'route' => route('admin.staff.index', ['role' => 'kasir'])],
+                ['label' => 'Staff', 'route' => route('admin.kasir.index')],
             ];
         } elseif ($type === 'pelanggan') {
             $items = [

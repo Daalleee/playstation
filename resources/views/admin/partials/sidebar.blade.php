@@ -26,15 +26,17 @@
     </div>
   </div>
   <ul class="dash-menu">
-    <li><a href="{{ route('dashboard.admin') }}"><span class="dash-icon">🏠</span> <span>Dashboard</span></a></li>
-    <li><a href="{{ route('admin.unitps.index') }}"><span class="dash-icon">📦</span> <span>Unit PS</span></a></li>
-    <li><a href="{{ route('admin.games.index') }}"><span class="dash-icon">🎮</span> <span>Games</span></a></li>
-    <li><a href="{{ route('admin.accessories.index') }}"><span class="dash-icon">🧩</span> <span>Aksesoris</span></a></li>
-    <li><a href="{{ route('admin.pelanggan.index') }}"><span class="dash-icon">👥</span> <span>Pelanggan</span></a></li>
-    <li><a href="{{ route('admin.staff.index', ['role' => 'kasir']) }}"><span class="dash-icon">🧑‍💼</span> <span>Staff</span></a></li>
-    <li><a href="{{ route('admin.laporan') }}"><span class="dash-icon">📊</span> <span>Laporan</span></a></li>
+    <li><a href="{{ route('dashboard.admin') }}"><span class="dash-icon"><i class="bi bi-house-door"></i></span> <span>Dashboard</span></a></li>
+    <li><a href="{{ route('admin.pelanggan.index') }}"><span class="dash-icon"><i class="bi bi-people"></i></span> <span>Kelola Pelanggan</span></a></li>
+    <li><a href="{{ route('admin.pemilik.index') }}"><span class="dash-icon"><i class="bi bi-person-workspace"></i></span> <span>Kelola Pemilik</span></a></li>
+    <li><a href="{{ route('admin.kasir.index') }}"><span class="dash-icon"><i class="bi bi-person-vcard"></i></span> <span>Kelola Kasir</span></a></li>
+    <li><a href="{{ route('admin.admin.index') }}"><span class="dash-icon"><i class="bi bi-person-gear"></i></span> <span>Kelola Admin</span></a></li>
+    <li><a href="{{ route('admin.unitps.index') }}"><span class="dash-icon"><i class="bi bi-controller"></i></span> <span>Tambah Unit PS</span></a></li>
+    <li><a href="{{ route('admin.games.index') }}"><span class="dash-icon"><i class="bi bi-disc"></i></span> <span>Tambah Game</span></a></li>
+    <li><a href="{{ route('admin.accessories.index') }}"><span class="dash-icon"><i class="bi bi-plugin"></i></span> <span>Tambah Aksesoris</span></a></li>
+    <li><a href="{{ route('admin.laporan') }}"><span class="dash-icon"><i class="bi bi-file-earmark-bar-graph"></i></span> <span>Laporan</span></a></li>
     <li>
-      <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-admin').submit();"><span class="dash-icon">↩️</span> <span>Logout</span></a>
+      <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-admin').submit();"><span class="dash-icon"><i class="bi bi-box-arrow-right"></i></span> <span>Logout</span></a>
       <form id="logout-form-admin" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
     </li>
   </ul>

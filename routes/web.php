@@ -83,10 +83,33 @@ Route::middleware(['web', 'auth'])->group(function () {
     // Admin - Accessories
     Route::resource('admin/accessories', AccessoryController::class)->names('admin.accessories');
 
-    // Admin - Staff (buat admin/kasir/pemilik)
+    // Admin - Staff management (fallback and specific routes)
     Route::get('admin/staff', [StaffController::class, 'index'])->name('admin.staff.index');
     Route::get('admin/staff/create', [StaffController::class, 'create'])->name('admin.staff.create');
-    Route::post('admin/staff', [StaffController::class, 'store'])->name('admin.staff.store');
+    
+    // Admin - Kelola Admin
+    Route::get('admin/admin', [StaffController::class, 'adminIndex'])->name('admin.admin.index');
+    Route::get('admin/admin/create', [StaffController::class, 'adminCreate'])->name('admin.admin.create');
+    Route::post('admin/admin', [StaffController::class, 'store'])->name('admin.admin.store');
+    Route::get('admin/admin/{user}/edit', [StaffController::class, 'edit'])->name('admin.admin.edit');
+    Route::put('admin/admin/{user}', [StaffController::class, 'update'])->name('admin.admin.update');
+    Route::delete('admin/admin/{user}', [StaffController::class, 'destroy'])->name('admin.admin.destroy');
+    
+    // Admin - Kelola Pemilik
+    Route::get('admin/pemilik', [StaffController::class, 'pemilikIndex'])->name('admin.pemilik.index');
+    Route::get('admin/pemilik/create', [StaffController::class, 'pemilikCreate'])->name('admin.pemilik.create');
+    Route::post('admin/pemilik', [StaffController::class, 'store'])->name('admin.pemilik.store');
+    Route::get('admin/pemilik/{user}/edit', [StaffController::class, 'edit'])->name('admin.pemilik.edit');
+    Route::put('admin/pemilik/{user}', [StaffController::class, 'update'])->name('admin.pemilik.update');
+    Route::delete('admin/pemilik/{user}', [StaffController::class, 'destroy'])->name('admin.pemilik.destroy');
+    
+    // Admin - Kelola Kasir
+    Route::get('admin/kasir', [StaffController::class, 'kasirIndex'])->name('admin.kasir.index');
+    Route::get('admin/kasir/create', [StaffController::class, 'kasirCreate'])->name('admin.kasir.create');
+    Route::post('admin/kasir', [StaffController::class, 'store'])->name('admin.kasir.store');
+    Route::get('admin/kasir/{user}/edit', [StaffController::class, 'edit'])->name('admin.kasir.edit');
+    Route::put('admin/kasir/{user}', [StaffController::class, 'update'])->name('admin.kasir.update');
+    Route::delete('admin/kasir/{user}', [StaffController::class, 'destroy'])->name('admin.kasir.destroy');
 
     Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->name('dashboard.admin');
     Route::get('/dashboard/kasir', [DashboardController::class, 'kasir'])->name('dashboard.kasir');

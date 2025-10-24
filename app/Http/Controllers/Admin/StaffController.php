@@ -46,8 +46,6 @@ class StaffController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'in:admin,kasir,pemilik'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
         ]);
 
         User::create([
@@ -55,12 +53,102 @@ class StaffController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
-            'address' => $validated['address'] ?? null,
-            'phone' => $validated['phone'] ?? null,
         ]);
 
-        return redirect()->route('admin.staff.index', ['role' => $validated['role']])
-            ->with('status', 'Akun '.$validated['role'].' dibuat.');
+        $roleRoute = $validated['role'];
+        if ($roleRoute == 'pemilik') {
+            return redirect()->route('admin.pemilik.index')
+                ->with('status', 'Akun ' . $validated['role'] . ' dibuat.');
+        } elseif ($roleRoute == 'admin') {
+            return redirect()->route('admin.admin.index')
+                ->with('status', 'Akun ' . $validated['role'] . ' dibuat.');
+        } else { // kasir
+            return redirect()->route('admin.kasir.index')
+                ->with('status', 'Akun ' . $validated['role'] . ' dibuat.');
+        }
+    }
+
+    // Specific methods for each role
+    public function adminIndex(Request $request)
+    {
+        return $this->index($request->merge(['role' => 'admin']));
+    }
+
+    public function adminCreate(Request $request)
+    {
+        return $this->create($request->merge(['role' => 'admin']));
+    }
+
+    public function pemilikIndex(Request $request)
+    {
+        return $this->index($request->merge(['role' => 'pemilik']));
+    }
+
+    public function pemilikCreate(Request $request)
+    {
+        return $this->create($request->merge(['role' => 'pemilik']));
+    }
+
+    public function kasirIndex(Request $request)
+    {
+        return $this->index($request->merge(['role' => 'kasir']));
+    }
+
+    public function kasirCreate(Request $request)
+    {
+        return $this->create($request->merge(['role' => 'kasir']));
+    }
+
+    public function destroy(Request $request, User $user)
+    {
+        Gate::authorize('access-admin');
+        
+        // Prevent deletion of current user
+        if ($user->id === auth()->id()) {
+            return redirect()->back()->with('error', 'Tidak dapat menghapus akun sendiri.');
+        }
+        
+        $role = $user->role;
+        $user->delete();
+        
+        return redirect()->back()->with('status', 'Akun ' . $role . ' dihapus.');
+    }
+    
+    public function edit(Request $request, User $user)
+    {
+        Gate::authorize('access-admin');
+        
+        // Determine which role edit page to show based on the user's role
+        $role = $user->role;
+        return view('admin.staff.edit', compact('user', 'role'));
+    }
+    
+    public function update(Request $request, User $user)
+    {
+        Gate::authorize('access-admin');
+        
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'password' => ['nullable', 'string', 'min:8'],
+        ]);
+        
+        // Prepare data for update
+        $updateData = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ];
+        
+        // Only update password if provided
+        if (!empty($validated['password'])) {
+            $updateData['password'] = Hash::make($validated['password']);
+        }
+        
+        $user->update($updateData);
+        
+        $role = $user->role;
+        return redirect()->route('admin.' . $role . '.index')
+            ->with('status', 'Akun ' . $role . ' diperbarui.');
     }
 }
 

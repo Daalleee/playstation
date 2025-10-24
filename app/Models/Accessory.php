@@ -12,13 +12,9 @@ class Accessory extends Model
 
     protected $fillable = [
         'nama',
-        'name',
         'jenis',
-        'type',
         'stok',
-        'stock',
         'harga_per_hari',
-        'price_per_day',
         'gambar',
         'kondisi',
     ];

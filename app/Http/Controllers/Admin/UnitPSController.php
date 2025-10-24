@@ -14,6 +14,9 @@ class UnitPSController extends Controller
     {
         Gate::authorize('access-admin');
         $units = UnitPS::withCount('rentalItems')->latest()->paginate(10);
+        $units = UnitPS::select('id', 'nama', 'model', 'merek', 'harga_per_jam', 'stok', 'foto', 'kondisi')
+            ->latest()
+            ->paginate(10);
         return view('admin.unitps.index', compact('units'));
     }
 
@@ -27,20 +30,23 @@ class UnitPSController extends Controller
     {
         Gate::authorize('access-admin');
         $validated = $request->validate([
-            'nama' => ['required','string','max:255'],
-            'merek' => ['required','string','max:255'],
-            'model' => ['required','string','max:100'], 
-            'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri'],
-            'harga_per_jam' => ['required','numeric','min:0'],
-            'stok' => ['required','integer','min:0'],
-            'foto' => ['nullable','image','max:2048'],
-            'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri','regex:/^[0-9]+$/'],
-            'harga_per_jam' => ['required','numeric','min:0','max:999999'],
-            'stok' => ['required','integer','min:0','max:1000'],
-            'status' => ['required','in:available,rented,maintenance'],
-            'foto' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
+            'nama' => ['required', 'string', 'max:255'],
+            'merek' => ['required', 'string', 'max:255'],
 
-            'kondisi' => ['nullable','string','max:255'],
+            'model' => ['required', 'string', 'max:100'],
+            'nomor_seri' => ['required', 'string', 'max:255', 'unique:unit_ps,nomor_seri'],
+            'model' => ['required', 'string', 'max:100'],
+            'nomor_seri' => ['nullable', 'string', 'max:255', 'unique:unit_ps,nomor_seri'],
+            'harga_per_jam' => ['required', 'numeric', 'min:0'],
+            'stok' => ['required', 'integer', 'min:0'],
+            'foto' => ['nullable', 'image', 'max:2048'],
+            'nomor_seri' => ['required', 'string', 'max:255', 'unique:unit_ps,nomor_seri', 'regex:/^[0-9]+$/'],
+            'harga_per_jam' => ['required', 'numeric', 'min:0', 'max:999999'],
+            'stok' => ['required', 'integer', 'min:0', 'max:1000'],
+            'status' => ['required', 'in:available,rented,maintenance'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
+
+            'kondisi' => ['nullable', 'string', 'max:255'],
         ], [
             'nomor_seri.regex' => 'Nomor seri hanya boleh berisi angka.',
             'nomor_seri.unique' => 'Nomor seri sudah digunakan.',
@@ -58,6 +64,7 @@ class UnitPSController extends Controller
         $validated['brand'] = $validated['merek'];
         $validated['model'] = $validated['model'];
         $validated['serial_number'] = $validated['nomor_seri'];
+        $validated['serial_number'] = $validated['nomor_seri'] ?? null;
         $validated['price_per_hour'] = $validated['harga_per_jam'];
         $validated['stock'] = $validated['stok'];
         $validated['condition'] = $validated['kondisi'];
@@ -76,21 +83,21 @@ class UnitPSController extends Controller
     {
         Gate::authorize('access-admin');
         $validated = $request->validate([
-            'nama' => ['required','string','max:255'],
-            'merek' => ['required','string','max:255'],
-            'model' => ['required','string','max:100'],
-            'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri,'.$unitp->id],
-            'harga_per_jam' => ['required','numeric','min:0'],
-            'stok' => ['required','integer','min:0'],
-            'foto' => ['nullable','image','max:2048'],
+            'nama' => ['required', 'string', 'max:255'],
+            'merek' => ['required', 'string', 'max:255'],
+            'model' => ['required', 'string', 'max:100'],
+            'nomor_seri' => ['nullable', 'string', 'max:255', 'unique:unit_ps,nomor_seri,' . $unitp->id],
+            'harga_per_jam' => ['required', 'numeric', 'min:0'],
+            'stok' => ['required', 'integer', 'min:0'],
+            'foto' => ['nullable', 'image', 'max:2048'],
 
-            'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri,'.$unitp->id,'regex:/^[0-9]+$/'],
-            'harga_per_jam' => ['required','numeric','min:0','max:999999'],
-            'stok' => ['required','integer','min:0','max:1000'],
-            'status' => ['required','in:available,rented,maintenance'],
-            'foto' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
+            'nomor_seri' => ['required', 'string', 'max:255', 'unique:unit_ps,nomor_seri,' . $unitp->id, 'regex:/^[0-9]+$/'],
+            'harga_per_jam' => ['required', 'numeric', 'min:0', 'max:999999'],
+            'stok' => ['required', 'integer', 'min:0', 'max:1000'],
+            'status' => ['required', 'in:available,rented,maintenance'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
 
-            'kondisi' => ['nullable','string','max:255'],
+            'kondisi' => ['nullable', 'string', 'max:255'],
         ], [
             'nomor_seri.regex' => 'Nomor seri hanya boleh berisi angka.',
             'nomor_seri.unique' => 'Nomor seri sudah digunakan.',
@@ -111,6 +118,7 @@ class UnitPSController extends Controller
         $validated['brand'] = $validated['merek'];
         $validated['model'] = $validated['model'];
         $validated['serial_number'] = $validated['nomor_seri'];
+        $validated['serial_number'] = $validated['nomor_seri'] ?? null;
         $validated['price_per_hour'] = $validated['harga_per_jam'];
         $validated['stock'] = $validated['stok'];
         $validated['condition'] = $validated['kondisi'];

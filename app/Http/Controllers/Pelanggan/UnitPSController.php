@@ -13,6 +13,7 @@ class UnitPSController extends Controller
     {
         Gate::authorize('access-pelanggan');
         
+<<<<<<< HEAD
         $query = UnitPS::where('status', 'available')
             ->where('stok', '>', 0);
         
@@ -36,6 +37,11 @@ class UnitPSController extends Controller
         }
         
         $units = $query->latest()->paginate(12);
+=======
+        $units = UnitPS::where('stok', '>', 0)
+            ->latest()
+            ->paginate(12);
+>>>>>>> 23c1390 (save progress sebelum rebase)
             
         return view('pelanggan.unitps.index', compact('units'));
     }

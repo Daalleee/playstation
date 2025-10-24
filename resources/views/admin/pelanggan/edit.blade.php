@@ -37,6 +37,7 @@
             </div>
             <div class="col-12">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Update</button>
+                <a href="{{ route('admin.pelanggan.index') }}" class="btn btn-danger"><i class="bi bi-x me-1"></i> Batal</a>
             </div>
         </form>
     </div>

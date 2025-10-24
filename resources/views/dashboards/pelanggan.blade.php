@@ -15,7 +15,7 @@
   .dash-hero{ text-align:center; padding:2rem 1rem 1rem; }
   .dash-hero h2{ font-weight:800; }
   .dash-hero p{ color:#aeb5e6; margin-bottom:0; }
-  .dash-card{ background:#1f2446; border:none; border-radius:1rem; padding:1rem; text-align:center; }
+  .dash-card{ background:#49497A; border:1px solid #5a5a8a; border-radius:1rem; padding:1rem; text-align:center; }
   .dash-frame{ background:#23284a; border:1px solid #2f3561; border-radius:.75rem; padding:0; display:flex; align-items:center; justify-content:center; height:220px; overflow:hidden; }
   .dash-card img{ width:100%; height:100%; object-fit:cover; filter: drop-shadow(0 .75rem 1rem rgba(0,0,0,.35)); }
   .dash-badge{ display:inline-block; margin-top:.75rem; background:#23284a; color:#cfd3ff; padding:.35rem .75rem; border-radius:.5rem; font-weight:700; }
@@ -35,11 +35,14 @@
 </style>
 
 @php
-    $ps1 = \App\Models\UnitPS::where('status','available')->where('model','PS1')->count();
-    $ps2 = \App\Models\UnitPS::where('status','available')->where('model','PS2')->count();
-    $ps4 = \App\Models\UnitPS::where('status','available')->where('model','PS4')->count();
-    $ps5 = \App\Models\UnitPS::where('status','available')->where('model','PS5')->count();
-    $ps3 = \App\Models\UnitPS::where('status','available')->where('model','PS3')->count();
+    use App\Models\UnitPS;
+    
+    // Simple approach - just get total stock for each model (without rented calculation for now)
+    $ps1 = UnitPS::where('model','PS1')->sum('stok');
+    $ps2 = UnitPS::where('model','PS2')->sum('stok');
+    $ps4 = UnitPS::where('model','PS4')->sum('stok');
+    $ps5 = UnitPS::where('model','PS5')->sum('stok');
+    $ps3 = UnitPS::where('model','PS3')->sum('stok');
 @endphp
 
 <div class="dash-dark p-3">

@@ -2,12 +2,32 @@
 @section('title','Laporan - Admin')
 @section('admin_content')
         <style>
-            .metric{background:var(--panel-soft);border-radius:12px;padding:16px}
-            .metric .text-muted{color:#b8baf0 !important}
+            /* Apply the same purple theme as dashboard */
+            .metric{background:#2E236C;border-radius:12px;padding:16px; color: white;}
+            .metric .text-muted{color:#e6e8ff !important}
             .metric .fs-4,.metric .fs-5{color:#e6e8ff}
-            .table-container{ max-height: 420px; overflow:auto; border-radius:12px; }
+            .table-container{ max-height: 420px; overflow:auto; border-radius:12px; background: #17153B; }
             .table thead th{ position: sticky; top: 0; z-index: 1; }
             @media (max-width: 575.98px){ .metric{ padding:12px } }
+            
+            /* Apply the same purple theme and grid lines as dashboard */
+            .card{background: #17153B; color: white; border:0; box-shadow: 0 6px 24px rgba(0,0,0,.25)}
+            .table{color: white; background-color: #17153B; border-collapse: collapse;}
+            .table thead{background: #2E236C;}
+            .table thead th{background: #2E236C;color:#dbe0ff;border:1px solid #433D8B; padding: 0.75rem;}
+            .table tbody{background: #17153B;}
+            .table tbody tr{background: #17153B; transition: background-color 0.2s ease;}
+            .table tbody tr:hover{background: #2E236C;}
+            .table tbody tr+tr{border-top: 1px solid #433D8B;}
+            .table td, .table th{background-color: inherit; color: white; border:1px solid #433D8B; padding: 0.75rem;}
+            .table-responsive{background: #17153B;}
+            
+            /* Bright text for empty states */
+            .text-muted {color: #e6e8ff !important;}
+            
+            /* Override any Bootstrap default styles */
+            .table>:not(caption)>*>*{background-color: inherit; color: white;}
+            .table *, .card * {background-color: inherit;}
         </style>
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1 class="h4 m-0">Laporan</h1>
@@ -76,7 +96,7 @@
                                 <td class="text-end">Rp {{ number_format($pay->amount ?? 0, 0, ',', '.') }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="4" class="text-center text-muted">Belum ada pembayaran</td></tr>
+                            <tr><td colspan="4" class="text-center" style="color: #e6e8ff;">Belum ada pembayaran</td></tr>
                             @endforelse
                         </tbody>
                     </table>

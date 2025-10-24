@@ -12,13 +12,10 @@ class Game extends Model
 
     protected $fillable = [
         'judul',
-        'title',
         'platform',
         'genre',
         'stok',
-        'stock',
         'harga_per_hari',
-        'price_per_day',
         'gambar',
         'kondisi',
     ];

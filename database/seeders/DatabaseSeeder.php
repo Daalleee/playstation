@@ -38,9 +38,9 @@ class DatabaseSeeder extends Seeder
 
         // Seed Unit PS (tersedia untuk disewa)
         $units = [
-            ['name' => 'PS4 Slim', 'brand' => 'Sony', 'model' => 'PS4', 'serial_number' => 'PS4-1001', 'price_per_hour' => 15000, 'stok' => 3, 'status' => 'available'],
-            ['name' => 'PS5 Standard', 'brand' => 'Sony', 'model' => 'PS5', 'serial_number' => 'PS5-2001', 'price_per_hour' => 25000, 'stok' => 2, 'status' => 'available'],
-            ['name' => 'PS3 Super Slim', 'brand' => 'Sony', 'model' => 'PS3', 'serial_number' => 'PS3-3001', 'price_per_hour' => 10000, 'stok' => 1, 'status' => 'available'],
+            ['name' => 'PS4 Slim', 'brand' => 'Sony', 'model' => 'PS4', 'serial_number' => 'PS4-1001', 'price_per_hour' => 15000, 'stok' => 3],
+            ['name' => 'PS5 Standard', 'brand' => 'Sony', 'model' => 'PS5', 'serial_number' => 'PS5-2001', 'price_per_hour' => 25000, 'stok' => 2],
+            ['name' => 'PS3 Super Slim', 'brand' => 'Sony', 'model' => 'PS3', 'serial_number' => 'PS3-3001', 'price_per_hour' => 10000, 'stok' => 1],
         ];
         foreach ($units as $u) {
             UnitPS::updateOrCreate(

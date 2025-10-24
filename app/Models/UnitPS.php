@@ -14,17 +14,11 @@ class UnitPS extends Model
 
     protected $fillable = [
         'nama',
-        'name',
         'merek',
-        'brand',
         'model',
         'nomor_seri',
-        'serial_number',
         'harga_per_jam',
-        'price_per_hour',
         'stok',
-        'stock',
-        'status',
         'foto',
         'kondisi',
         'condition',

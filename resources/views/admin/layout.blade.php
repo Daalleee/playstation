@@ -19,11 +19,11 @@
         .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.06);color:#fff}
         .content{flex:1;background:var(--bg)}
         .header{text-align:center;padding:20px 16px;color:#d7dbff;font-weight:600;font-size:24px}
-        .card{background:var(--panel);color:var(--text);border:0;box-shadow:0 6px 24px rgba(0,0,0,.25)}
-        .table{color:var(--text)}
+        .card{background: #1e3a8a; color: white; border:0; box-shadow: 0 6px 24px rgba(0,0,0,.25)} /* Dark blue background */
+        .table{color: white; background-color: #1e3a8a;} /* Dark blue background for tables */
         .table thead th{background:#2d3192;color:#dbe0ff;border:0}
-        .table tbody tr{background:var(--panel-soft)}
-        .table tbody tr+tr{border-top:1px solid rgba(255,255,255,.06)}
+        .table tbody tr{background: #3141a0;} /* Slightly lighter blue for rows */
+        .table tbody tr+tr{border-top:1px solid rgba(255,255,200,0.1)}
         /* Responsive off-canvas */
         .dash-toggle{ position:fixed; left:10px; top:10px; z-index:1043; background:#4750c9; color:#fff; border:none; padding:.5rem .65rem; border-radius:.6rem; box-shadow:0 .5rem 1rem rgba(0,0,0,.25); display:none; }
         .dash-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter:saturate(120%) blur(2px); z-index:1041; display:none; }
@@ -50,10 +50,15 @@
             <span>Playstation</span>
         </div>
         <nav class="d-flex flex-column gap-1">
-            <a href="{{ route('dashboard.admin') }}" class="nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}"><i class="bi bi-house-door"></i> Beranda</a>
-            <a href="{{ route('admin.unitps.index') }}" class="nav-link {{ request()->routeIs('admin.unitps.*') ? 'active' : '' }}"><i class="bi bi-box-seam"></i> Kelola Inventaris</a>
-            <a href="{{ route('admin.pelanggan.index') }}" class="nav-link {{ request()->routeIs('admin.pelanggan.*') ? 'active' : '' }}"><i class="bi bi-people"></i> Kelola Data Pelanggan</a>
-            <a href="{{ route('admin.laporan') }}" class="nav-link {{ request()->routeIs('admin.laporan') ? 'active' : '' }}"><i class="bi bi-graph-up"></i> Laporan</a>
+            <a href="{{ route('dashboard.admin') }}" class="nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}"><i class="bi bi-house-door"></i> Dashboard</a>
+            <a href="{{ route('admin.pelanggan.index') }}" class="nav-link {{ request()->routeIs('admin.pelanggan.*') ? 'active' : '' }}"><i class="bi bi-people"></i> Kelola Pelanggan</a>
+            <a href="{{ route('admin.pemilik.index') }}" class="nav-link {{ request()->routeIs('admin.pemilik.*') ? 'active' : '' }}"><i class="bi bi-person-workspace"></i> Kelola Pemilik</a>
+            <a href="{{ route('admin.kasir.index') }}" class="nav-link {{ request()->routeIs('admin.kasir.*') ? 'active' : '' }}"><i class="bi bi-person-vcard"></i> Kelola Kasir</a>
+            <a href="{{ route('admin.admin.index') }}" class="nav-link {{ request()->routeIs('admin.admin.*') ? 'active' : '' }}"><i class="bi bi-person-gear"></i> Kelola Admin</a>
+            <a href="{{ route('admin.unitps.index') }}" class="nav-link {{ request()->routeIs('admin.unitps.*') ? 'active' : '' }}"><i class="bi bi-controller"></i> Tambah Unit PS</a>
+            <a href="{{ route('admin.games.index') }}" class="nav-link {{ request()->routeIs('admin.games.*') ? 'active' : '' }}"><i class="bi bi-disc"></i> Tambah Game</a>
+            <a href="{{ route('admin.accessories.index') }}" class="nav-link {{ request()->routeIs('admin.accessories.*') ? 'active' : '' }}"><i class="bi bi-plugin"></i> Tambah Aksesoris</a>
+            <a href="{{ route('admin.laporan') }}" class="nav-link {{ request()->routeIs('admin.laporan') ? 'active' : '' }}"><i class="bi bi-file-earmark-bar-graph"></i> Laporan</a>
             <form method="POST" action="{{ route('logout') }}" class="mt-2">
                 @csrf
                 <button class="btn btn-danger w-100"><i class="bi bi-box-arrow-right me-1"></i> Logout</button>
