@@ -29,12 +29,17 @@ class UnitPSController extends Controller
         $validated = $request->validate([
             'nama' => ['required','string','max:255'],
             'merek' => ['required','string','max:255'],
-            'model' => ['required','string','max:100'],
+            'model' => ['required','string','max:100'], 
+            'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri'],
+            'harga_per_jam' => ['required','numeric','min:0'],
+            'stok' => ['required','integer','min:0'],
+            'foto' => ['nullable','image','max:2048'],
             'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri','regex:/^[0-9]+$/'],
             'harga_per_jam' => ['required','numeric','min:0','max:999999'],
             'stok' => ['required','integer','min:0','max:1000'],
             'status' => ['required','in:available,rented,maintenance'],
             'foto' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
+
             'kondisi' => ['nullable','string','max:255'],
         ], [
             'nomor_seri.regex' => 'Nomor seri hanya boleh berisi angka.',
@@ -51,9 +56,11 @@ class UnitPSController extends Controller
         // Kompatibilitas kolom lama
         $validated['name'] = $validated['nama'];
         $validated['brand'] = $validated['merek'];
+        $validated['model'] = $validated['model'];
         $validated['serial_number'] = $validated['nomor_seri'];
         $validated['price_per_hour'] = $validated['harga_per_jam'];
         $validated['stock'] = $validated['stok'];
+        $validated['condition'] = $validated['kondisi'];
 
         UnitPS::create($validated);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dibuat');
@@ -72,11 +79,17 @@ class UnitPSController extends Controller
             'nama' => ['required','string','max:255'],
             'merek' => ['required','string','max:255'],
             'model' => ['required','string','max:100'],
+            'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri,'.$unitp->id],
+            'harga_per_jam' => ['required','numeric','min:0'],
+            'stok' => ['required','integer','min:0'],
+            'foto' => ['nullable','image','max:2048'],
+
             'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri,'.$unitp->id,'regex:/^[0-9]+$/'],
             'harga_per_jam' => ['required','numeric','min:0','max:999999'],
             'stok' => ['required','integer','min:0','max:1000'],
             'status' => ['required','in:available,rented,maintenance'],
             'foto' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
+
             'kondisi' => ['nullable','string','max:255'],
         ], [
             'nomor_seri.regex' => 'Nomor seri hanya boleh berisi angka.',
@@ -96,9 +109,11 @@ class UnitPSController extends Controller
         // Kompatibilitas kolom lama
         $validated['name'] = $validated['nama'];
         $validated['brand'] = $validated['merek'];
+        $validated['model'] = $validated['model'];
         $validated['serial_number'] = $validated['nomor_seri'];
         $validated['price_per_hour'] = $validated['harga_per_jam'];
         $validated['stock'] = $validated['stok'];
+        $validated['condition'] = $validated['kondisi'];
 
         $unitp->update($validated);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS diperbarui');
