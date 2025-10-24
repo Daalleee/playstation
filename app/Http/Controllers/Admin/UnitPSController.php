@@ -33,7 +33,6 @@ class UnitPSController extends Controller
             'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri'],
             'harga_per_jam' => ['required','numeric','min:0'],
             'stok' => ['required','integer','min:0'],
-            'status' => ['required','in:available,rented,maintenance'],
             'foto' => ['nullable','image','max:2048'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
@@ -48,9 +47,11 @@ class UnitPSController extends Controller
         // Kompatibilitas kolom lama
         $validated['name'] = $validated['nama'];
         $validated['brand'] = $validated['merek'];
+        $validated['model'] = $validated['model'];
         $validated['serial_number'] = $validated['nomor_seri'];
         $validated['price_per_hour'] = $validated['harga_per_jam'];
         $validated['stock'] = $validated['stok'];
+        $validated['condition'] = $validated['kondisi'];
 
         UnitPS::create($validated);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dibuat');
@@ -72,7 +73,6 @@ class UnitPSController extends Controller
             'nomor_seri' => ['required','string','max:255','unique:unit_ps,nomor_seri,'.$unitp->id],
             'harga_per_jam' => ['required','numeric','min:0'],
             'stok' => ['required','integer','min:0'],
-            'status' => ['required','in:available,rented,maintenance'],
             'foto' => ['nullable','image','max:2048'],
             'kondisi' => ['nullable','string','max:255'],
         ]);
@@ -90,9 +90,11 @@ class UnitPSController extends Controller
         // Kompatibilitas kolom lama
         $validated['name'] = $validated['nama'];
         $validated['brand'] = $validated['merek'];
+        $validated['model'] = $validated['model'];
         $validated['serial_number'] = $validated['nomor_seri'];
         $validated['price_per_hour'] = $validated['harga_per_jam'];
         $validated['stock'] = $validated['stok'];
+        $validated['condition'] = $validated['kondisi'];
 
         $unitp->update($validated);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS diperbarui');
