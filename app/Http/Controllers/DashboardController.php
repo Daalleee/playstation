@@ -16,13 +16,6 @@ class DashboardController extends Controller
     public function admin()
     {
         Gate::authorize('access-admin');
-<<<<<<< HEAD
-        // Hitung statistik inventaris dengan efficient aggregate queries
-        $unitAvailable = UnitPS::sum('stok');
-        $unitRented = RentalItem::whereHas('rental', function ($q) { 
-                $q->whereIn('status', ['active', 'ongoing']); 
-            })
-=======
         
         // Gunakan eager loading dan aggregasi untuk meningkatkan performa
         $unitPSData = UnitPS::selectRaw('*, COALESCE(stok, stock, 0) as total_stok')->get();
@@ -31,35 +24,34 @@ class DashboardController extends Controller
         
         $unitAvailable = $unitPSData->sum('total_stok');
         $unitRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
->>>>>>> cd6d258 (Optimalkan perhitungan statistik inventaris dan tingkatkan pengambilan data untuk dasbor admin)
             ->where('rentable_type', UnitPS::class)
             ->sum('quantity');
         $unitDamaged = UnitPS::where('kondisi', 'rusak')->count();
         $unitTotal = $unitAvailable + $unitRented;
 
-<<<<<<< HEAD
-        $gameAvailable = Game::sum('stok');
-        $gameRented = RentalItem::whereHas('rental', function ($q) { 
-                $q->whereIn('status', ['active', 'ongoing']); 
-            })
-=======
         $gameAvailable = $gameData->sum('total_stok');
         $gameRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
->>>>>>> cd6d258 (Optimalkan perhitungan statistik inventaris dan tingkatkan pengambilan data untuk dasbor admin)
             ->where('rentable_type', Game::class)
             ->sum('quantity');
         $gameDamaged = Game::where('kondisi', 'rusak')->count();
         $gameTotal = $gameAvailable + $gameRented;
 
-<<<<<<< HEAD
-        $accAvailable = Accessory::sum('stok');
-        $accRented = RentalItem::whereHas('rental', function ($q) { 
-                $q->whereIn('status', ['active', 'ongoing']); 
-            })
-=======
         $accAvailable = $accessoryData->sum('total_stok');
         $accRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
->>>>>>> cd6d258 (Optimalkan perhitungan statistik inventaris dan tingkatkan pengambilan data untuk dasbor admin)
+            ->where('rentable_type', Accessory::class)
+            ->sum('quantity');
+        $accDamaged = Accessory::where('kondisi', 'rusak')->count();
+        $accTotal = $accAvailable + $accRented;
+
+        $gameAvailable = $gameData->sum('total_stok');
+        $gameRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
+            ->where('rentable_type', Game::class)
+            ->sum('quantity');
+        $gameDamaged = Game::where('kondisi', 'rusak')->count();
+        $gameTotal = $gameAvailable + $gameRented;
+
+        $accAvailable = $accessoryData->sum('total_stok');
+        $accRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
             ->where('rentable_type', Accessory::class)
             ->sum('quantity');
         $accDamaged = Accessory::where('kondisi', 'rusak')->count();
