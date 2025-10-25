@@ -28,16 +28,55 @@ class RentalController extends Controller
         return view('pelanggan.rentals.index', compact('rentals'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         Gate::authorize('access-pelanggan');
         
-        $cartItems = Cart::where('user_id', auth()->id())->get();
-        if ($cartItems->isEmpty()) {
-            return redirect()->route('pelanggan.cart.index')->with('error', 'Keranjang kosong. Silakan tambahkan item terlebih dahulu.');
+        // Check if specific item is requested via query parameters
+        $itemType = $request->query('type');
+        $itemId = $request->query('id');
+        
+        if ($itemType && $itemId) {
+            // Get the specific item directly
+            $model = match($itemType) {
+                'unitps' => UnitPS::class,
+                'game' => Game::class,
+                'accessory' => Accessory::class,
+                default => null,
+            };
+            
+            if ($model) {
+                $item = $model::find($itemId);
+                if ($item) {
+                    // Create a temporary cart-like item for the view
+                    $cartItems = collect([[
+                        'name' => $item->nama ?? $item->judul ?? $item->name,
+                        'type' => $itemType,
+                        'price' => $itemType === 'unitps' ? $item->harga_per_jam : $item->harga_per_hari,
+                        'price_type' => $itemType === 'unitps' ? 'per_jam' : 'per_hari',
+                        'quantity' => 1,
+                        'id' => $itemId,
+                    ]]);
+                    
+                    return view('pelanggan.rentals.create', ['cartItems' => $cartItems, 'directItem' => true]);
+                }
+            }
         }
         
-        return view('pelanggan.rentals.create', ['cartItems' => $cartItems]);
+        // Fallback to cart items if no specific item requested or item not found
+        $cartItems = Cart::where('user_id', auth()->id())->get();
+        if ($cartItems->isEmpty()) {
+            // Check session cart
+            $sessionCart = session()->get('cart', []);
+            if (!empty($sessionCart)) {
+                // Convert session cart to collection format
+                $cartItems = collect($sessionCart);
+            } else {
+                return redirect()->route('pelanggan.cart.index')->with('error', 'Keranjang kosong. Silakan tambahkan item terlebih dahulu.');
+            }
+        }
+        
+        return view('pelanggan.rentals.create', ['cartItems' => $cartItems, 'directItem' => false]);
     }
 
     public function store(Request $request, MidtransService $midtrans)
@@ -63,9 +102,64 @@ class RentalController extends Controller
             return back()->withErrors(['return_date' => 'Durasi sewa minimal 1 hari.'])->withInput();
         }
 
+        // Check if we need to create a temporary cart item (from direct item selection)
         $cartItems = Cart::where('user_id', auth()->id())->get();
         if ($cartItems->isEmpty()) {
-            return redirect()->route('pelanggan.cart.index')->with('error', 'Keranjang kosong.');
+            // Check if this is a direct item rental from query parameters
+            $itemType = $request->query('type');
+            $itemId = $request->query('id');
+            
+            if ($itemType && $itemId) {
+                // Validate that this is a legitimate direct request
+                $model = match($itemType) {
+                    'unitps' => UnitPS::class,
+                    'game' => Game::class,
+                    'accessory' => Accessory::class,
+                };
+                
+                if ($model) {
+                    $item = $model::find($itemId);
+                    if ($item && $item->stok > 0) {
+                        // Get quantity from request or default to 1
+                        $quantity = $request->input('quantity', 1);
+                        
+                        // Create temporary cart entry for this specific item
+                        Cart::create([
+                            'user_id' => auth()->id(),
+                            'type' => $itemType,
+                            'item_id' => $itemId,
+                            'quantity' => $quantity,
+                            'price' => $itemType === 'unitps' ? $item->harga_per_jam : $item->harga_per_hari,
+                            'name' => $item->nama ?? $item->judul ?? $item->name,
+                            'price_type' => $itemType === 'unitps' ? 'per_jam' : 'per_hari',
+                        ]);
+                        
+                        // Get updated cart items
+                        $cartItems = Cart::where('user_id', auth()->id())->get();
+                    }
+                }
+            }
+        }
+        
+        // Get cart items for this rental
+        $cartItems = Cart::where('user_id', auth()->id())->get();
+        
+        // If DB cart is empty, check session cart
+        if ($cartItems->isEmpty()) {
+            $sessionCart = session()->get('cart', []);
+            if (!empty($sessionCart)) {
+                // Convert session cart to collection format
+                $cartItems = collect($sessionCart);
+            } else {
+                // If DB cart is empty, check session cart
+            $sessionCart = session()->get('cart', []);
+            if (!empty($sessionCart)) {
+                // Convert session cart to collection format
+                $cartItems = collect($sessionCart);
+            } else {
+                return redirect()->route('pelanggan.cart.index')->with('error', 'Keranjang kosong.');
+            }
+            }
         }
 
         try {
@@ -85,22 +179,28 @@ class RentalController extends Controller
 
             // Create rental items
             foreach ($cartItems as $item) {
-                $model = match($item->type) {
+                // Handle both object and array formats
+                $itemType = is_object($item) ? $item->type : $item['type'];
+                $itemId = is_object($item) ? $item->item_id : $item['item_id'];
+                $itemQuantity = is_object($item) ? $item->quantity : $item['quantity'];
+                $itemName = is_object($item) ? $item->name : $item['name'];
+                
+                $model = match($itemType) {
                     'unitps' => UnitPS::class,
                     'game' => Game::class,
                     'accessory' => Accessory::class,
                 };
 
-                $rentable = $model::lockForUpdate()->find($item->item_id);
+                $rentable = $model::lockForUpdate()->find($itemId);
                 
                 if (!$rentable) {
-                    throw new \Exception("Item {$item->name} tidak ditemukan");
+                    throw new \Exception("Item {$itemName} tidak ditemukan");
                 }
                 
-                if (($rentable->stok ?? 0) < $item->quantity) {
+                if (($rentable->stok ?? 0) < $itemQuantity) {
                     throw new \App\Exceptions\InsufficientStockException(
-                        $item->name, 
-                        $item->quantity, 
+                        $itemName, 
+                        $itemQuantity, 
                         $rentable->stok ?? 0
                     );
                 }
@@ -108,23 +208,26 @@ class RentalController extends Controller
                 // Calculate duration (simplified)
                 $rentalDate = \Carbon\Carbon::parse($validated['rental_date']);
                 $returnDate = \Carbon\Carbon::parse($validated['return_date']);
-                $duration = ($item->price_type === 'per_jam')
+                $itemPriceType = is_object($item) ? $item->price_type : $item['price_type'];
+                $itemPrice = is_object($item) ? $item->price : $item['price'];
+                
+                $duration = ($itemPriceType === 'per_jam')
                     ? max(1, $rentalDate->diffInHours($returnDate))
                     : max(1, $rentalDate->diffInDays($returnDate));
 
-                $subtotal = $item->price * $item->quantity * $duration;
+                $subtotal = $itemPrice * $itemQuantity * $duration;
 
                 RentalItem::create([
                     'rental_id' => $rental->id,
                     'rentable_type' => $model,
-                    'rentable_id' => $item->item_id,
-                    'quantity' => $item->quantity,
-                    'price' => $item->price,
+                    'rentable_id' => $itemId,
+                    'quantity' => $itemQuantity,
+                    'price' => $itemPrice,
                     'total' => $subtotal,
                 ]);
 
                 // Update stock with pessimistic locking to prevent race condition
-                $rentable->stok -= $item->quantity;
+                $rentable->stok -= $itemQuantity;
                 $rentable->save();
 
                 $totalAmount += $subtotal;
@@ -133,8 +236,11 @@ class RentalController extends Controller
             // Update rental total
             $rental->update(['total' => $totalAmount]);
 
-            // Clear DB cart
+            // Clear DB cart only
             Cart::where('user_id', auth()->id())->delete();
+            
+            // Clear session cart
+            session()->forget('cart');
 
             // Midtrans: build params - gunakan total per item agar sesuai durasi
             $items = [];
@@ -151,10 +257,9 @@ class RentalController extends Controller
             }
             $orderId = 'ORD-'.date('Ymd').'-'.$rental->id.'-'.substr(uniqid(), -5);
 
-            // Fallback: jika local/dev atau key Midtrans tidak terpasang, lewati Snap dan langsung ke halaman detail
+            // Use Midtrans if server key is available
             $serverKey = config('midtrans.server_key');
-            $clientKey = config('midtrans.client_key');
-            $useSnap = app()->environment('production') && !empty($serverKey) && !empty($clientKey);
+            $useSnap = !empty($serverKey);
 
             if ($useSnap) {
                 $params = [
