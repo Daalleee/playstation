@@ -18,9 +18,9 @@ class DashboardController extends Controller
         Gate::authorize('access-admin');
         
         // Gunakan eager loading dan aggregasi untuk meningkatkan performa
-        $unitPSData = UnitPS::selectRaw('*, COALESCE(stok, stock, 0) as total_stok')->get();
-        $gameData = Game::selectRaw('*, COALESCE(stok, stock, 0) as total_stok')->get();
-        $accessoryData = Accessory::selectRaw('*, COALESCE(stok, stock, 0) as total_stok')->get();
+        $unitPSData = UnitPS::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
+        $gameData = Game::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
+        $accessoryData = Accessory::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
         
         $unitAvailable = $unitPSData->sum('total_stok');
         $unitRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
@@ -28,20 +28,6 @@ class DashboardController extends Controller
             ->sum('quantity');
         $unitDamaged = UnitPS::where('kondisi', 'rusak')->count();
         $unitTotal = $unitAvailable + $unitRented;
-
-        $gameAvailable = $gameData->sum('total_stok');
-        $gameRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
-            ->where('rentable_type', Game::class)
-            ->sum('quantity');
-        $gameDamaged = Game::where('kondisi', 'rusak')->count();
-        $gameTotal = $gameAvailable + $gameRented;
-
-        $accAvailable = $accessoryData->sum('total_stok');
-        $accRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
-            ->where('rentable_type', Accessory::class)
-            ->sum('quantity');
-        $accDamaged = Accessory::where('kondisi', 'rusak')->count();
-        $accTotal = $accAvailable + $accRented;
 
         $gameAvailable = $gameData->sum('total_stok');
         $gameRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
@@ -91,9 +77,9 @@ class DashboardController extends Controller
             $rentedCount = $activeRentalItems->has($key) ? $activeRentalItems->get($key)->total_rented : 0;
             
             return [
-                'nama' => $game->judul,
-                'model' => $game->platform,
-                'merek' => $game->genre,
+                'judul' => $game->judul,
+                'platform' => $game->platform,
+                'genre' => $game->genre,
                 'stok' => $game->total_stok,
                 'kondisi_baik' => $game->total_stok, // Equals total stock since admin adds items as baik
                 'kondisi_buruk' => 0, // Default to 0 since admin adds items as baik
@@ -109,8 +95,7 @@ class DashboardController extends Controller
             
             return [
                 'nama' => $acc->nama,
-                'model' => $acc->jenis,
-                'merek' => $acc->kondisi ?? 'baik',
+                'jenis' => $acc->jenis,
                 'stok' => $acc->total_stok,
                 'kondisi_baik' => $acc->total_stok, // Equals total stock since admin adds items as baik
                 'kondisi_buruk' => 0, // Default to 0 since admin adds items as baik
