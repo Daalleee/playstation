@@ -2,18 +2,28 @@
 @section('content')
 <style>
   .dash-dark{ background:#2b3156; color:#e7e9ff; border-radius:0; min-height:100dvh; }
-  .dash-layout{ display:flex; gap:1rem; }
-  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); position:sticky; top:1rem; min-height:calc(100dvh - 2rem); }
-  .dash-main{ flex:1; }
+  .dash-layout{ display:flex; gap:1rem; height: 100vh; }
+  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); height: 100vh; overflow-y: auto; position: sticky; top: 0; }
+  .dash-main{ flex:1; overflow-y: auto; padding: 1rem; }
   .page-hero{ text-align:center; padding:1rem; }
   .page-hero h2{ font-weight:800; margin:0; }
+  .filter-row{ display:grid; grid-template-columns: 1fr 1fr 2fr auto; gap:1rem; margin:0 1rem 1rem; align-items:end; }
+  .select-dark, .input-dark{ width:100%; background:#23284a; color:#eef1ff; border:1px solid #2f3561; border-radius:.6rem; padding:.55rem .75rem; }
+  .btn-cta{ background:#2ecc71; border:none; color:#0e1a2f; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; min-width:120px; }
   .card-dark{ background:#1f2446; border:none; border-radius:1rem; padding:1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); }
   table.dark{ width:100%; color:#e7e9ff; border-collapse:collapse; }
   table.dark th, table.dark td{ border:1px solid #2f3561; padding:.5rem .6rem; }
   table.dark thead th{ background:#23284a; font-weight:800; }
-  .badge-ok{ background:#1f9d62; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .badge-warn{ background:#d97a2b; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .btn-detail{ background:#6f7dd6; color:#fff; border:none; padding:.3rem .6rem; border-radius:.4rem; text-decoration:none; }
+  .badge-ok{ background:#1a7a4f; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
+  .badge-warn{ background:#b8651f; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
+  .badge-danger{ background:#c0392b; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
+  .badge-success{ background:#1e8449; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; font-weight:700; }
+  .badge-warning{ background:#d68910; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; font-weight:700; }
+  .btn-detail{ background:#5b6bb8; color:#fff; border:none; padding:.3rem .6rem; border-radius:.4rem; text-decoration:none; }
+  .btn-cta{ background:#1e8449; border:none; color:#fff; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; cursor:pointer; }
+  .btn-cta:hover{ background:#27ae60; }
+  .btn-cta:disabled{ background:#7f8c8d; cursor:not-allowed; opacity:0.6; }
+  @media (max-width: 991.98px){ .dash-layout{ flex-direction:column; } .dash-sidebar{ flex:0 0 auto; position:static; height: auto; } .dash-main{ height: auto; } .filter-row{ grid-template-columns:1fr; } }
 </style>
 
 <div class="dash-dark p-3">
@@ -25,54 +35,51 @@
         <h2>Riwayat Penyewaan</h2>
       </div>
 
-      @if(session('status'))
-        <div class="alert alert-success">{{ session('status') }}</div>
-      @endif
-      @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-      @endif
+      <form method="GET" class="filter-row">
+        <div>
+          <label class="mb-1 d-block fw-bold">Status</label>
+          <select name="status" class="select-dark">
+            <option value="">Semua Status</option>
+            <option value="active">Aktif</option>
+            <option value="completed">Selesai</option>
+            <option value="returned">Dikembalikan</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 d-block fw-bold">Tanggal</label>
+          <input type="date" name="date" class="input-dark" />
+        </div>
+        <div>
+          <label class="mb-1 d-block fw-bold">Cari Riwayat</label>
+          <input type="text" name="q" placeholder="Cari riwayat penyewaan" class="input-dark" />
+        </div>
+        <div>
+          <button class="btn-cta w-100" type="submit">Cari</button>
+        </div>
+      </form>
 
       <div class="card-dark">
         <div class="table-responsive">
           <table class="dark">
             <thead>
               <tr>
-                <th>ID Transaksi</th>
-                <th>Unit/Game</th>
-                <th>Tanggal Sewa</th>
-                <th>Durasi</th>
-                <th>Biaya</th>
+                <th>No. Transaksi</th>
+                <th>Tanggal</th>
+                <th>Item Disewa</th>
+                <th>Total Harga</th>
                 <th>Status</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              @forelse($rentals as $rental)
-                @php
-                  $start = \Carbon\Carbon::parse($rental->start_at);
-                  $due = \Carbon\Carbon::parse($rental->due_at);
-                  $hours = $start->diffInHours($due);
-                  $firstItem = optional($rental->items->first());
-                  $itemName = $firstItem->name ?? ($rental->kode ? 'Transaksi '.$rental->kode : 'Item');
-                  $st = strtolower($rental->status ?? 'pending');
-                @endphp
-                <tr>
-                  <td>{{ $rental->kode ?? ('TRX'.$rental->id) }}</td>
-                  <td>{{ $itemName }}</td>
-                  <td>{{ $start->format('Y-m-d') }}</td>
-                  <td>{{ $hours }} Jam</td>
-                  <td>Rp {{ number_format($rental->total, 0, ',', '.') }}</td>
-                  <td><span class="{{ in_array($st,['returned','selesai']) ? 'badge-ok' : 'badge-warn' }}">{{ ucfirst($st) }}</span></td>
-                  <td><a href="{{ route('pelanggan.rentals.show', $rental) }}" class="btn-detail">Detail</a></td>
-                </tr>
-              @empty
-                <tr><td colspan="7" class="text-center">Belum ada riwayat.</td></tr>
-              @endforelse
+              <tr>
+                <td colspan="6" class="text-center">Belum ada riwayat penyewaan.</td>
+              </tr>
             </tbody>
           </table>
         </div>
         <div class="mt-3">
-          {{ method_exists($rentals,'links') ? $rentals->links() : '' }}
+          <!-- Pagination would go here -->
         </div>
       </div>
     </main>
