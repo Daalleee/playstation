@@ -159,9 +159,23 @@ class DashboardController extends Controller
     public function pelanggan()
     {
         Gate::authorize('access-pelanggan');
-        $unitps = UnitPS::orderByDesc('id')->limit(6)->get();
-        $games = Game::orderByDesc('id')->limit(6)->get();
-        $accessories = Accessory::orderByDesc('id')->limit(6)->get();
+        
+        // Get latest available items with stock > 0 for display on landing page
+        $unitps = UnitPS::where('stok', '>', 0)
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
+            
+        $games = Game::where('stok', '>', 0)
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
+            
+        $accessories = Accessory::where('stok', '>', 0)
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
+            
         return view('dashboards.pelanggan', compact('unitps', 'games', 'accessories'));
     }
 
