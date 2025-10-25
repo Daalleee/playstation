@@ -313,6 +313,7 @@
                                     <th>Nama</th>
                                     <th>Model</th>
                                     <th>Merek</th>
+                                    <th>Nomor Seri</th>
                                     <th>Stok</th>
                                     <th>Kondisi Baik</th>
                                     <th>Kondisi Buruk</th>
@@ -325,6 +326,7 @@
                                         <td>{{ $unit['nama'] }}</td>
                                         <td>{{ $unit['model'] }}</td>
                                         <td>{{ $unit['merek'] }}</td>
+                                        <td>{{ $unit['nomor_seri'] }}</td>
                                         <td>{{ $unit['stok'] }}</td>
                                         <td>{{ $unit['kondisi_baik'] }}</td>
                                         <td>{{ $unit['kondisi_buruk'] }}</td>
@@ -332,7 +334,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">Tidak ada data unit PS</td>
+                                        <td colspan="8" class="text-center">Tidak ada data unit PS</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -347,9 +349,9 @@
                         <table class="table align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Nama</th>
-                                    <th>Model</th>
-                                    <th>Merek</th>
+                                    <th>Judul</th>
+                                    <th>Platform</th>
+                                    <th>Genre</th>
                                     <th>Stok</th>
                                     <th>Kondisi Baik</th>
                                     <th>Kondisi Buruk</th>
@@ -359,9 +361,9 @@
                             <tbody>
                                 @forelse($games as $game)
                                     <tr>
-                                        <td>{{ $game['nama'] }}</td>
-                                        <td>{{ $game['model'] }}</td>
-                                        <td>{{ $game['merek'] }}</td>
+                                        <td>{{ $game['judul'] }}</td>
+                                        <td>{{ $game['platform'] }}</td>
+                                        <td>{{ $game['genre'] }}</td>
                                         <td>{{ $game['stok'] }}</td>
                                         <td>{{ $game['kondisi_baik'] }}</td>
                                         <td>{{ $game['kondisi_buruk'] }}</td>
@@ -385,8 +387,7 @@
                             <thead>
                                 <tr>
                                     <th>Nama</th>
-                                    <th>Model</th>
-                                    <th>Merek</th>
+                                    <th>Jenis</th>
                                     <th>Stok</th>
                                     <th>Kondisi Baik</th>
                                     <th>Kondisi Buruk</th>
@@ -397,8 +398,7 @@
                                 @forelse($accessories as $acc)
                                     <tr>
                                         <td>{{ $acc['nama'] }}</td>
-                                        <td>{{ $acc['model'] }}</td>
-                                        <td>{{ $acc['merek'] }}</td>
+                                        <td>{{ $acc['jenis'] }}</td>
                                         <td>{{ $acc['stok'] }}</td>
                                         <td>{{ $acc['kondisi_baik'] }}</td>
                                         <td>{{ $acc['kondisi_buruk'] }}</td>
@@ -406,7 +406,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center" style="color: #e6e8ff;">Tidak ada data aksesoris</td>
+                                        <td colspan="6" class="text-center" style="color: #e6e8ff;">Tidak ada data aksesoris</td>
                                     </tr>
                                 @endforelse
                             </tbody>

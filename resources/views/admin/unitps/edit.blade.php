@@ -32,16 +32,14 @@
                 @enderror
             </div>
             <div class="col-md-6">
-                <label class="form-label">Nomor Seri <small class="text-white" style="opacity: 0.9;">(Hanya
-                        angka)</small></label>
+                <label class="form-label">Nomor Seri <small class="text-white" style="opacity: 0.9;">(Alfanumerik)</small></label>
                 <input type="text" name="nomor_seri" value="{{ old('nomor_seri', $unit->nomor_seri) }}" required
-                    class="form-control" pattern="[0-9]+" title="Nomor seri hanya boleh berisi angka"
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Contoh: 123456789">
+                    class="form-control" pattern="[A-Za-z0-9]+" title="Nomor seri hanya boleh berisi huruf dan angka"
+                    oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '')" placeholder="Contoh: AB29 atau 123456789">
                 @error('nomor_seri')
                     <div class="text-danger small">{{ $message }}</div>
                 @enderror
-                <small class="text-white" style="opacity: 0.85;">Masukkan hanya angka tanpa huruf atau karakter
-                    khusus</small>
+                <small class="text-white" style="opacity: 0.85;">Masukkan huruf dan/atau angka tanpa karakter khusus</small>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Harga per Jam</label>
@@ -58,14 +56,6 @@
                 <label class="form-label">Stok</label>
                 <input type="number" name="stok" value="{{ old('stok', $unit->stok) }}" required class="form-control">
                 @error('stok')
-                    <div class="text-danger small">{{ $message }}</div>
-                @enderror
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Nomor Seri</label>
-                <input type="text" name="nomor_seri" value="{{ old('nomor_seri', $unit->nomor_seri) }}" required
-                    class="form-control">
-                @error('nomor_seri')
                     <div class="text-danger small">{{ $message }}</div>
                 @enderror
             </div>

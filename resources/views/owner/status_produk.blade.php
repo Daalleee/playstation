@@ -12,7 +12,7 @@
         @foreach($unitps as $u)
         @php
             $jumlahDisewa = $u->rentalItems()->whereHas('rental', function($q){ $q->whereIn('status', ['ongoing','active']); })->sum('quantity');
-            $stok = $u->stok ?? $u->stock;
+            $stok = $u->stok ?? 0;
             $sisa = $stok - $jumlahDisewa;
         @endphp
         <tr>
@@ -43,7 +43,7 @@
         @foreach($games as $g)
         @php
             $jumlahDisewa = $g->rentalItems()->whereHas('rental', function($q){ $q->whereIn('status', ['ongoing','active']); })->sum('quantity');
-            $stok = $g->stok ?? $g->stock;
+            $stok = $g->stok ?? 0;
             $sisa = $stok - $jumlahDisewa;
         @endphp
         <tr>
@@ -74,7 +74,7 @@
         @foreach($accessories as $a)
         @php
             $jumlahDisewa = $a->rentalItems()->whereHas('rental', function($q){ $q->whereIn('status', ['ongoing','active']); })->sum('quantity');
-            $stok = $a->stok ?? $a->stock;
+            $stok = $a->stok ?? 0;
             $sisa = $stok - $jumlahDisewa;
         @endphp
         <tr>
