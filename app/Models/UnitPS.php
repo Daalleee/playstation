@@ -21,12 +21,9 @@ class UnitPS extends Model
         'stok',
         'foto',
         'kondisi',
-        'condition',
     ];
 
-    protected $attributes = [
-        'status' => 'available', // Default status
-    ];
+
 
     public function rentalItems(): MorphMany
     {

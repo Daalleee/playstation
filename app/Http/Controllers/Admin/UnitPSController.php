@@ -58,7 +58,6 @@ class UnitPSController extends Controller
         $validated['serial_number'] = $validated['nomor_seri'] ?? null;
         $validated['price_per_hour'] = $validated['harga_per_jam'];
         $validated['stock'] = $validated['stok'];
-        $validated['condition'] = $validated['kondisi'];
 
         UnitPS::create($validated);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dibuat');
@@ -83,7 +82,7 @@ class UnitPSController extends Controller
             'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
             'kondisi' => ['nullable', 'string', 'max:255'],
         ], [
-            'nomor_seri.regex' => 'Nomor seri hanya boleh berisi angka.',
+            'nomor_seri.regex' => 'Nomor seri hanya boleh berisi huruf dan angka.',
             'nomor_seri.unique' => 'Nomor seri sudah digunakan.',
         ]);
 
@@ -105,7 +104,6 @@ class UnitPSController extends Controller
         $validated['serial_number'] = $validated['nomor_seri'] ?? null;
         $validated['price_per_hour'] = $validated['harga_per_jam'];
         $validated['stock'] = $validated['stok'];
-        $validated['condition'] = $validated['kondisi'];
 
         $unitp->update($validated);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS diperbarui');
