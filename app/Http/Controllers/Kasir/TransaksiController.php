@@ -69,7 +69,7 @@ class TransaksiController extends Controller
                     // Update stok barang dengan pessimistic locking
                     $rentable = $item->rentable()->lockForUpdate()->first();
                     if ($rentable) {
-                        $rentable->stok = ($rentable->stok ?? $rentable->stock ?? 0) + $item->quantity;
+                        $rentable->stok = ($rentable->stok ?? 0) + $item->quantity;
                         $rentable->save();
                     }
                     
