@@ -2,11 +2,11 @@
   .dash-toggle{ position:fixed; left:12px; top:12px; z-index:1041; background:#4750c9; color:#fff; border:none; padding:.45rem .6rem; border-radius:.5rem; box-shadow:0 .5rem 1rem rgba(0,0,0,.25); display:none; }
   .dash-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1040; display:none; }
   .dash-overlay.show{ display:block; }
-  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); position:sticky; top:1rem; min-height:calc(100dvh - 2rem); transition: transform .25s ease; z-index:1042; }
+  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); height: 100vh; overflow-y: auto; position: sticky; top: 0; transition: transform .25s ease; z-index:1042; }
   @media (max-width: 991.98px){
     .dash-toggle{ display:inline-block; }
     .dash-layout{ flex-direction:column; }
-    .dash-sidebar{ position:fixed; top:1rem; left:1rem; transform:translateX(-110%); width:280px; }
+    .dash-sidebar{ position:fixed; top:1rem; left:1rem; transform:translateX(-110%); width:280px; height: auto; }
     .dash-sidebar.open{ transform:translateX(0); }
     html, body{ overflow-x:hidden; }
   }

@@ -36,6 +36,10 @@
             background: linear-gradient(180deg, #17153B, #2E236C);
             padding: 24px 16px;
             z-index: 1042;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
         }
 
         .brand {
@@ -80,6 +84,9 @@
         .content {
             flex: 1;
             background: var(--bg);
+            overflow-y: auto;
+            height: 100vh;
+            padding: 20px;
         }
 
         .header {
@@ -221,6 +228,8 @@
 
             .content {
                 width: 100%;
+                height: auto;
+                padding: 20px;
             }
         }
     </style>
