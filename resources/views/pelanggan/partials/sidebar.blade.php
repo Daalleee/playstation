@@ -40,12 +40,13 @@
     </div>
   </div>
   <ul class="dash-menu">
-    <li><a href="{{ route('dashboard.pelanggan') }}" class="{{ request()->routeIs('dashboard.pelanggan') ? 'active' : '' }}"><span class="dash-icon">🏠</span> <span>Beranda</span></a></li>
-    <li><a href="{{ route('pelanggan.profile.show') }}" class="{{ request()->routeIs('pelanggan.profile.*') ? 'active' : '' }}"><span class="dash-icon">👤</span> <span>Profil</span></a></li>
-    <li><a href="{{ route('pelanggan.unitps.index') }}" class="{{ request()->routeIs('pelanggan.unitps.*') ? 'active' : '' }}"><span class="dash-icon">🎮</span> <span>Lihat Unit & Game</span></a></li>
-    <li><a href="{{ route('pelanggan.accessories.index') }}" class="{{ request()->routeIs('pelanggan.accessories.*') ? 'active' : '' }}"><span class="dash-icon">🧩</span> <span>Aksesoris</span></a></li>
-    <li><a href="{{ route('pelanggan.rentals.create') }}" class="{{ request()->routeIs('pelanggan.rentals.create') ? 'active' : '' }}"><span class="dash-icon">🛒</span> <span>Penyewaan</span></a></li>
-    <li><a href="{{ route('pelanggan.rentals.index') }}" class="{{ request()->routeIs('pelanggan.rentals.index') ? 'active' : '' }}"><span class="dash-icon">🔁</span> <span>Riwayat Penyewaan</span></a></li>
+    <li><a href="{{ route('dashboard.pelanggan') }}" class="{{ request()->routeIs('dashboard.pelanggan') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-house-door"></i></span> <span>Dashboard</span></a></li>
+    <li><a href="{{ route('pelanggan.profile.show') }}" class="{{ request()->routeIs('pelanggan.profile.*') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-person"></i></span> <span>Profil</span></a></li>
+    <li><a href="{{ route('pelanggan.unitps.index') }}" class="{{ request()->routeIs('pelanggan.unitps.*') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-controller"></i></span> <span>Sewa Unit PS</span></a></li>
+    <li><a href="{{ route('pelanggan.games.index') }}" class="{{ request()->routeIs('pelanggan.games.*') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-disc"></i></span> <span>Sewa Game</span></a></li>
+    <li><a href="{{ route('pelanggan.accessories.index') }}" class="{{ request()->routeIs('pelanggan.accessories.*') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-plugin"></i></span> <span>Sewa Aksesoris</span></a></li>
+    <li><a href="{{ route('pelanggan.cart.index') }}" class="{{ request()->routeIs('pelanggan.cart.*') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-cart"></i></span> <span>Keranjang</span></a></li>
+    <li><a href="{{ route('pelanggan.rentals.index') }}" class="{{ request()->routeIs('pelanggan.rentals.index') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-clock-history"></i></span> <span>Riwayat Penyewaan</span></a></li>
   </ul>
   <form id="logout-form" action="{{ route('logout') }}" method="POST" class="dash-logout">
     @csrf
