@@ -2,9 +2,9 @@
 @section('content')
 <style>
   .dash-dark{ background:#2b3156; color:#e7e9ff; border-radius:0; min-height:100dvh; }
-  .dash-layout{ display:flex; gap:1rem; }
-  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); position:sticky; top:1rem; min-height:calc(100dvh - 2rem); }
-  .dash-main{ flex:1; }
+  .dash-layout{ display:flex; gap:1rem; height: 100vh; }
+  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); height: 100vh; overflow-y: auto; position: sticky; top: 0; }
+  .dash-main{ flex:1; overflow-y: auto; padding: 1rem; }
   .page-hero{ text-align:center; padding:1rem; }
   .page-hero h2{ font-weight:800; margin:0; }
   .filter-row{ display:grid; grid-template-columns: 1fr 2fr auto; gap:1rem; margin:0 1rem 1rem; align-items:end; }
@@ -23,7 +23,7 @@
   .btn-cta{ background:#1e8449; border:none; color:#fff; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; cursor:pointer; }
   .btn-cta:hover{ background:#27ae60; }
   .btn-cta:disabled{ background:#7f8c8d; cursor:not-allowed; opacity:0.6; }
-  @media (max-width: 991.98px){ .dash-layout{ flex-direction:column; } .dash-sidebar{ position:static; } .filter-row{ grid-template-columns:1fr; } }
+  @media (max-width: 991.98px){ .dash-layout{ flex-direction:column; } .dash-sidebar{ flex:0 0 auto; position:static; height: auto; } .dash-main{ height: auto; } .filter-row{ grid-template-columns:1fr; } }
 </style>
 
 <div class="dash-dark p-3">
@@ -32,7 +32,7 @@
 
     <main class="dash-main">
       <div class="page-hero">
-        <h2>Daftar Aksesoris</h2>
+        <h2>Daftar Aksesoris PlayStation</h2>
       </div>
 
       <form method="GET" class="filter-row">
@@ -57,8 +57,10 @@
                 <th>ID</th>
                 <th>Nama</th>
                 <th>Jenis</th>
+                <th>Gambar</th>
                 <th>Stok</th>
-                <th>Status</th>
+                <th>Harga/Hari</th>
+                <th>Kondisi</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -69,32 +71,40 @@
                   <td>{{ $acc->nama }}</td>
                   <td>{{ $acc->jenis }}</td>
                   <td>
+                    @if($acc->gambar)
+                      <img src="{{ asset('storage/' . $acc->gambar) }}" alt="{{ $acc->nama }}" style="width:50px; height:50px; object-fit:cover;">
+                    @else
+                      <img src="https://placehold.co/50x50/49497A/FFFFFF?text=No+Image" alt="{{ $acc->nama }}" style="width:50px; height:50px; object-fit:cover;">
+                    @endif
+                  </td>
+                  <td>
                     @php 
                       $stok = $acc->stok ?? 0;
                       $badgeClass = $stok > 5 ? 'badge-success' : ($stok > 0 ? 'badge-warning' : 'badge-danger');
                     @endphp
-                    <span class="{{ $badgeClass }}">{{ $stok }} Pcs</span>
+                    <span class="{{ $badgeClass }} d-block">{{ $stok }} Unit</span>
+                  </td>
+                  <td>Rp {{ number_format($acc->harga_per_hari, 0, ',', '.') }}</td>
+                  <td>
+                    @php $kondisi = strtolower($acc->kondisi ?? 'baik'); @endphp
+                    <span class="{{ $kondisi === 'baik' ? 'badge-success' : ($kondisi === 'rusak' ? 'badge-danger' : 'badge-warning') }} d-block">{{ ucfirst($acc->kondisi) }}</span>
                   </td>
                   <td>
-                    @php $st = strtolower($acc->status ?? ($acc->stok > 0 ? 'tersedia' : 'habis')); @endphp
-                    <span class="{{ in_array($st,['available','tersedia']) ? 'badge-ok' : 'badge-warn' }}">{{ ucfirst($st) }}</span>
-                  </td>
-                  <td>
-                    <div class="d-flex gap-2">
-                      <a href="{{ route('pelanggan.rentals.create') }}" class="btn-detail">Detail</a>
+                    <div class="d-flex flex-column gap-2">
+                      <a href="#" class="btn-detail">Detail</a>
                       <form method="POST" action="{{ route('pelanggan.cart.add') }}">
                         @csrf
                         <input type="hidden" name="type" value="accessory">
                         <input type="hidden" name="id" value="{{ $acc->id }}">
                         <input type="hidden" name="price_type" value="per_hari">
                         <input type="hidden" name="quantity" value="1">
-                        <button type="submit" class="btn-cta" {{ $stok <= 0 ? 'disabled' : '' }}>{{ $stok > 0 ? 'Tambah ke Keranjang' : 'Stok Habis' }}</button>
+                        <button type="submit" class="btn-cta w-100" {{ $stok <= 0 ? 'disabled' : '' }}>{{ $stok > 0 ? 'Tambah ke Keranjang' : 'Stok Habis' }}</button>
                       </form>
                     </div>
                   </td>
                 </tr>
               @empty
-                <tr><td colspan="6" class="text-center">Tidak ada data.</td></tr>
+                <tr><td colspan="8" class="text-center">Tidak ada aksesoris tersedia.</td></tr>
               @endforelse
             </tbody>
           </table>
