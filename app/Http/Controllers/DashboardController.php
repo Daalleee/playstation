@@ -178,6 +178,42 @@ class DashboardController extends Controller
             
         return view('dashboards.pelanggan', compact('unitps', 'games', 'accessories'));
     }
+    
+    public function unitpsLanding()
+    {
+        Gate::authorize('access-pelanggan');
+        
+        // Get latest available Unit PS with stock > 0 for display on Unit PS landing page
+        $unitps = UnitPS::where('stok', '>', 0)
+            ->orderByDesc('id')
+            ->get(); // Get all available units, not just 6
+            
+        return view('dashboards.unitps', compact('unitps'));
+    }
+    
+    public function gameLanding()
+    {
+        Gate::authorize('access-pelanggan');
+        
+        // Get latest available Games with stock > 0 for display on Game landing page
+        $games = Game::where('stok', '>', 0)
+            ->orderByDesc('id')
+            ->get(); // Get all available games, not just 6
+            
+        return view('dashboards.game', compact('games'));
+    }
+    
+    public function accessoryLanding()
+    {
+        Gate::authorize('access-pelanggan');
+        
+        // Get latest available Accessories with stock > 0 for display on Accessory landing page
+        $accessories = Accessory::where('stok', '>', 0)
+            ->orderByDesc('id')
+            ->get(); // Get all available accessories, not just 6
+            
+        return view('dashboards.accessory', compact('accessories'));
+    }
 
     public function adminReport()
     {
