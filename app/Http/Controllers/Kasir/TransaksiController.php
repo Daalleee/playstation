@@ -17,7 +17,23 @@ class TransaksiController extends Controller
         $rental = null;
         if ($request->filled('rental_kode')) {
             $kode = $request->rental_kode;
-            $rental = Rental::where('kode', $kode)->with('customer','items.rentable')->first();
+            $rental = Rental::where('kode', $kode)->with('customer','items')->first();
+            
+            if ($rental) {
+                // Load rentable items manually to prevent issues with missing rentables
+                foreach ($rental->items as $item) {
+                    $modelClass = match($item->rentable_type) {
+                        'App\Models\UnitPS', 'unitps' => UnitPS::class,
+                        'App\Models\Game', 'game' => Game::class,
+                        'App\Models\Accessory', 'accessory' => Accessory::class,
+                        default => null,
+                    };
+                    
+                    if ($modelClass && $item->rentable_id) {
+                        $item->setRelation('rentable', $modelClass::find($item->rentable_id));
+                    }
+                }
+            }
             if (!$rental) {
                 return view('kasir.transaksi.index', compact('rentals'))
                     ->with('status', 'Kode transaksi tidak ditemukan.');
@@ -29,7 +45,21 @@ class TransaksiController extends Controller
     public function show(Rental $rental)
     {
         Gate::authorize('access-kasir');
-        $rental->load('items.rentable');
+        $rental->load('items');
+        
+        // Load rentable items manually to prevent issues with missing rentables
+        foreach ($rental->items as $item) {
+            $modelClass = match($item->rentable_type) {
+                'App\Models\UnitPS', 'unitps' => UnitPS::class,
+                'App\Models\Game', 'game' => Game::class,
+                'App\Models\Accessory', 'accessory' => Accessory::class,
+                default => null,
+            };
+            
+            if ($modelClass && $item->rentable_id) {
+                $item->setRelation('rentable', $modelClass::find($item->rentable_id));
+            }
+        }
         return view('kasir.transaksi.show', compact('rental'));
     }
 
