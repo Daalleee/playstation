@@ -69,8 +69,24 @@ class RentalController extends Controller
             // Check session cart
             $sessionCart = session()->get('cart', []);
             if (!empty($sessionCart)) {
-                // Convert session cart to collection format
-                $cartItems = collect($sessionCart);
+                // Safely validate and process session cart
+                if (is_array($sessionCart)) {
+                    $validCartItems = [];
+                    foreach ($sessionCart as $key => $item) {
+                        // Ensure $item is an array and has required structure
+                        if (is_array($item) && 
+                            isset($item['type']) && 
+                            isset($item['item_id']) && 
+                            is_string($item['type']) && 
+                            is_numeric($item['item_id'])) {
+                            // Add the valid item to collection
+                            $validCartItems[] = $item;
+                        }
+                    }
+                    $cartItems = collect($validCartItems);
+                } else {
+                    $cartItems = collect([]);
+                }
             } else {
                 return redirect()->route('pelanggan.cart.index')->with('error', 'Keranjang kosong. Silakan tambahkan item terlebih dahulu.');
             }
@@ -141,25 +157,45 @@ class RentalController extends Controller
             }
         }
         
-        // Get cart items for this rental
+        // Get cart items for this rental - ensure we have items to process
         $cartItems = Cart::where('user_id', auth()->id())->get();
         
-        // If DB cart is empty, check session cart
+        // If DB cart is empty, check session cart - with added safety check
         if ($cartItems->isEmpty()) {
             $sessionCart = session()->get('cart', []);
             if (!empty($sessionCart)) {
-                // Convert session cart to collection format
-                $cartItems = collect($sessionCart);
-            } else {
-                // If DB cart is empty, check session cart
-            $sessionCart = session()->get('cart', []);
-            if (!empty($sessionCart)) {
-                // Convert session cart to collection format
-                $cartItems = collect($sessionCart);
+                // Safely validate and process session cart
+                if (is_array($sessionCart)) {
+                    $validCartItems = [];
+                    foreach ($sessionCart as $key => $item) {
+                        // Ensure $item is an array and has required structure
+                        if (is_array($item) && 
+                            isset($item['type']) && 
+                            isset($item['item_id']) && 
+                            is_string($item['type']) && 
+                            is_numeric($item['item_id'])) {
+                            // Add the valid item to collection
+                            $validCartItems[] = $item;
+                        } else {
+                            \Log::warning('Invalid cart item in session', [
+                                'key' => $key,
+                                'item' => $item,
+                                'user_id' => auth()->id()
+                            ]);
+                        }
+                    }
+                    $cartItems = collect($validCartItems);
+                } else {
+                    $cartItems = collect([]);
+                }
             } else {
                 return redirect()->route('pelanggan.cart.index')->with('error', 'Keranjang kosong.');
             }
-            }
+        }
+        
+        // Check if we have any cart items to process
+        if ($cartItems->isEmpty()) {
+            return redirect()->route('pelanggan.cart.index')->with('error', 'Tidak ada item dalam keranjang untuk diproses.');
         }
 
         try {
@@ -177,60 +213,91 @@ class RentalController extends Controller
 
             $totalAmount = 0;
 
-            // Create rental items
-            foreach ($cartItems as $item) {
-                // Handle both object and array formats
-                $itemType = is_object($item) ? $item->type : $item['type'];
-                $itemId = is_object($item) ? $item->item_id : $item['item_id'];
-                $itemQuantity = is_object($item) ? $item->quantity : $item['quantity'];
-                $itemName = is_object($item) ? $item->name : $item['name'];
-                
-                $model = match($itemType) {
-                    'unitps' => UnitPS::class,
-                    'game' => Game::class,
-                    'accessory' => Accessory::class,
-                };
+            // Create rental items with extra safety
+            foreach ($cartItems as $index => $item) {
+                try {
+                    // Validate that the item exists and has required fields
+                    if (is_object($item)) {
+                        // It's a Cart model object
+                        $itemType = $item->type ?? null;
+                        $itemId = $item->item_id ?? null;
+                        $itemQuantity = $item->quantity ?? 1;
+                        $itemName = $item->name ?? 'Unknown';
+                        $itemPrice = $item->price ?? 0;
+                        $itemPriceType = $item->price_type ?? 'per_hari';
+                    } else if (is_array($item)) {
+                        // It's an array from session
+                        $itemType = $item['type'] ?? null;
+                        $itemId = $item['item_id'] ?? null;
+                        $itemQuantity = $item['quantity'] ?? 1;
+                        $itemName = $item['name'] ?? 'Unknown';
+                        $itemPrice = $item['price'] ?? 0;
+                        $itemPriceType = $item['price_type'] ?? 'per_hari';
+                    } else {
+                        throw new \Exception("Format item tidak dikenal: " . gettype($item) . " pada indeks: " . $index);
+                    }
+                    
+                    if (!$itemType || !$itemId) {
+                        throw new \Exception("Data item tidak lengkap: item type atau ID tidak ditemukan. Type: {$itemType}, ID: {$itemId}, Indeks: {$index}");
+                    }
+                    
+                    $model = match($itemType) {
+                        'unitps' => UnitPS::class,
+                        'game' => Game::class,
+                        'accessory' => Accessory::class,
+                    };
 
-                $rentable = $model::lockForUpdate()->find($itemId);
-                
-                if (!$rentable) {
-                    throw new \Exception("Item {$itemName} tidak ditemukan");
+                    if (!$model) {
+                        throw new \Exception("Tipe item tidak valid: {$itemType} pada indeks: {$index}");
+                    }
+
+                    $rentable = $model::lockForUpdate()->find($itemId);
+                    
+                    if (!$rentable) {
+                        throw new \Exception("Item {$itemName} (ID: {$itemId}) tidak ditemukan pada indeks: {$index}");
+                    }
+                    
+                    if (($rentable->stok ?? 0) < $itemQuantity) {
+                        throw new \App\Exceptions\InsufficientStockException(
+                            $itemName, 
+                            $itemQuantity, 
+                            $rentable->stok ?? 0
+                        );
+                    }
+
+                    // Calculate duration (simplified)
+                    $rentalDate = \Carbon\Carbon::parse($validated['rental_date']);
+                    $returnDate = \Carbon\Carbon::parse($validated['return_date']);
+                    
+                    $duration = ($itemPriceType === 'per_jam')
+                        ? max(1, $rentalDate->diffInHours($returnDate))
+                        : max(1, $rentalDate->diffInDays($returnDate));
+
+                    $subtotal = $itemPrice * $itemQuantity * $duration;
+
+                    RentalItem::create([
+                        'rental_id' => $rental->id,
+                        'rentable_type' => $model,
+                        'rentable_id' => $itemId,
+                        'quantity' => $itemQuantity,
+                        'price' => $itemPrice,
+                        'total' => $subtotal,
+                    ]);
+
+                    // Update stock with pessimistic locking to prevent race condition
+                    $rentable->stok -= $itemQuantity;
+                    $rentable->save();
+
+                    $totalAmount += $subtotal;
+                } catch (\Exception $e) {
+                    \Log::error('Error processing cart item: ' . $e->getMessage(), [
+                        'index' => $index,
+                        'item' => $item,
+                        'user_id' => auth()->id(),
+                        'rental_id' => $rental->id ?? 'not_created_yet'
+                    ]);
+                    throw $e;
                 }
-                
-                if (($rentable->stok ?? 0) < $itemQuantity) {
-                    throw new \App\Exceptions\InsufficientStockException(
-                        $itemName, 
-                        $itemQuantity, 
-                        $rentable->stok ?? 0
-                    );
-                }
-
-                // Calculate duration (simplified)
-                $rentalDate = \Carbon\Carbon::parse($validated['rental_date']);
-                $returnDate = \Carbon\Carbon::parse($validated['return_date']);
-                $itemPriceType = is_object($item) ? $item->price_type : $item['price_type'];
-                $itemPrice = is_object($item) ? $item->price : $item['price'];
-                
-                $duration = ($itemPriceType === 'per_jam')
-                    ? max(1, $rentalDate->diffInHours($returnDate))
-                    : max(1, $rentalDate->diffInDays($returnDate));
-
-                $subtotal = $itemPrice * $itemQuantity * $duration;
-
-                RentalItem::create([
-                    'rental_id' => $rental->id,
-                    'rentable_type' => $model,
-                    'rentable_id' => $itemId,
-                    'quantity' => $itemQuantity,
-                    'price' => $itemPrice,
-                    'total' => $subtotal,
-                ]);
-
-                // Update stock with pessimistic locking to prevent race condition
-                $rentable->stok -= $itemQuantity;
-                $rentable->save();
-
-                $totalAmount += $subtotal;
             }
 
             // Update rental total
@@ -243,18 +310,49 @@ class RentalController extends Controller
             session()->forget('cart');
 
             // Midtrans: build params - gunakan total per item agar sesuai durasi
+            // Load items separately to avoid potential relationship loading issues
+            $rental->load('items');
+            
             $items = [];
-            $rental->load('items.rentable');
             foreach ($rental->items as $ri) {
-                $baseName = strtolower(class_basename($ri->rentable_type));
-                $displayName = $ri->rentable->nama ?? $ri->rentable->judul ?? $ri->rentable->name ?? ucfirst($baseName);
-                $items[] = [
-                    'id' => $baseName.'-'.$ri->rentable_id,
-                    'price' => (int) $ri->total, // total item sudah termasuk qty x durasi
-                    'quantity' => 1,
-                    'name' => $displayName,
-                ];
+                try {
+                    // Manually load the rentable relationship to avoid potential issues
+                    $rentable = null;
+                    
+                    // Validate rentable_type and rentable_id before attempting to load
+                    $modelClass = match($ri->rentable_type) {
+                        'App\Models\UnitPS', 'unitps' => UnitPS::class,
+                        'App\Models\Game', 'game' => Game::class,
+                        'App\Models\Accessory', 'accessory' => Accessory::class,
+                        default => null,
+                    };
+                    
+                    if ($modelClass && $ri->rentable_id) {
+                        $rentable = $modelClass::find($ri->rentable_id);
+                    }
+                    
+                    $baseName = $rentable ? strtolower(class_basename($ri->rentable_type)) : 'item';
+                    $displayName = $rentable ? 
+                        ($rentable->nama ?? $rentable->judul ?? $rentable->name ?? ucfirst($baseName)) : 
+                        'Item Tidak Ditemukan';
+                    
+                    $items[] = [
+                        'id' => $baseName.'-'.$ri->rentable_id,
+                        'price' => (int) $ri->total, // total item sudah termasuk qty x durasi
+                        'quantity' => 1,
+                        'name' => $displayName,
+                    ];
+                } catch (\Exception $e) {
+                    \Log::error('Error processing rental item for Midtrans: ' . $e->getMessage(), [
+                        'rental_id' => $rental->id,
+                        'rental_item_id' => $ri->id ?? 'unknown',
+                        'rentable_type' => $ri->rentable_type ?? 'unknown',
+                        'rentable_id' => $ri->rentable_id ?? 'unknown'
+                    ]);
+                    throw $e; // Re-throw to handle properly
+                }
             }
+            
             $orderId = 'ORD-'.date('Ymd').'-'.$rental->id.'-'.substr(uniqid(), -5);
 
             // Use Midtrans if server key is available
@@ -282,7 +380,17 @@ class RentalController extends Controller
                         ],
                     ],
                 ];
-                $snapToken = $midtrans->createSnapToken($params);
+                
+                try {
+                    $snapToken = $midtrans->createSnapToken($params);
+                } catch (\Exception $e) {
+                    \Log::error('Error creating Midtrans snap token: ' . $e->getMessage(), [
+                        'rental_id' => $rental->id,
+                        'total_amount' => $totalAmount,
+                        'items_count' => count($items)
+                    ]);
+                    throw $e;
+                }
 
                 DB::commit();
                 return view('pelanggan.payment.midtrans', compact('rental', 'snapToken', 'orderId'));
@@ -293,7 +401,7 @@ class RentalController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => $e->getMessage()]);
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
 
@@ -305,7 +413,21 @@ class RentalController extends Controller
             abort(403);
         }
         
-        $rental->load(['items.rentable', 'payments']);
+        $rental->load(['items', 'payments']);
+        
+        // Load rentable items manually to prevent issues with missing rentables
+        foreach ($rental->items as $item) {
+            $modelClass = match($item->rentable_type) {
+                'App\Models\UnitPS', 'unitps' => UnitPS::class,
+                'App\Models\Game', 'game' => Game::class,
+                'App\Models\Accessory', 'accessory' => Accessory::class,
+                default => null,
+            };
+            
+            if ($modelClass && $item->rentable_id) {
+                $item->setRelation('rentable', $modelClass::find($item->rentable_id));
+            }
+        }
         
         return view('pelanggan.rentals.show', compact('rental'));
     }
