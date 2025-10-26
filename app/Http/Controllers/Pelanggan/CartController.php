@@ -31,6 +31,8 @@ class CartController extends Controller
             'price_type' => 'required|in:per_jam,per_hari'
         ]);
         
+        $quantity = $request->quantity;
+        
         // Get the model class based on type
         $modelClass = null;
         switch($request->type) {
@@ -46,17 +48,37 @@ class CartController extends Controller
         }
         
         if(!$modelClass) {
-            return redirect()->back()->with('error', 'Tipe item tidak valid!');
+            $message = 'Tipe item tidak valid!';
+            if($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 400);
+            }
+            return redirect()->back()->with('error', $message);
         }
         
         // Find the item
         $item = $modelClass::find($request->id);
         if(!$item) {
-            return redirect()->back()->with('error', 'Item tidak ditemukan!');
+            $message = 'Item tidak ditemukan!';
+            if($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 400);
+            }
+            return redirect()->back()->with('error', $message);
         }
         
         // Check stock
         if($item->stok < $request->quantity) {
+            if($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stok tidak mencukupi!'
+                ], 400);
+            }
             return redirect()->back()->with('error', 'Stok tidak mencukupi!');
         }
         
@@ -70,6 +92,12 @@ class CartController extends Controller
             // Update quantity
             $newQuantity = $existingCartItem->quantity + $request->quantity;
             if($newQuantity > $item->stok) {
+                if($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Jumlah melebihi stok yang tersedia!'
+                    ], 400);
+                }
                 return redirect()->back()->with('error', 'Jumlah melebihi stok yang tersedia!');
             }
             $existingCartItem->update(['quantity' => $newQuantity]);
@@ -86,7 +114,14 @@ class CartController extends Controller
             ]);
         }
         
-        return redirect()->back()->with('success', 'Item berhasil ditambahkan ke keranjang!');
+        $message = 'Item berhasil ditambahkan ke keranjang!';
+        if($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+        }
+        return redirect()->back()->with('success', $message);
     }
     
     public function update(Request $request)
@@ -125,14 +160,35 @@ class CartController extends Controller
                 $item = $modelClass::find($request->item_id);
                 if($item && $item->stok >= $request->quantity) {
                     $cartItem->update(['quantity' => $request->quantity]);
-                    return redirect()->back()->with('success', 'Jumlah item telah diperbarui!');
+                    $message = 'Jumlah item telah diperbarui!';
+                    if($request->wantsJson()) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => $message
+                        ]);
+                    }
+                    return redirect()->back()->with('success', $message);
                 } else {
-                    return redirect()->back()->with('error', 'Stok tidak mencukupi!');
+                    $message = 'Stok tidak mencukupi!';
+                    if($request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => $message
+                        ], 400);
+                    }
+                    return redirect()->back()->with('error', $message);
                 }
             }
         }
         
-        return redirect()->back()->with('error', 'Item tidak ditemukan di keranjang!');
+        $message = 'Item tidak ditemukan di keranjang!';
+        if($request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message
+            ], 400);
+        }
+        return redirect()->back()->with('error', $message);
     }
     
     public function remove(Request $request)
@@ -151,16 +207,30 @@ class CartController extends Controller
             ->where('item_id', $request->item_id)
             ->delete();
         
-        return redirect()->back()->with('success', 'Item telah dihapus dari keranjang!');
+        $message = 'Item telah dihapus dari keranjang!';
+        if($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+        }
+        return redirect()->back()->with('success', $message);
     }
     
-    public function clear()
+    public function clear(Request $request)
     {
         Gate::authorize('access-pelanggan');
         
         // Clear the entire cart from database
         Cart::where('user_id', auth()->id())->delete();
         
-        return redirect()->back()->with('success', 'Keranjang telah dibersihkan!');
+        $message = 'Keranjang telah dibersihkan!';
+        if($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+        }
+        return redirect()->back()->with('success', $message);
     }
 }
