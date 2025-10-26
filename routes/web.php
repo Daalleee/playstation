@@ -133,9 +133,12 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::put('pelanggan/profile', [PelangganProfileController::class, 'update'])->name('pelanggan.profile.update');
 
     // Pelanggan - View Catalog
-    Route::get('pelanggan/unitps', [PelangganUnitPSController::class, 'index'])->name('pelanggan.unitps.index');
-    Route::get('pelanggan/games', [PelangganGameController::class, 'index'])->name('pelanggan.games.index');
-    Route::get('pelanggan/accessories', [PelangganAccessoryController::class, 'index'])->name('pelanggan.accessories.index');
+    Route::get('pelanggan/unitps', [DashboardController::class, 'unitpsLanding'])->name('pelanggan.unitps.index');
+    Route::get('pelanggan/unitps/list', [PelangganUnitPSController::class, 'index'])->name('pelanggan.unitps.list');
+    Route::get('pelanggan/games', [DashboardController::class, 'gameLanding'])->name('pelanggan.games.index');
+    Route::get('pelanggan/games/list', [PelangganGameController::class, 'index'])->name('pelanggan.games.list');
+    Route::get('pelanggan/accessories', [DashboardController::class, 'accessoryLanding'])->name('pelanggan.accessories.index');
+    Route::get('pelanggan/accessories/list', [PelangganAccessoryController::class, 'index'])->name('pelanggan.accessories.list');
 
     // Pelanggan - Cart
     Route::get('pelanggan/cart', [PelangganCartController::class, 'index'])->name('pelanggan.cart.index');

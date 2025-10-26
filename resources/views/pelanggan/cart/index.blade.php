@@ -212,7 +212,7 @@
 
                 <div class="card-dark">
                     <div class="table-responsive">
-                        <table class="dark">
+                        <table id="cart-table" class="dark">
                             <thead>
                                 <tr>
                                     <th>Nama Item</th>
@@ -231,8 +231,17 @@
                                         <td>Rp
                                             {{ number_format($item->price, 0, ',', '.') }}/{{ $item->price_type == 'per_jam' ? 'jam' : 'hari' }}
                                         </td>
-                                        <td>{{ $item->quantity }}</td>
-                                        <td>Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                        onclick="decreaseQuantity('{{ $item->type }}', {{ $item->item_id }})">-</button>
+                                                <span id="quantity_{{ $item->type }}_{{ $item->item_id }}" 
+                                                      data-original-value="{{ $item->quantity }}">{{ $item->quantity }}</span>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                        onclick="increaseQuantity('{{ $item->type }}', {{ $item->item_id }})">+</button>
+                                            </div>
+                                        </td>
+                                        <td id="total_{{ $item->type }}_{{ $item->item_id }}">Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
                                         <td>
                                             <form method="POST" action="{{ route('pelanggan.cart.remove') }}"
                                                 class="d-inline">
@@ -277,4 +286,130 @@
             </main>
         </div>
     </div>
+    
+    <script>
+        // Function to increase quantity
+        function increaseQuantity(type, itemId) {
+            const quantityElement = document.getElementById('quantity_' + type + '_' + itemId);
+            const currentQty = parseInt(quantityElement.textContent);
+            const newQuantity = currentQty + 1;
+            updateCartQuantity(type, itemId, newQuantity);
+        }
+        
+        // Function to decrease quantity
+        function decreaseQuantity(type, itemId) {
+            const quantityElement = document.getElementById('quantity_' + type + '_' + itemId);
+            const currentQty = parseInt(quantityElement.textContent);
+            if(currentQty > 1) {
+                const newQuantity = currentQty - 1;
+                updateCartQuantity(type, itemId, newQuantity);
+            }
+        }
+        
+        // Function to update cart quantity
+        function updateCartQuantity(type, itemId, newQuantity) {
+            // Find buttons and disable them
+            const minusBtn = document.querySelector(`button[onclick*="decreaseQuantity('${type}', ${itemId}"]`);
+            const plusBtn = document.querySelector(`button[onclick*="increaseQuantity('${type}', ${itemId}"]`);
+            
+            if(minusBtn) minusBtn.disabled = true;
+            if(plusBtn) plusBtn.disabled = true;
+            
+            // Get the quantity element to restore if needed
+            const quantityElement = document.getElementById('quantity_' + type + '_' + itemId);
+            const originalValue = quantityElement.textContent;
+            
+            // Show loading state
+            if(minusBtn) minusBtn.textContent = '...';
+            if(plusBtn) plusBtn.textContent = '...';
+            
+            fetch('/pelanggan/cart/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    type: type,
+                    item_id: itemId,
+                    quantity: newQuantity
+                })
+            })
+            .then(response => {
+                // Check if response is ok before proceeding
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Server error');
+                    }).catch(() => {
+                        // If it's not JSON, treat as general error
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    });
+                }
+                
+                // Check if response is HTML (indicates redirect or error page) 
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('text/html')) {
+                    // This means Laravel returned a redirect or error page
+                    throw new Error('Server returned HTML instead of JSON - possible authentication or validation error');
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                if(data.success) {
+                    // Update the displayed quantity
+                    quantityElement.textContent = newQuantity;
+                    quantityElement.dataset.originalValue = newQuantity;
+                    
+                    // Update row total
+                    const totalElement = document.getElementById('total_' + type + '_' + itemId);
+                    const priceCell = document.querySelector(`#quantity_${type}_${itemId}`).closest('tr').querySelector('td:nth-child(3)').textContent;
+                    const priceMatch = priceCell.match(/Rp\s*([\d.]+)/);
+                    if(priceMatch) {
+                        const priceStr = priceMatch[1].replace(/\./g, '');
+                        const price = parseFloat(priceStr);
+                        if(!isNaN(price)) {
+                            const newTotal = price * newQuantity;
+                            const formattedTotal = 'Rp ' + newTotal.toLocaleString('id-ID').replace(/\,/g, '.');
+                            totalElement.textContent = formattedTotal;
+                        }
+                    }
+                    
+                    // Show success message
+                    showFlashMessage(data.message, 'success');
+                } else {
+                    // Show error message and reset quantity display
+                    showFlashMessage(data.message || 'Terjadi kesalahan saat memperbarui jumlah', 'danger');
+                    quantityElement.textContent = originalValue;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Check if it's a parsing error (meaning we got HTML instead of JSON)
+                if (error.message.includes('Unexpected token') || error.message.includes('HTML instead of JSON')) {
+                    // This means we likely got redirected to an error page
+                    location.reload(); // Reload to get proper state
+                } else {
+                    showFlashMessage('Terjadi kesalahan saat memperbarui jumlah: ' + error.message, 'danger');
+                    quantityElement.textContent = originalValue;
+                }
+            })
+            .finally(() => {
+                // Restore buttons
+                const finalMinusBtn = document.querySelector(`button[onclick*="decreaseQuantity('${type}', ${itemId}"]`);
+                const finalPlusBtn = document.querySelector(`button[onclick*="increaseQuantity('${type}', ${itemId}"]`);
+                
+                if(finalMinusBtn) {
+                    finalMinusBtn.disabled = false;
+                    finalMinusBtn.textContent = '-';
+                }
+                if(finalPlusBtn) {
+                    finalPlusBtn.disabled = false;
+                    finalPlusBtn.textContent = '+';
+                }
+            });
+        }
+    </script>
+</div>
 @endsection

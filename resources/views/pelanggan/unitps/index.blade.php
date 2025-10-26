@@ -35,7 +35,7 @@
         <h2>Daftar Unit PlayStation</h2>
       </div>
 
-      <form method="GET" action="{{ route('pelanggan.unitps.index') }}" class="filter-row">
+      <form method="GET" action="{{ route('pelanggan.unitps.list') }}" class="filter-row">
         <div>
           <label class="mb-1 d-block fw-bold">Model</label>
           <select name="model" class="select-dark">
@@ -104,14 +104,20 @@
                   <td>
                     <div class="d-flex flex-column gap-2">
                       <a href="#" class="btn-detail">Detail</a>
-                      <form method="POST" action="{{ route('pelanggan.cart.add') }}">
-                        @csrf
-                        <input type="hidden" name="type" value="unitps">
-                        <input type="hidden" name="id" value="{{ $unit->id }}">
-                        <input type="hidden" name="price_type" value="per_jam">
-                        <input type="hidden" name="quantity" value="1">
-                        <button type="submit" class="btn-cta w-100" {{ $stok <= 0 ? 'disabled' : '' }}>{{ $stok > 0 ? 'Tambah ke Keranjang' : 'Stok Habis' }}</button>
-                      </form>
+                      <div class="d-flex gap-2 align-items-center">
+                        <input type="number" class="input-dark" value="1" min="1" max="{{ $stok }}" 
+                               style="width: 80px;" 
+                               id="quantity_{{ $unit->id }}" 
+                               {{ $stok <= 0 ? 'disabled' : '' }}>
+                        <button type="button" class="btn-cta w-100 add-to-cart-btn" 
+                                data-type="unitps" 
+                                data-id="{{ $unit->id }}" 
+                                data-price_type="per_jam"
+                                data-stok="{{ $stok }}"
+                                {{ $stok <= 0 ? 'disabled' : '' }}>
+                          {{ $stok > 0 ? 'Tambah ke Keranjang' : 'Stok Habis' }}
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -127,5 +133,85 @@
       </div>
     </main>
   </div>
+  
+  <script>
+    // Add real-time validation for quantity inputs
+    document.querySelectorAll('input[id^="quantity_"]').forEach(input => {
+      input.addEventListener('input', function() {
+        const max = parseInt(this.max);
+        const value = parseInt(this.value);
+        
+        if (value > max) {
+          this.value = max;
+        } else if (value < 1) {
+          this.value = 1;
+        }
+      });
+    });
+    
+    // Handle add to cart AJAX requests
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const type = this.getAttribute('data-type');
+        const id = this.getAttribute('data-id');
+        const price_type = this.getAttribute('data-price_type');
+        const stok = parseInt(this.getAttribute('data-stok'));
+        
+        // Get quantity from the input field
+        const quantityInput = document.getElementById('quantity_' + id);
+        const quantity = parseInt(quantityInput.value);
+        
+        // Validate quantity
+        if(quantity < 1 || quantity > stok) {
+          showFlashMessage('Jumlah tidak valid!', 'danger');
+          return;
+        }
+        
+        // Disable button to prevent multiple clicks
+        this.disabled = true;
+        const originalText = this.textContent;
+        this.textContent = 'Memproses...';
+        
+        fetch('/pelanggan/cart/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : document.querySelector('input[name="_token"]').value
+          },
+          body: JSON.stringify({
+            type: type,
+            id: id,
+            quantity: quantity,
+            price_type: price_type
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            // Show success message
+            showFlashMessage(data.message, 'success');
+            // Reset quantity input to 1
+            quantityInput.value = 1;
+          } else {
+            // Show error message
+            showFlashMessage(data.message, 'danger');
+          }
+          
+          // Restore button
+          this.disabled = false;
+          this.textContent = originalText;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          // Show error message
+          showFlashMessage('Terjadi kesalahan saat menambahkan ke keranjang', 'danger');
+          
+          // Restore button
+          this.disabled = false;
+          this.textContent = originalText;
+        });
+      });
+    });
+  </script>
 </div>
 @endsection

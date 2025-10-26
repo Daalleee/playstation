@@ -52,15 +52,15 @@
                     $modelClass = null;
                     switch($item['type']) {
                         case 'unitps':
-                            $modelClass = 'App\Models\UnitPS';
+                            $modelClass = 'App\\Models\\UnitPS';
                             $imageField = 'foto';
                             break;
                         case 'game':
-                            $modelClass = 'App\Models\Game';
+                            $modelClass = 'App\\Models\\Game';
                             $imageField = 'gambar';
                             break;
                         case 'accessory':
-                            $modelClass = 'App\Models\Accessory';
+                            $modelClass = 'App\\Models\\Accessory';
                             $imageField = 'gambar';
                             break;
                     }
@@ -107,15 +107,15 @@
                     $modelClass = null;
                     switch($item->type) {
                         case 'unitps':
-                            $modelClass = 'App\Models\UnitPS';
+                            $modelClass = 'App\\Models\\UnitPS';
                             $imageField = 'foto';
                             break;
                         case 'game':
-                            $modelClass = 'App\Models\Game';
+                            $modelClass = 'App\\Models\\Game';
                             $imageField = 'gambar';
                             break;
                         case 'accessory':
-                            $modelClass = 'App\Models\Accessory';
+                            $modelClass = 'App\\Models\\Accessory';
                             $imageField = 'gambar';
                             break;
                     }
@@ -237,11 +237,11 @@
             @csrf
             <div class="mb-3">
               <label for="rental_date" class="form-label">Tanggal Mulai Sewa</label>
-              <input type="date" id="rental_date" name="rental_date" value="{{ old('rental_date', date('Y-m-d')) }}" required class="input-dark">
+              <input type="date" id="rental_date" name="rental_date" value="{{ old('rental_date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required class="input-dark">
             </div>
             <div class="mb-3">
               <label for="return_date" class="form-label">Tanggal Kembali</label>
-              <input type="date" id="return_date" name="return_date" value="{{ old('return_date') }}" required class="input-dark">
+              <input type="date" id="return_date" name="return_date" value="{{ old('return_date') }}" min="{{ date('Y-m-d', strtotime('+1 day')) }}" required class="input-dark">
             </div>
             <div class="mb-3">
               <label for="notes" class="form-label">Catatan (Opsional)</label>
@@ -255,6 +255,38 @@
           </form>
         </section>
       </div>
+      
+      <script>
+        // Set up date validation
+        document.addEventListener('DOMContentLoaded', function() {
+          const rentalDateInput = document.getElementById('rental_date');
+          const returnDateInput = document.getElementById('return_date');
+          
+          // Set minimum return date based on rental date
+          rentalDateInput.addEventListener('change', function() {
+            const rentalDate = new Date(this.value);
+            rentalDate.setDate(rentalDate.getDate() + 1);
+            const minReturnDate = rentalDate.toISOString().split('T')[0];
+            returnDateInput.min = minReturnDate;
+            
+            // If return date is not set or is before the new minimum, clear it
+            if (!returnDateInput.value || new Date(returnDateInput.value) < rentalDate) {
+              returnDateInput.value = '';
+            }
+          });
+          
+          // When return date changes, validate it's after rental date
+          returnDateInput.addEventListener('change', function() {
+            const returnDate = new Date(this.value);
+            const rentalDate = new Date(rentalDateInput.value);
+            
+            if (returnDate <= rentalDate) {
+              this.value = '';
+              alert('Tanggal kembali harus setelah tanggal mulai sewa.');
+            }
+          });
+        });
+      </script>
     </main>
   </div>
 </div>
