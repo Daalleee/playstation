@@ -40,7 +40,7 @@
     </div>
   </div>
   <ul class="dash-menu">
-    <li><a href="{{ route('dashboard.pelanggan') }}" class="{{ request()->routeIs('dashboard.pelanggan') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-house-door"></i></span> <span>Dashboard</span></a></li>
+    <li><a href="{{ route('dashboard.pelanggan') }}" class="{{ request()->routeIs('dashboard.pelanggan') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-house-door"></i></span> <span>Beranda</span></a></li>
     <li><a href="{{ route('pelanggan.profile.show') }}" class="{{ request()->routeIs('pelanggan.profile.*') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-person"></i></span> <span>Profil</span></a></li>
     <li><a href="{{ route('pelanggan.unitps.index') }}" class="{{ request()->routeIs('pelanggan.unitps.*') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-controller"></i></span> <span>Sewa Unit PS</span></a></li>
     <li><a href="{{ route('pelanggan.games.index') }}" class="{{ request()->routeIs('pelanggan.games.*') ? 'active' : '' }}"><span class="dash-icon"><i class="bi bi-disc"></i></span> <span>Sewa Game</span></a></li>
@@ -50,7 +50,7 @@
   </ul>
   <form id="logout-form" action="{{ route('logout') }}" method="POST" class="dash-logout">
     @csrf
-    <button type="submit" class="btn btn-danger w-100"><span class="me-2">↩️</span> Logout</button>
+    <button type="submit" class="btn btn-danger w-100"><span class="me-2"><i class="bi bi-box-arrow-right"></i></span> Logout</button>
   </form>
 </aside>
 <script>

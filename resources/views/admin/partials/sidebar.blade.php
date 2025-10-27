@@ -26,7 +26,7 @@
     </div>
   </div>
   <ul class="dash-menu">
-    <li><a href="{{ route('dashboard.admin') }}"><span class="dash-icon"><i class="bi bi-house-door"></i></span> <span>Dashboard</span></a></li>
+    <li><a href="{{ route('dashboard.admin') }}"><span class="dash-icon"><i class="bi bi-house-door"></i></span> <span>Beranda</span></a></li>
     <li><a href="{{ route('admin.pelanggan.index') }}"><span class="dash-icon"><i class="bi bi-people"></i></span> <span>Kelola Pelanggan</span></a></li>
     <li><a href="{{ route('admin.pemilik.index') }}"><span class="dash-icon"><i class="bi bi-person-workspace"></i></span> <span>Kelola Pemilik</span></a></li>
     <li><a href="{{ route('admin.kasir.index') }}"><span class="dash-icon"><i class="bi bi-person-vcard"></i></span> <span>Kelola Kasir</span></a></li>
