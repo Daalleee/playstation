@@ -4,7 +4,7 @@
         $items = [];
         if ($type === 'admin') {
             $items = [
-                ['label' => 'Dashboard', 'route' => route('dashboard.admin')],
+                ['label' => 'Beranda', 'route' => route('dashboard.admin')],
                 ['label' => 'Unit PS', 'route' => route('admin.unitps.index')],
                 ['label' => 'Games', 'route' => route('admin.games.index')],
                 ['label' => 'Aksesoris', 'route' => route('admin.accessories.index')],
@@ -13,7 +13,7 @@
             ];
         } elseif ($type === 'pelanggan') {
             $items = [
-                ['label' => 'Dashboard', 'route' => route('dashboard.pelanggan')],
+                ['label' => 'Beranda', 'route' => route('dashboard.pelanggan')],
                 ['label' => 'Profil', 'route' => route('pelanggan.profile.show')],
                 ['label' => 'Unit PS', 'route' => route('pelanggan.unitps.index')],
                 ['label' => 'Games', 'route' => route('pelanggan.games.index')],
