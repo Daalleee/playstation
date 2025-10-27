@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin</title>
+    <title>Beranda Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css?v=1.2" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css?v=1.2" rel="stylesheet">
     <style>
@@ -249,7 +249,7 @@
             <nav class="d-flex flex-column gap-1">
                 <a href="{{ route('dashboard.admin') }}"
                     class="nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}"><i
-                        class="bi bi-house-door"></i> Dashboard</a>
+                        class="bi bi-house-door"></i> Beranda</a>
                 <a href="{{ route('admin.pelanggan.index') }}"
                     class="nav-link {{ request()->routeIs('admin.pelanggan.*') ? 'active' : '' }}"><i
                         class="bi bi-people"></i> Kelola Pelanggan</a>
@@ -281,7 +281,7 @@
             </nav>
         </aside>
         <main class="content">
-            <div class="header">Dashboard Admin</div>
+            <div class="header">Beranda Admin</div>
             <div class="container py-3">
                 <!-- Statistik Inventaris -->
                 <div class="card p-3 mb-4">
