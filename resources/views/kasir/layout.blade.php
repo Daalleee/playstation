@@ -52,7 +52,7 @@
             <span>Kasir</span>
         </div>
         <nav class="d-flex flex-column gap-1">
-            <a href="{{ route('dashboard.kasir') }}" class="nav-link {{ request()->routeIs('dashboard.kasir') ? 'active' : '' }}"><i class="bi bi-house-door"></i> Dashboard</a>
+            <a href="{{ route('dashboard.kasir') }}" class="nav-link {{ request()->routeIs('dashboard.kasir') ? 'active' : '' }}"><i class="bi bi-house-door"></i> Beranda</a>
             <a href="{{ route('kasir.transaksi.index') }}" class="nav-link {{ request()->routeIs('kasir.transaksi.*') ? 'active' : '' }}"><i class="bi bi-list-check"></i> Transaksi</a>
             <form method="POST" action="{{ route('logout') }}" class="mt-2">
                 @csrf
