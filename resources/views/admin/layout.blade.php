@@ -50,7 +50,7 @@
             <span>Playstation</span>
         </div>
         <nav class="d-flex flex-column gap-1">
-            <a href="{{ route('dashboard.admin') }}" class="nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}"><i class="bi bi-house-door"></i> Dashboard</a>
+            <a href="{{ route('dashboard.admin') }}" class="nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}"><i class="bi bi-house-door"></i> Beranda</a>
             <a href="{{ route('admin.pelanggan.index') }}" class="nav-link {{ request()->routeIs('admin.pelanggan.*') ? 'active' : '' }}"><i class="bi bi-people"></i> Kelola Pelanggan</a>
             <a href="{{ route('admin.pemilik.index') }}" class="nav-link {{ request()->routeIs('admin.pemilik.*') ? 'active' : '' }}"><i class="bi bi-person-workspace"></i> Kelola Pemilik</a>
             <a href="{{ route('admin.kasir.index') }}" class="nav-link {{ request()->routeIs('admin.kasir.*') ? 'active' : '' }}"><i class="bi bi-person-vcard"></i> Kelola Kasir</a>
