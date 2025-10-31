@@ -13,7 +13,7 @@ class UnitPSController extends Controller
     public function index()
     {
         Gate::authorize('access-admin');
-        $units = UnitPS::select('id', 'nama', 'model', 'merek', 'nomor_seri', 'harga_per_jam', 'stok', 'foto', 'kondisi')
+        $units = UnitPS::select('id', 'name', 'model', 'brand', 'serial_number', 'price_per_hour', 'stock', 'nama', 'merek', 'nomor_seri', 'harga_per_jam', 'stok', 'foto', 'kondisi')
             ->latest()
             ->withCount('rentalItems')
             ->paginate(10);
@@ -50,16 +50,28 @@ class UnitPSController extends Controller
             unset($validated['foto']);
         }
 
-        // Kompatibilitas kolom lama
-        $validated['name'] = $validated['nama'];
-        $validated['brand'] = $validated['merek'];
-        $validated['model'] = $validated['model'];
-        $validated['serial_number'] = $validated['nomor_seri'];
-        $validated['serial_number'] = $validated['nomor_seri'] ?? null;
-        $validated['price_per_hour'] = $validated['harga_per_jam'];
-        $validated['stock'] = $validated['stok'];
+        // Kompatibilitas kolom lama - mapping field Indonesia ke field database
+        $data = [
+            'name' => $validated['nama'],
+            'brand' => $validated['merek'],
+            'model' => $validated['model'],
+            'serial_number' => $validated['nomor_seri'],
+            'price_per_hour' => $validated['harga_per_jam'],
+            'stock' => $validated['stok'],
+            'kondisi' => $validated['kondisi'] ?? null,
+            // Also populate Indonesian fields
+            'nama' => $validated['nama'],
+            'merek' => $validated['merek'],
+            'nomor_seri' => $validated['nomor_seri'],
+            'harga_per_jam' => $validated['harga_per_jam'],
+            'stok' => $validated['stok'],
+        ];
 
-        UnitPS::create($validated);
+        if (isset($validated['foto'])) {
+            $data['foto'] = $validated['foto'];
+        }
+
+        UnitPS::create($data);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dibuat');
     }
 
@@ -96,16 +108,28 @@ class UnitPSController extends Controller
             unset($validated['foto']);
         }
 
-        // Kompatibilitas kolom lama
-        $validated['name'] = $validated['nama'];
-        $validated['brand'] = $validated['merek'];
-        $validated['model'] = $validated['model'];
-        $validated['serial_number'] = $validated['nomor_seri'];
-        $validated['serial_number'] = $validated['nomor_seri'] ?? null;
-        $validated['price_per_hour'] = $validated['harga_per_jam'];
-        $validated['stock'] = $validated['stok'];
+        // Kompatibilitas kolom lama - mapping field Indonesia ke field database
+        $data = [
+            'name' => $validated['nama'],
+            'brand' => $validated['merek'],
+            'model' => $validated['model'],
+            'serial_number' => $validated['nomor_seri'],
+            'price_per_hour' => $validated['harga_per_jam'],
+            'stock' => $validated['stok'],
+            'kondisi' => $validated['kondisi'] ?? null,
+            // Also populate Indonesian fields
+            'nama' => $validated['nama'],
+            'merek' => $validated['merek'],
+            'nomor_seri' => $validated['nomor_seri'],
+            'harga_per_jam' => $validated['harga_per_jam'],
+            'stok' => $validated['stok'],
+        ];
 
-        $unitp->update($validated);
+        if (isset($validated['foto'])) {
+            $data['foto'] = $validated['foto'];
+        }
+
+        $unitp->update($data);
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS diperbarui');
     }
 
