@@ -32,6 +32,16 @@
         <p>Perbarui informasi akunmu</p>
       </div>
 
+      @if(session('warning'))
+        <div style="background:#ff6b6b; color:#fff; border-radius:.8rem; padding:1rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem;">
+          <span style="font-size:1.5rem;">⚠️</span>
+          <div>
+            <strong>Profil Belum Lengkap!</strong>
+            <p style="margin:0.25rem 0 0; font-size:0.95rem;">{{ session('warning') }}</p>
+          </div>
+        </div>
+      @endif
+      
       @if($errors->any())
         <div class="alert-dark mb-3">
           <ul class="mb-0">
@@ -39,6 +49,13 @@
               <li>{{ $error }}</li>
             @endforeach
           </ul>
+        </div>
+      @endif
+      
+      @if(empty($user->phone) || empty($user->address))
+        <div style="background:#ffc107; color:#000; border-radius:.8rem; padding:1rem; margin-bottom:1.5rem; border-left:4px solid #ff9800;">
+          <strong>📋 Informasi Penting:</strong>
+          <p style="margin:0.5rem 0 0;">Nomor HP dan Alamat <strong>WAJIB</strong> diisi untuk melakukan pemesanan rental. Lengkapi data Anda sekarang!</p>
         </div>
       @endif
 

@@ -34,18 +34,23 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:30', 'regex:/^\+62[0-9]{8,20}$/'],
+            'address' => ['required', 'string', 'max:255', 'min:5'],
             'current_password' => ['nullable', 'string'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+        ], [
+            'phone.required' => 'Nomor HP wajib diisi untuk melakukan pemesanan.',
+            'phone.regex' => 'Format nomor HP harus: +62 diikuti 8-20 digit angka (contoh: +6281234567890)',
+            'address.required' => 'Alamat wajib diisi untuk melakukan pemesanan.',
+            'address.min' => 'Alamat minimal 5 karakter.',
         ]);
 
         // Update basic info
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'address' => $validated['address'] ?? null,
+            'phone' => $validated['phone'],
+            'address' => $validated['address'],
         ]);
 
         // Update password if provided
@@ -59,6 +64,6 @@ class ProfileController extends Controller
             ]);
         }
 
-        return redirect()->route('pelanggan.profile.show')->with('status', 'Profil berhasil diperbarui');
+        return redirect()->route('pelanggan.profile.show')->with('status', '✅ Profil berhasil diperbarui! Sekarang Anda bisa melakukan pemesanan rental.');
     }
 }
