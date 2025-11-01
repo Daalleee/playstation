@@ -13,7 +13,9 @@ class GameController extends Controller
     public function index()
     {
         Gate::authorize('access-admin');
-        $games = Game::latest()->paginate(10);
+        $games = Game::select('id', 'judul', 'platform', 'genre', 'stok', 'harga_per_hari', 'gambar', 'kondisi')
+            ->latest()
+            ->paginate(10);
         return view('admin.games.index', compact('games'));
     }
 

@@ -1,7 +1,7 @@
 @extends('owner.layout')
 @section('owner_content')
 <h1>Status Produk</h1>
-<a href="{{ route('dashboard.pemilik') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Dashboard</a>
+<a href="{{ route('dashboard.pemilik') }}" style="background:#6c757d;color:white;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;margin-bottom:1rem;display:inline-block;">&larr; Kembali ke Beranda</a>
 
 <h2>Unit PS</h2>
 <table border="1" cellpadding="8" cellspacing="0" style="width:100%;margin-bottom:2rem;">
@@ -12,7 +12,7 @@
         @foreach($unitps as $u)
         @php
             $jumlahDisewa = $u->rentalItems()->whereHas('rental', function($q){ $q->whereIn('status', ['ongoing','active']); })->sum('quantity');
-            $stok = $u->stok ?? $u->stock;
+            $stok = $u->stok ?? 0;
             $sisa = $stok - $jumlahDisewa;
         @endphp
         <tr>
@@ -43,7 +43,7 @@
         @foreach($games as $g)
         @php
             $jumlahDisewa = $g->rentalItems()->whereHas('rental', function($q){ $q->whereIn('status', ['ongoing','active']); })->sum('quantity');
-            $stok = $g->stok ?? $g->stock;
+            $stok = $g->stok ?? 0;
             $sisa = $stok - $jumlahDisewa;
         @endphp
         <tr>
@@ -74,7 +74,7 @@
         @foreach($accessories as $a)
         @php
             $jumlahDisewa = $a->rentalItems()->whereHas('rental', function($q){ $q->whereIn('status', ['ongoing','active']); })->sum('quantity');
-            $stok = $a->stok ?? $a->stock;
+            $stok = $a->stok ?? 0;
             $sisa = $stok - $jumlahDisewa;
         @endphp
         <tr>

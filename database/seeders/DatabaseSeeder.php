@@ -9,16 +9,12 @@ use App\Models\Accessory;
 use App\Models\Rental;
 use App\Models\RentalItem;
 use App\Models\Cart;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $roles = ['admin', 'kasir', 'pemilik', 'pelanggan'];
@@ -36,11 +32,11 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // Seed Unit PS (tersedia untuk disewa)
+        // Seed Unit PS
         $units = [
-            ['name' => 'PS4 Slim', 'brand' => 'Sony', 'model' => 'PS4', 'serial_number' => 'PS4-1001', 'price_per_hour' => 15000, 'stok' => 3, 'status' => 'available'],
-            ['name' => 'PS5 Standard', 'brand' => 'Sony', 'model' => 'PS5', 'serial_number' => 'PS5-2001', 'price_per_hour' => 25000, 'stok' => 2, 'status' => 'available'],
-            ['name' => 'PS3 Super Slim', 'brand' => 'Sony', 'model' => 'PS3', 'serial_number' => 'PS3-3001', 'price_per_hour' => 10000, 'stok' => 1, 'status' => 'available'],
+            ['name' => 'PS4 Slim', 'brand' => 'Sony', 'model' => 'PS4', 'serial_number' => 'PS4-1001', 'price_per_hour' => 15000, 'stok' => 3],
+            ['name' => 'PS5 Standard', 'brand' => 'Sony', 'model' => 'PS5', 'serial_number' => 'PS5-2001', 'price_per_hour' => 25000, 'stok' => 2],
+            ['name' => 'PS3 Super Slim', 'brand' => 'Sony', 'model' => 'PS3', 'serial_number' => 'PS3-3001', 'price_per_hour' => 10000, 'stok' => 1],
         ];
         foreach ($units as $u) {
             UnitPS::updateOrCreate(
@@ -49,45 +45,44 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // Seed Games
+        // Seed Games - PERBAIKAN: gunakan 'judul' bukan 'title'
         $games = [
-            ['judul' => 'FIFA 24', 'title' => 'FIFA 24', 'platform' => 'PS5', 'genre' => 'Sports', 'stok' => 5, 'harga_per_hari' => 20000],
-            ['judul' => 'God of War', 'title' => 'God of War', 'platform' => 'PS4', 'genre' => 'Action', 'stok' => 4, 'harga_per_hari' => 18000],
-            ['judul' => 'The Last of Us', 'title' => 'The Last of Us', 'platform' => 'PS3', 'genre' => 'Adventure', 'stok' => 3, 'harga_per_hari' => 15000],
+            ['judul' => 'FIFA 24', 'platform' => 'PS5', 'genre' => 'Sports', 'stok' => 5, 'harga_per_hari' => 20000],
+            ['judul' => 'God of War', 'platform' => 'PS4', 'genre' => 'Action', 'stok' => 4, 'harga_per_hari' => 18000],
+            ['judul' => 'The Last of Us', 'platform' => 'PS3', 'genre' => 'Adventure', 'stok' => 3, 'harga_per_hari' => 15000],
         ];
         foreach ($games as $g) {
             Game::updateOrCreate(
-                ['title' => $g['title'], 'platform' => $g['platform']],
+                ['judul' => $g['judul'], 'platform' => $g['platform']], // Gunakan 'judul' bukan 'title'
                 $g
             );
         }
 
-        // Seed Accessories
+        // Seed Accessories - PERBAIKAN: gunakan 'nama' bukan 'name'
         $accessories = [
-            ['nama' => 'DualSense Controller', 'name' => 'DualSense Controller', 'jenis' => 'Controller', 'type' => 'controller', 'stok' => 5, 'harga_per_hari' => 10000],
-            ['nama' => 'Headset PS', 'name' => 'PS Headset', 'jenis' => 'Headset', 'type' => 'headset', 'stok' => 3, 'harga_per_hari' => 12000],
+            ['nama' => 'DualSense Controller', 'jenis' => 'Controller', 'stok' => 5, 'harga_per_hari' => 10000],
+            ['nama' => 'Headset PS', 'jenis' => 'Headset', 'stok' => 3, 'harga_per_hari' => 12000],
         ];
         foreach ($accessories as $a) {
             Accessory::updateOrCreate(
-                ['name' => $a['name']],
+                ['nama' => $a['nama']], // Gunakan 'nama' bukan 'name'
                 $a
             );
         }
 
-        // Sample Rentals for demo flows (riwayat & pengembalian)
+        // Sample Rentals
         $pelanggan = User::where('email', 'pelanggan@gmail.com')->first();
         $kasir = User::where('email', 'kasir@gmail.com')->first();
 
         if ($pelanggan) {
             $ps4 = UnitPS::where('model', 'PS4')->first();
-            $fifa = Game::where('title', 'FIFA 24')->first();
+            $fifa = Game::where('judul', 'FIFA 24')->first(); // Gunakan 'judul' bukan 'title'
 
-            // 1) Rental selesai (returned)
             if ($ps4 && $fifa) {
                 $start = Carbon::now()->subDays(2)->setTime(10,0);
                 $due = Carbon::now()->subDays(1)->setTime(10,0);
                 $hours = $start->diffInHours($due);
-                $subtotal = ($ps4->price_per_hour * 1 * $hours) + ($fifa->harga_per_hari * 1); // 1 hari game
+                $subtotal = ($ps4->price_per_hour * 1 * $hours) + ($fifa->harga_per_hari * 1);
 
                 $r1 = Rental::firstOrCreate(
                     ['kode' => 'DEMO1'],
@@ -130,7 +125,7 @@ class DatabaseSeeder extends Seeder
             $ps5 = UnitPS::where('model', 'PS5')->first();
             if ($ps5) {
                 $start = Carbon::now()->subHours(3);
-                $due = Carbon::now()->addHours(21); // total 24 jam
+                $due = Carbon::now()->addHours(21);
                 $hours = $start->diffInHours($due);
                 $subtotal = $ps5->price_per_hour * $hours;
 
@@ -162,25 +157,24 @@ class DatabaseSeeder extends Seeder
                 }
             }
 
-            // Seed Keranjang Saya (agar langsung terlihat saat uji peminjaman)
-            // Tambah 1 PS4 dan 1 Game FIFA 24 ke keranjang pelanggan jika belum ada
+            // Seed Keranjang
             if ($ps4) {
                 Cart::firstOrCreate(
                     ['user_id' => $pelanggan->id, 'type' => 'unitps', 'item_id' => $ps4->id],
                     [
-                        'name' => $ps4->nama ?? $ps4->name,
-                        'price' => (float) ($ps4->harga_per_jam ?? $ps4->price_per_hour ?? 0),
+                        'name' => $ps4->name,
+                        'price' => $ps4->price_per_hour,
                         'price_type' => 'per_jam',
                         'quantity' => 1,
                     ]
                 );
             }
-            if (isset($fifa) && $fifa) {
+            if ($fifa) {
                 Cart::firstOrCreate(
                     ['user_id' => $pelanggan->id, 'type' => 'game', 'item_id' => $fifa->id],
                     [
-                        'name' => $fifa->judul ?? $fifa->title,
-                        'price' => (float) ($fifa->harga_per_hari ?? $fifa->price_per_day ?? 0),
+                        'name' => $fifa->judul,
+                        'price' => $fifa->harga_per_hari,
                         'price_type' => 'per_hari',
                         'quantity' => 1,
                     ]

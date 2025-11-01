@@ -1,5 +1,5 @@
 @extends('kasir.layout')
-@section('title','Dashboard Kasir')
+@section('title','Beranda Kasir')
 @section('kasir_content')
     @if(session('impersonate_admin_id'))
         <form action="{{ route('admin.impersonate.leave') }}" method="POST" class="mb-2">
@@ -9,7 +9,7 @@
     @endif
 
     <div class="text-center mb-3">
-        <h1 class="h3">Dashboard Kasir</h1>
+        <h1 class="h3">Beranda Kasir</h1>
     </div>
 
     <div class="card p-3">

@@ -1,5 +1,5 @@
 @extends('owner.layout')
-@section('title','Dashboard Pemilik')
+@section('title','Beranda Pemilik')
 @section('owner_content')
     @if(session('impersonate_admin_id'))
         <form action="{{ route('admin.impersonate.leave') }}" method="POST" class="mb-2">
@@ -9,7 +9,7 @@
     @endif
 
     <div class="text-center mb-4">
-        <h1 class="h3">Dashboard Pemilik</h1>
+        <h1 class="h3">Beranda Pemilik</h1>
     </div>
 
     <div class="row g-3 mb-4">
@@ -42,11 +42,12 @@
     <div class="card p-3">
         <h6 class="mb-3 text-light">Transaksi Terbaru</h6>
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="custom-table align-middle">
                 <thead>
                     <tr>
                         <th>ID Transaksi</th>
                         <th>Nama Pelanggan</th>
+                        <th>Item Disewa</th>
                         <th>Durasi</th>
                         <th>Biaya</th>
                         <th>Status</th>
@@ -58,10 +59,44 @@
                             <td>{{ $t->kode ?? $t->id }}</td>
                             <td>{{ $t->customer->name ?? $t->nama_pelanggan ?? '-' }}</td>
                             <td>
+                                @if($t->items && $t->items->count() > 0)
+                                    @foreach($t->items as $item)
+                                        @if($item->rentable_type === 'App\\Models\\UnitPS')
+                                            Unit PS: {{ $item->rentable->nama ?? $item->rentable->name ?? 'N/A' }}<br>
+                                        @elseif($item->rentable_type === 'App\\Models\\Game')
+                                            Game: {{ $item->rentable->judul ?? $item->rentable->title ?? 'N/A' }}<br>
+                                        @elseif($item->rentable_type === 'App\\Models\\Accessory')
+                                            Aksesoris: {{ $item->rentable->nama ?? $item->rentable->name ?? 'N/A' }}<br>
+                                        @else
+                                            Lainnya: {{ $item->rentable_type ?? 'Tidak diketahui' }}<br>
+                                        @endif
+                                    @endforeach
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>
                                 @php
                                     $start = isset($t->start_at) ? \Carbon\Carbon::parse($t->start_at) : null;
                                     $end = isset($t->due_at) ? \Carbon\Carbon::parse($t->due_at) : null;
-                                    $dur = ($start && $end) ? $start->diffForHumans($end, [ 'parts'=>2, 'short'=>true, 'syntax'=>\Carbon\CarbonInterface::DIFF_ABSOLUTE ]) : ($t->durasi ?? '-');
+                                    
+                                    if ($start && $end) {
+                                        $diff = $start->diff($end);
+                                        $totalHours = $diff->h + ($diff->days * 24);
+                                        
+                                        if ($totalHours >= 24) {
+                                            $days = floor($totalHours / 24);
+                                            $remainingHours = $totalHours % 24;
+                                            $dur = $days . ' Hari';
+                                            if ($remainingHours > 0) {
+                                                $dur .= ' ' . $remainingHours . ' Jam';
+                                            }
+                                        } else {
+                                            $dur = $totalHours . ' Jam';
+                                        }
+                                    } else {
+                                        $dur = $t->durasi ?? '-';
+                                    }
                                 @endphp
                                 {{ $dur }}
                             </td>
@@ -73,21 +108,59 @@
                             </td>
                             <td>
                                 @php $st = $t->status ?? 'selesai'; @endphp
-                                <span class="badge {{ $st==='selesai' || $st==='paid' ? 'text-bg-success' : ($st==='active' ? 'text-bg-primary' : 'text-bg-secondary') }}">{{ ucfirst($st) }}</span>
+                                <span class="badge {{ $st==='selesai' || $st==='paid' ? 'text-bg-success' : ($st==='active' || $st==='ongoing' ? 'text-bg-primary' : ($st==='pending' ? 'text-bg-warning text-dark' : ($st==='cancelled' ? 'text-bg-danger' : 'text-bg-secondary'))) }}">
+                                    @if($st == 'selesai' || $st == 'returned')
+                                        Selesai
+                                    @elseif($st == 'active' || $st == 'ongoing')
+                                        Aktif
+                                    @elseif($st == 'pending')
+                                        Menunggu
+                                    @elseif($st == 'cancelled')
+                                        Dibatalkan
+                                    @elseif($st == 'paid')
+                                        Lunas
+                                    @else
+                                        {{ ucfirst($st) }}
+                                    @endif
+                                </span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">Belum ada transaksi terbaru</td>
-                        </tr>
+                            <td colspan="6" class="text-center text-muted">Belum ada transaksi terbaru</td>
+        </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        @if(isset($recentTransactions) && method_exists($recentTransactions,'links'))
-            <div class="d-flex justify-content-center">{{ $recentTransactions->links() }}</div>
-        @endif
     </div>
+    
+    <style>
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #eef0ff;
+            background-color: #49497A;
+        }
+        .custom-table th {
+            background-color: #2d3192;
+            color: #dbe0ff;
+            padding: 0.75rem;
+            text-align: left;
+            border: 1px solid rgba(255,255,255,.08);
+        }
+        .custom-table td {
+            padding: 0.75rem;
+            border: 1px solid rgba(255,255,255,.08);
+            color: #eef0ff;
+        }
+        .custom-table tbody tr {
+            background-color: #49497A !important;
+        }
+        .custom-table tbody tr:hover {
+            background-color: #5a5a8a !important;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (function(){

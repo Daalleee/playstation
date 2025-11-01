@@ -26,7 +26,7 @@ class RentalController extends Controller
     public function create()
     {
         Gate::authorize('access-kasir');
-        $units = UnitPS::where('stok', '>', 0)->where('status', 'available')->orderBy('nama')->get();
+        $units = UnitPS::where('stok', '>', 0)->orderBy('nama')->get();
         $games = Game::where('stok', '>', 0)->orderBy('judul')->get();
         $accessories = Accessory::where('stok', '>', 0)->orderBy('nama')->get();
         return view('kasir.rentals.create', compact('units', 'games', 'accessories'));
@@ -130,7 +130,6 @@ class RentalController extends Controller
                     $unit = UnitPS::lockForUpdate()->find($item->rentable_id);
                     if ($unit) {
                         $unit->stok += $item->quantity;
-                        $unit->status = 'available';
                         $unit->save();
                     }
                 } elseif ($item->rentable_type === Game::class) {
@@ -148,5 +147,3 @@ class RentalController extends Controller
         return redirect()->route('kasir.rentals.show', $rental)->with('status', 'Rental dikembalikan');
     }
 }
-
-

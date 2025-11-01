@@ -12,31 +12,28 @@ class UnitPSController extends Controller
     public function index(Request $request)
     {
         Gate::authorize('access-pelanggan');
-        
-        $query = UnitPS::where('status', 'available')
-            ->where('stok', '>', 0);
-        
-        // Filter by model (Tipe)
+        $query = UnitPS::where('stok', '>', 0);
+
+        // Filter by model
         if ($request->filled('model')) {
             $query->where('model', $request->model);
         }
-        
-        // Filter by brand (Platform)
+
+        // Filter by brand
         if ($request->filled('brand')) {
             $query->where('merek', $request->brand);
         }
-        
+
         // Search by name
         if ($request->filled('q')) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('nama', 'like', '%' . $request->q . '%')
-                  ->orWhere('name', 'like', '%' . $request->q . '%')
-                  ->orWhere('model', 'like', '%' . $request->q . '%');
+                    ->orWhere('model', 'like', '%' . $request->q . '%');
             });
         }
-        
+
         $units = $query->latest()->paginate(12);
-            
+
         return view('pelanggan.unitps.index', compact('units'));
     }
 }

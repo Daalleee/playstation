@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Kasir;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use App\Models\Rental;
 use App\Models\RentalItem;
+use App\Models\UnitPS;
+use App\Models\Game;
+use App\Models\Accessory;
 
 class TransaksiController extends Controller
 {
@@ -17,7 +21,23 @@ class TransaksiController extends Controller
         $rental = null;
         if ($request->filled('rental_kode')) {
             $kode = $request->rental_kode;
-            $rental = Rental::where('kode', $kode)->with('customer','items.rentable')->first();
+            $rental = Rental::where('kode', $kode)->with('customer','items')->first();
+            
+            if ($rental) {
+                // Load rentable items manually to prevent issues with missing rentables
+                foreach ($rental->items as $item) {
+                    $modelClass = match($item->rentable_type) {
+                        'App\Models\UnitPS', 'unitps' => UnitPS::class,
+                        'App\Models\Game', 'game' => Game::class,
+                        'App\Models\Accessory', 'accessory' => Accessory::class,
+                        default => null,
+                    };
+                    
+                    if ($modelClass && $item->rentable_id) {
+                        $item->setRelation('rentable', $modelClass::find($item->rentable_id));
+                    }
+                }
+            }
             if (!$rental) {
                 return view('kasir.transaksi.index', compact('rentals'))
                     ->with('status', 'Kode transaksi tidak ditemukan.');
@@ -29,7 +49,21 @@ class TransaksiController extends Controller
     public function show(Rental $rental)
     {
         Gate::authorize('access-kasir');
-        $rental->load('items.rentable');
+        $rental->load('items');
+        
+        // Load rentable items manually to prevent issues with missing rentables
+        foreach ($rental->items as $item) {
+            $modelClass = match($item->rentable_type) {
+                'App\Models\UnitPS', 'unitps' => UnitPS::class,
+                'App\Models\Game', 'game' => Game::class,
+                'App\Models\Accessory', 'accessory' => Accessory::class,
+                default => null,
+            };
+            
+            if ($modelClass && $item->rentable_id) {
+                $item->setRelation('rentable', $modelClass::find($item->rentable_id));
+            }
+        }
         return view('kasir.transaksi.show', compact('rental'));
     }
 
@@ -55,21 +89,33 @@ class TransaksiController extends Controller
     public function pengembalian(Request $request, Rental $rental)
     {
         Gate::authorize('access-kasir');
+        
         $validated = $request->validate([
             'items' => ['required', 'array'],
-            'items.*' => ['required', 'exists:rental_items,id'],
             'kondisi' => ['required', 'array'],
             'kondisi.*' => ['required', 'string', 'max:255'],
         ]);
         
+        // Validasi bahwa item yang diberikan adalah rental_item yang valid
+        foreach (array_keys($validated['items']) as $itemId) {
+            if (!\App\Models\RentalItem::where('id', $itemId)->exists()) {
+                return back()->withErrors(['error' => "Item dengan ID {$itemId} tidak ditemukan."]);
+            }
+        }
+        
+        // Muat ulang rental dengan items untuk memastikan data terbaru
+        $rental->load('items');
+        
         \DB::transaction(function() use ($rental, $validated) {
             foreach ($rental->items as $item) {
                 $itemId = $item->id;
-                if (isset($validated['items'][$itemId])) {
+                
+                // Cek apakah item ini dicentang untuk dikembalikan
+                if (isset($validated['items'][$itemId]) && $validated['items'][$itemId] == 1) {
                     // Update stok barang dengan pessimistic locking
                     $rentable = $item->rentable()->lockForUpdate()->first();
                     if ($rentable) {
-                        $rentable->stok = ($rentable->stok ?? $rentable->stock ?? 0) + $item->quantity;
+                        $rentable->stok = ($rentable->stok ?? 0) + $item->quantity;
                         $rentable->save();
                     }
                     

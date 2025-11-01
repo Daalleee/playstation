@@ -13,7 +13,9 @@ class AccessoryController extends Controller
     public function index()
     {
         Gate::authorize('access-admin');
-        $accessories = Accessory::latest()->paginate(10);
+        $accessories = Accessory::select('id', 'nama', 'jenis', 'stok', 'harga_per_hari', 'gambar', 'kondisi')
+            ->latest()
+            ->paginate(10);
         return view('admin.accessories.index', compact('accessories'));
     }
 
