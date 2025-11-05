@@ -32,6 +32,14 @@ class RentalController extends Controller
     {
         Gate::authorize('access-pelanggan');
         
+        // Validate user's phone number and address before showing rental form
+        $user = auth()->user();
+        if (empty($user->phone) || empty($user->address)) {
+            return redirect()->route('pelanggan.profile.edit')
+                ->with('error', 'Silakan lengkapi nomor telepon dan alamat Anda terlebih dahulu sebelum melakukan penyewaan.')
+                ->with('redirect_after_update', $request->fullUrl());
+        }
+        
         // Check if specific item is requested via query parameters
         $itemType = $request->query('type');
         $itemId = $request->query('id');
@@ -49,13 +57,19 @@ class RentalController extends Controller
                 $item = $model::find($itemId);
                 if ($item) {
                     // Create a temporary cart-like item for the view
+                    $name = $itemType === 'unitps' ? $item->name : ($item->nama ?? $item->judul);
+                    $price = $itemType === 'unitps' ? $item->price_per_hour : $item->harga_per_hari;
+                    $stockField = $itemType === 'unitps' ? 'stock' : 'stok';
+                    
                     $cartItems = collect([[
-                        'name' => $item->nama ?? $item->judul ?? $item->name,
+                        'name' => $name,
                         'type' => $itemType,
-                        'price' => $itemType === 'unitps' ? $item->harga_per_jam : $item->harga_per_hari,
+                        'price' => $price,
                         'price_type' => $itemType === 'unitps' ? 'per_jam' : 'per_hari',
                         'quantity' => 1,
+                        'item_id' => $itemId,
                         'id' => $itemId,
+                        'stok' => $item->$stockField,
                     ]]);
                     
                     return view('pelanggan.rentals.create', ['cartItems' => $cartItems, 'directItem' => true]);
@@ -99,6 +113,12 @@ class RentalController extends Controller
     {
         Gate::authorize('access-pelanggan');
         
+        // Validate user's phone number and address
+        $user = auth()->user();
+        if (empty($user->phone) || empty($user->address)) {
+            return back()->withErrors(['error' => 'Silakan lengkapi nomor telepon dan alamat Anda sebelum melanjutkan.'])->withInput();
+        }
+        
         $validated = $request->validate([
             'rental_date' => ['required', 'date', 'after_or_equal:today', 'before:+1 year'],
             'return_date' => ['required', 'date', 'after:rental_date', 'before:+1 year'],
@@ -121,9 +141,9 @@ class RentalController extends Controller
         // Check if we need to create a temporary cart item (from direct item selection)
         $cartItems = Cart::where('user_id', auth()->id())->get();
         if ($cartItems->isEmpty()) {
-            // Check if this is a direct item rental from query parameters
-            $itemType = $request->query('type');
-            $itemId = $request->query('id');
+            // Check if this is a direct item rental from request (hidden inputs or query parameters)
+            $itemType = $request->input('type') ?? $request->query('type');
+            $itemId = $request->input('id') ?? $request->query('id');
             
             if ($itemType && $itemId) {
                 // Validate that this is a legitimate direct request
@@ -131,22 +151,27 @@ class RentalController extends Controller
                     'unitps' => UnitPS::class,
                     'game' => Game::class,
                     'accessory' => Accessory::class,
+                    default => null,
                 };
                 
                 if ($model) {
                     $item = $model::find($itemId);
-                    if ($item && $item->stok > 0) {
+                    $stockField = $itemType === 'unitps' ? 'stock' : 'stok';
+                    if ($item && $item->$stockField > 0) {
                         // Get quantity from request or default to 1
                         $quantity = $request->input('quantity', 1);
                         
                         // Create temporary cart entry for this specific item
+                        $name = $itemType === 'unitps' ? $item->name : ($item->nama ?? $item->judul);
+                        $price = $itemType === 'unitps' ? $item->price_per_hour : $item->harga_per_hari;
+                        
                         Cart::create([
                             'user_id' => auth()->id(),
                             'type' => $itemType,
                             'item_id' => $itemId,
                             'quantity' => $quantity,
-                            'price' => $itemType === 'unitps' ? $item->harga_per_jam : $item->harga_per_hari,
-                            'name' => $item->nama ?? $item->judul ?? $item->name,
+                            'price' => $price,
+                            'name' => $name,
                             'price_type' => $itemType === 'unitps' ? 'per_jam' : 'per_hari',
                         ]);
                         
@@ -257,11 +282,15 @@ class RentalController extends Controller
                         throw new \Exception("Item {$itemName} (ID: {$itemId}) tidak ditemukan pada indeks: {$index}");
                     }
                     
-                    if (($rentable->stok ?? 0) < $itemQuantity) {
+                    // Check stock based on item type
+                    $stockField = $itemType === 'unitps' ? 'stock' : 'stok';
+                    $currentStock = $rentable->$stockField ?? 0;
+                    
+                    if ($currentStock < $itemQuantity) {
                         throw new \App\Exceptions\InsufficientStockException(
                             $itemName, 
                             $itemQuantity, 
-                            $rentable->stok ?? 0
+                            $currentStock
                         );
                     }
 
@@ -285,7 +314,11 @@ class RentalController extends Controller
                     ]);
 
                     // Update stock with pessimistic locking to prevent race condition
-                    $rentable->stok -= $itemQuantity;
+                    if ($itemType === 'unitps') {
+                        $rentable->stock -= $itemQuantity;
+                    } else {
+                        $rentable->stok -= $itemQuantity;
+                    }
                     $rentable->save();
 
                     $totalAmount += $subtotal;
@@ -302,13 +335,7 @@ class RentalController extends Controller
 
             // Update rental total
             $rental->update(['total' => $totalAmount]);
-
-            // Clear DB cart only
-            Cart::where('user_id', auth()->id())->delete();
             
-            // Clear session cart
-            session()->forget('cart');
-
             // Midtrans: build params - gunakan total per item agar sesuai durasi
             // Load items separately to avoid potential relationship loading issues
             $rental->load('items');
@@ -355,11 +382,16 @@ class RentalController extends Controller
             
             $orderId = 'ORD-'.date('Ymd').'-'.$rental->id.'-'.substr(uniqid(), -5);
 
-            // Use Midtrans if server key is available
+            // ALWAYS use Midtrans - check if configured
             $serverKey = config('midtrans.server_key');
-            $useSnap = !empty($serverKey);
+            $clientKey = config('midtrans.client_key');
+            
+            if (empty($serverKey) || empty($clientKey)) {
+                DB::rollBack();
+                return back()->withErrors(['error' => 'Sistem pembayaran belum dikonfigurasi. Silakan hubungi administrator.'])->withInput();
+            }
 
-            if ($useSnap) {
+            // Prepare Midtrans payment
                 $params = [
                     'transaction_details' => [
                         'order_id' => $orderId,
@@ -381,27 +413,55 @@ class RentalController extends Controller
                     ],
                 ];
                 
-                try {
-                    $snapToken = $midtrans->createSnapToken($params);
-                } catch (\Exception $e) {
-                    \Log::error('Error creating Midtrans snap token: ' . $e->getMessage(), [
-                        'rental_id' => $rental->id,
-                        'total_amount' => $totalAmount,
-                        'items_count' => count($items)
-                    ]);
-                    throw $e;
-                }
-
+            try {
+                $snapToken = $midtrans->createSnapToken($params);
+                
+                // Create payment record with order_id for webhook tracking
+                \App\Models\Payment::create([
+                    'rental_id' => $rental->id,
+                    'method' => 'midtrans',
+                    'amount' => $totalAmount,
+                    'order_id' => $orderId,
+                    'transaction_status' => 'pending',
+                ]);
+                
                 DB::commit();
+                
+                // Clear cart ONLY after successful Midtrans token creation and DB commit
+                Cart::where('user_id', auth()->id())->delete();
+                session()->forget('cart');
+                
+                \Log::info('Rental created, cart cleared, redirecting to Midtrans payment', [
+                    'rental_id' => $rental->id,
+                    'order_id' => $orderId,
+                    'amount' => $totalAmount,
+                ]);
+                
+                // Redirect to payment page
                 return view('pelanggan.payment.midtrans', compact('rental', 'snapToken', 'orderId'));
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                
+                \Log::error('Error creating Midtrans snap token', [
+                    'rental_id' => $rental->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                
+                return back()->withErrors(['error' => 'Gagal membuat pembayaran: ' . $e->getMessage()])->withInput();
             }
-
-            DB::commit();
-            return redirect()->route('pelanggan.rentals.show', $rental)->with('status', 'Penyewaan dibuat (mode lokal, pembayaran dilewati).');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => $e->getMessage()])->withInput();
+            
+            \Log::error('Error creating rental', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id(),
+            ]);
+            
+            return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])->withInput();
         }
     }
 
@@ -430,5 +490,31 @@ class RentalController extends Controller
         }
         
         return view('pelanggan.rentals.show', compact('rental'));
+    }
+
+    /**
+     * User mengembalikan barang yang disewa
+     */
+    public function returnRental(Rental $rental)
+    {
+        Gate::authorize('access-pelanggan');
+        
+        if ($rental->user_id !== auth()->id()) {
+            abort(403);
+        }
+        
+        // Hanya bisa mengembalikan jika status sedang_disewa
+        if ($rental->status !== 'sedang_disewa') {
+            return back()->with('error', 'Penyewaan ini tidak dapat dikembalikan.');
+        }
+        
+        // Update status menjadi menunggu_konfirmasi
+        $rental->update([
+            'status' => 'menunggu_konfirmasi',
+            'returned_at' => now(),
+        ]);
+        
+        return redirect()->route('pelanggan.rentals.show', $rental)
+            ->with('status', 'Pengembalian berhasil diajukan. Menunggu konfirmasi dari kasir.');
     }
 }
