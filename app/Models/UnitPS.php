@@ -13,14 +13,12 @@ class UnitPS extends Model
     protected $table = 'unit_ps';
 
     protected $fillable = [
-        'nama',
-        'merek',
+        'name',
+        'brand',
         'model',
-        'nomor_seri',
-        'harga_per_jam',
-        'stok',
-        'foto',
-        'kondisi',
+        'serial_number',
+        'price_per_hour',
+        'stock',
     ];
 
 
