@@ -18,7 +18,7 @@ class DashboardController extends Controller
         Gate::authorize('access-admin');
         
         // Gunakan eager loading dan aggregasi untuk meningkatkan performa
-        $unitPSData = UnitPS::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
+        $unitPSData = UnitPS::selectRaw('*, COALESCE(stock, 0) as total_stok')->get();
         $gameData = Game::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
         $accessoryData = Accessory::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
         
@@ -26,7 +26,7 @@ class DashboardController extends Controller
         $unitRented = RentalItem::whereHas('rental', function ($q) { $q->where('status', 'active'); })
             ->where('rentable_type', UnitPS::class)
             ->sum('quantity');
-        $unitDamaged = UnitPS::where('kondisi', 'rusak')->count();
+        $unitDamaged = 0; // Unit PS tidak memiliki field kondisi
         $unitTotal = $unitAvailable + $unitRented;
 
         $gameAvailable = $gameData->sum('total_stok');
@@ -59,15 +59,15 @@ class DashboardController extends Controller
             $rentedCount = $activeRentalItems->has($key) ? $activeRentalItems->get($key)->total_rented : 0;
             
             return [
-                'nama' => $unit->nama,
+                'nama' => $unit->name,
                 'model' => $unit->model,
-                'merek' => $unit->merek,
+                'merek' => $unit->brand,
                 'stok' => $unit->total_stok,
-                'kondisi_baik' => $unit->total_stok, // Equals total stock since admin adds items as baik
-                'kondisi_buruk' => 0, // Default to 0 since admin adds items as baik
+                'kondisi_baik' => $unit->total_stok,
+                'kondisi_buruk' => 0,
                 'disewa' => $rentedCount,
                 'tersedia' => $unit->total_stok - $rentedCount,
-                'nomor_seri' => $unit->nomor_seri ?? '-' // Tambahkan nomor seri
+                'nomor_seri' => $unit->serial_number ?? '-'
             ];
         });
         
@@ -161,19 +161,19 @@ class DashboardController extends Controller
         Gate::authorize('access-pelanggan');
         
         // Get latest available items with stock > 0 for display on landing page
-        $unitps = UnitPS::where('stok', '>', 0)
+        $unitps = UnitPS::where('stock', '>', 0)
             ->orderByDesc('id')
-            ->limit(6)
+            ->limit(8)
             ->get();
             
         $games = Game::where('stok', '>', 0)
             ->orderByDesc('id')
-            ->limit(6)
+            ->limit(8)
             ->get();
             
         $accessories = Accessory::where('stok', '>', 0)
             ->orderByDesc('id')
-            ->limit(6)
+            ->limit(8)
             ->get();
             
         return view('dashboards.pelanggan', compact('unitps', 'games', 'accessories'));
@@ -184,9 +184,9 @@ class DashboardController extends Controller
         Gate::authorize('access-pelanggan');
         
         // Get latest available Unit PS with stock > 0 for display on Unit PS landing page
-        $unitps = UnitPS::where('stok', '>', 0)
+        $unitps = UnitPS::where('stock', '>', 0)
             ->orderByDesc('id')
-            ->get(); // Get all available units, not just 6
+            ->get(); // Get all available units
             
         return view('dashboards.unitps', compact('unitps'));
     }
