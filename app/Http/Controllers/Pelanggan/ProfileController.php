@@ -34,8 +34,8 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'address' => ['nullable', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:30'],
+            'address' => ['required', 'string', 'max:255'],
             'current_password' => ['nullable', 'string'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
@@ -44,8 +44,8 @@ class ProfileController extends Controller
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'address' => $validated['address'] ?? null,
+            'phone' => $validated['phone'],
+            'address' => $validated['address'],
         ]);
 
         // Update password if provided
@@ -59,6 +59,13 @@ class ProfileController extends Controller
             ]);
         }
 
+        // Check if there's a redirect URL after update
+        $redirectUrl = session('redirect_after_update');
+        if ($redirectUrl) {
+            session()->forget('redirect_after_update');
+            return redirect($redirectUrl)->with('status', 'Profil berhasil diperbarui. Silakan lanjutkan pemesanan Anda.');
+        }
+        
         return redirect()->route('pelanggan.profile.show')->with('status', 'Profil berhasil diperbarui');
     }
 }
