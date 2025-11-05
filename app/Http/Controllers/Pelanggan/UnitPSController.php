@@ -12,7 +12,7 @@ class UnitPSController extends Controller
     public function index(Request $request)
     {
         Gate::authorize('access-pelanggan');
-        $query = UnitPS::where('stok', '>', 0);
+        $query = UnitPS::where('stock', '>', 0);
 
         // Filter by model
         if ($request->filled('model')) {
@@ -21,13 +21,13 @@ class UnitPSController extends Controller
 
         // Filter by brand
         if ($request->filled('brand')) {
-            $query->where('merek', $request->brand);
+            $query->where('brand', $request->brand);
         }
 
         // Search by name
         if ($request->filled('q')) {
             $query->where(function ($q) use ($request) {
-                $q->where('nama', 'like', '%' . $request->q . '%')
+                $q->where('name', 'like', '%' . $request->q . '%')
                     ->orWhere('model', 'like', '%' . $request->q . '%');
             });
         }
