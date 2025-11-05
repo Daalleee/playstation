@@ -65,10 +65,7 @@
                             break;
                     }
                     if($modelClass) {
-                        $itemId = $item['id'] ?? $item['item_id'] ?? null;
-                        if(!$itemId && isset($_GET['id'])) {
-                            $itemId = $_GET['id'];
-                        }
+                        $itemId = $item['item_id'] ?? $item['id'] ?? null;
                         $itemModel = $modelClass::find($itemId);
                     }
                   @endphp
@@ -84,8 +81,7 @@
                     @if($itemModel)
                       @if($item['type'] == 'unitps')
                         <div class="muted">Model: {{ $itemModel->model ?? 'N/A' }}</div>
-                        <div class="muted">Merek: {{ $itemModel->merek ?? 'N/A' }}</div>
-                        <div class="muted">Kondisi: {{ $itemModel->kondisi ?? 'N/A' }}</div>
+                        <div class="muted">Merek: {{ $itemModel->brand ?? 'N/A' }}</div>
                       @elseif($item['type'] == 'game')
                         <div class="muted">Platform: {{ $itemModel->platform ?? 'N/A' }}</div>
                         <div class="muted">Genre: {{ $itemModel->genre ?? 'N/A' }}</div>
@@ -135,9 +131,8 @@
                     @if($itemModel)
                       @if($item->type == 'unitps')
                         <div class="muted">Model: {{ $itemModel->model ?? 'N/A' }}</div>
-                        <div class="muted">Merek: {{ $itemModel->merek ?? 'N/A' }}</div>
-                        <div class="muted">Kondisi: {{ $itemModel->kondisi ?? 'N/A' }}</div>
-                        <div class="muted">Stok Tersedia: {{ $itemModel->stok ?? 0 }}</div>
+                        <div class="muted">Merek: {{ $itemModel->brand ?? 'N/A' }}</div>
+                        <div class="muted">Stok Tersedia: {{ $itemModel->stock ?? 0 }}</div>
                       @elseif($item->type == 'game')
                         <div class="muted">Platform: {{ $itemModel->platform ?? 'N/A' }}</div>
                         <div class="muted">Genre: {{ $itemModel->genre ?? 'N/A' }}</div>
@@ -171,7 +166,7 @@
                 @endphp
                 @if(is_array($firstItem))
                   <input type="hidden" name="type" value="{{ $firstItem['type'] }}">
-                  <input type="hidden" name="id" value="{{ $firstItem['item_id'] ?? $_GET['id'] ?? $firstItem['id'] ?? null }}">
+                  <input type="hidden" name="id" value="{{ $firstItem['item_id'] ?? $firstItem['id'] ?? null }}">
                   <input type="hidden" name="price_type" value="{{ $firstItem['price_type'] }}">
                   
                   @if($firstItem['type'] == 'unitps')
@@ -233,8 +228,13 @@
 
         <section class="card-dark">
           <h5 class="mb-3">Detail Penyewaan</h5>
-          <form method="POST" action="{{ route('pelanggan.rentals.store') }}">
+          <form method="POST" action="{{ route('pelanggan.rentals.store') }}{{ isset($directItem) && $directItem && request()->has('type') && request()->has('id') ? '?type=' . request('type') . '&id=' . request('id') : '' }}">
             @csrf
+            @if(isset($directItem) && $directItem && request()->has('type') && request()->has('id'))
+              <input type="hidden" name="type" value="{{ request('type') }}">
+              <input type="hidden" name="id" value="{{ request('id') }}">
+              <input type="hidden" name="quantity" value="1">
+            @endif
             <div class="mb-3">
               <label for="rental_date" class="form-label">Tanggal Mulai Sewa</label>
               <input type="date" id="rental_date" name="rental_date" value="{{ old('rental_date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required class="input-dark">

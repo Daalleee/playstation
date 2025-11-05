@@ -72,7 +72,6 @@
                 <th>Foto</th>
                 <th>Stok</th>
                 <th>Harga/Jam</th>
-                <th>Kondisi</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -80,27 +79,19 @@
               @forelse($units as $unit)
                 <tr>
                   <td>{{ $unit->id }}</td>
-                  <td>{{ $unit->nama }}</td>
-                  <td>{{ $unit->model }}<br><small class="text-muted">{{ $unit->merek }}</small></td>
+                  <td>{{ $unit->name }}</td>
+                  <td>{{ $unit->model }}<br><small class="text-muted">{{ $unit->brand }}</small></td>
                   <td>
-                    @if($unit->foto)
-                      <img src="{{ asset('storage/' . $unit->foto) }}" alt="{{ $unit->nama }}" style="width:50px; height:50px; object-fit:cover;">
-                    @else
-                      <img src="https://placehold.co/50x50/49497A/FFFFFF?text=No+Image" alt="{{ $unit->nama }}" style="width:50px; height:50px; object-fit:cover;">
-                    @endif
+                    <img src="https://placehold.co/50x50/49497A/FFFFFF?text=PS" alt="{{ $unit->name }}" style="width:50px; height:50px; object-fit:cover;">
                   </td>
                   <td>
                     @php 
-                      $stok = $unit->stok ?? 0;
+                      $stok = $unit->stock ?? 0;
                       $badgeClass = $stok > 5 ? 'badge-success' : ($stok > 0 ? 'badge-warning' : 'badge-danger');
                     @endphp
                     <span class="{{ $badgeClass }} d-block">{{ $stok }} Unit</span>
                   </td>
-                  <td>Rp {{ number_format($unit->harga_per_jam, 0, ',', '.') }}</td>
-                  <td>
-                    @php $kondisi = strtolower($unit->kondisi ?? 'baik'); @endphp
-                    <span class="{{ $kondisi === 'baik' ? 'badge-success' : ($kondisi === 'rusak' ? 'badge-danger' : 'badge-warning') }} d-block">{{ ucfirst($unit->kondisi) }}</span>
-                  </td>
+                  <td>Rp {{ number_format($unit->price_per_hour, 0, ',', '.') }}</td>
                   <td>
                     <div class="d-flex flex-column gap-2">
                       <a href="#" class="btn-detail">Detail</a>
@@ -122,7 +113,7 @@
                   </td>
                 </tr>
               @empty
-                <tr><td colspan="8" class="text-center">Tidak ada unit PlayStation tersedia.</td></tr>
+                <tr><td colspan="7" class="text-center">Tidak ada unit PlayStation tersedia.</td></tr>
               @endforelse
             </tbody>
           </table>
@@ -172,20 +163,37 @@
         const originalText = this.textContent;
         this.textContent = 'Memproses...';
         
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        if (!csrfToken) {
+          showFlashMessage('CSRF token tidak ditemukan. Silakan refresh halaman.', 'danger');
+          this.disabled = false;
+          this.textContent = originalText;
+          return;
+        }
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('type', type);
+        formData.append('id', id);
+        formData.append('quantity', quantity);
+        formData.append('price_type', price_type);
+        
         fetch('/pelanggan/cart/add', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : document.querySelector('input[name="_token"]').value
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
           },
-          body: JSON.stringify({
-            type: type,
-            id: id,
-            quantity: quantity,
-            price_type: price_type
-          })
+          body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => Promise.reject(err));
+          }
+          return response.json();
+        })
         .then(data => {
           if(data.success) {
             // Show success message
@@ -194,7 +202,7 @@
             quantityInput.value = 1;
           } else {
             // Show error message
-            showFlashMessage(data.message, 'danger');
+            showFlashMessage(data.message || 'Terjadi kesalahan', 'danger');
           }
           
           // Restore button
@@ -204,7 +212,8 @@
         .catch(error => {
           console.error('Error:', error);
           // Show error message
-          showFlashMessage('Terjadi kesalahan saat menambahkan ke keranjang', 'danger');
+          const errorMessage = error.message || error.error || 'Terjadi kesalahan saat menambahkan ke keranjang';
+          showFlashMessage(errorMessage, 'danger');
           
           // Restore button
           this.disabled = false;
