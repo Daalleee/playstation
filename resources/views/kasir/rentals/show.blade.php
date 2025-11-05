@@ -34,6 +34,15 @@
     @endif
     <p><strong>Total:</strong> Rp {{ number_format($rental->total, 0, ',', '.') }}</p>
     <p><strong>Dibayar:</strong> Rp {{ number_format($rental->paid ?? 0, 0, ',', '.') }}</p>
+    <p><strong>Status Pembayaran:</strong> 
+        @if($rental->paid >= $rental->total)
+            <span style="background:#28a745; color:#fff; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">✓ LUNAS</span>
+        @elseif($rental->paid > 0)
+            <span style="background:#ffc107; color:#000; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">⚠ KURANG BAYAR (Rp {{ number_format($rental->total - $rental->paid, 0, ',', '.') }})</span>
+        @else
+            <span style="background:#dc3545; color:#fff; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">✗ BELUM LUNAS</span>
+        @endif
+    </p>
 </div>
 
 <h3>Item yang Disewa</h3>

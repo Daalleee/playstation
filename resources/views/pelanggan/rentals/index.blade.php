@@ -78,6 +78,7 @@
                 <th>Item Disewa</th>
                 <th>Total Harga</th>
                 <th>Status</th>
+                <th>Pembayaran</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -115,12 +116,21 @@
                     <span class="{{ $statusBadge['class'] }}">{{ $statusBadge['text'] }}</span>
                   </td>
                   <td>
+                    @if($rental->paid >= $rental->total)
+                      <span class="badge-success" style="font-weight:700;">✓ LUNAS</span>
+                    @elseif($rental->paid > 0)
+                      <span class="badge-warn" style="font-weight:700;">⚠ KURANG</span>
+                    @else
+                      <span class="badge-danger" style="font-weight:700;">✗ BELUM</span>
+                    @endif
+                  </td>
+                  <td>
                     <a href="{{ route('pelanggan.rentals.show', $rental) }}" class="btn-detail">Detail</a>
                   </td>
                 </tr>
               @empty
                 <tr>
-                  <td colspan="6" class="text-center">Belum ada riwayat penyewaan.</td>
+                  <td colspan="7" class="text-center">Belum ada riwayat penyewaan.</td>
                 </tr>
               @endforelse
             </tbody>

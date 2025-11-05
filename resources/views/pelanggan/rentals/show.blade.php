@@ -80,6 +80,19 @@
             <div style="margin-bottom: 1rem;">
                 <strong>Total:</strong> Rp {{ number_format($rental->total, 0, ',', '.') }}
             </div>
+            <div style="margin-bottom: 1rem;">
+                <strong>Dibayar:</strong> Rp {{ number_format($rental->paid ?? 0, 0, ',', '.') }}
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <strong>Status Pembayaran:</strong> 
+                @if($rental->paid >= $rental->total)
+                    <span class="badge-success" style="background:#28a745; color:#fff; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">✓ LUNAS</span>
+                @elseif($rental->paid > 0)
+                    <span class="badge-warn" style="background:#ffc107; color:#000; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">⚠ KURANG BAYAR</span>
+                @else
+                    <span class="badge-danger" style="background:#dc3545; color:#fff; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">✗ BELUM LUNAS</span>
+                @endif
+            </div>
             @if($rental->notes)
             <div style="margin-bottom: 1rem;">
                 <strong>Catatan:</strong> {{ $rental->notes }}
