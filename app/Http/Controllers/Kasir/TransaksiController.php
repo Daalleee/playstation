@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Kasir;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use App\Models\Rental;
 use App\Models\RentalItem;
+use App\Models\UnitPS;
+use App\Models\Game;
+use App\Models\Accessory;
 
 class TransaksiController extends Controller
 {
@@ -85,17 +89,29 @@ class TransaksiController extends Controller
     public function pengembalian(Request $request, Rental $rental)
     {
         Gate::authorize('access-kasir');
+        
         $validated = $request->validate([
             'items' => ['required', 'array'],
-            'items.*' => ['required', 'exists:rental_items,id'],
             'kondisi' => ['required', 'array'],
             'kondisi.*' => ['required', 'string', 'max:255'],
         ]);
         
+        // Validasi bahwa item yang diberikan adalah rental_item yang valid
+        foreach (array_keys($validated['items']) as $itemId) {
+            if (!\App\Models\RentalItem::where('id', $itemId)->exists()) {
+                return back()->withErrors(['error' => "Item dengan ID {$itemId} tidak ditemukan."]);
+            }
+        }
+        
+        // Muat ulang rental dengan items untuk memastikan data terbaru
+        $rental->load('items');
+        
         \DB::transaction(function() use ($rental, $validated) {
             foreach ($rental->items as $item) {
                 $itemId = $item->id;
-                if (isset($validated['items'][$itemId])) {
+                
+                // Cek apakah item ini dicentang untuk dikembalikan
+                if (isset($validated['items'][$itemId]) && $validated['items'][$itemId] == 1) {
                     // Update stok barang dengan pessimistic locking
                     $rentable = $item->rentable()->lockForUpdate()->first();
                     if ($rentable) {

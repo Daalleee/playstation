@@ -9,16 +9,12 @@ use App\Models\Accessory;
 use App\Models\Rental;
 use App\Models\RentalItem;
 use App\Models\Cart;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $roles = ['admin', 'kasir', 'pemilik', 'pelanggan'];
@@ -36,7 +32,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // Seed Unit PS (tersedia untuk disewa)
+        // Seed Unit PS
         $units = [
             [
                 'name' => 'PS4 Slim', 
@@ -86,7 +82,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // Seed Games
+        // Seed Games - PERBAIKAN: gunakan 'judul' bukan 'title'
         $games = [
             ['judul' => 'FIFA 24', 'platform' => 'PS5', 'genre' => 'Sports', 'stok' => 5, 'harga_per_hari' => 20000, 'kondisi' => 'baik'],
             ['judul' => 'God of War Ragnarok', 'platform' => 'PS5', 'genre' => 'Action', 'stok' => 4, 'harga_per_hari' => 25000, 'kondisi' => 'baik'],
@@ -108,7 +104,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // Seed Accessories
+        // Seed Accessories - PERBAIKAN: gunakan 'nama' bukan 'name'
         $accessories = [
             ['nama' => 'DualSense Controller White', 'jenis' => 'Controller', 'stok' => 5, 'harga_per_hari' => 10000, 'kondisi' => 'baik'],
             ['nama' => 'DualSense Controller Black', 'jenis' => 'Controller', 'stok' => 4, 'harga_per_hari' => 10000, 'kondisi' => 'baik'],
@@ -130,7 +126,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // Sample Rentals for demo flows (riwayat & pengembalian)
+        // Sample Rentals
         $pelanggan = User::where('email', 'pelanggan@gmail.com')->first();
         $kasir = User::where('email', 'kasir@gmail.com')->first();
 
@@ -138,12 +134,11 @@ class DatabaseSeeder extends Seeder
             $ps4 = UnitPS::where('model', 'PS4')->first();
             $fifa = Game::where('judul', 'FIFA 24')->first();
 
-            // 1) Rental selesai (returned)
             if ($ps4 && $fifa) {
                 $start = Carbon::now()->subDays(2)->setTime(10,0);
                 $due = Carbon::now()->subDays(1)->setTime(10,0);
                 $hours = $start->diffInHours($due);
-                $subtotal = ($ps4->price_per_hour * 1 * $hours) + ($fifa->harga_per_hari * 1); // 1 hari game
+                $subtotal = ($ps4->price_per_hour * 1 * $hours) + ($fifa->harga_per_hari * 1);
 
                 $r1 = Rental::firstOrCreate(
                     ['kode' => 'DEMO1'],
@@ -186,7 +181,7 @@ class DatabaseSeeder extends Seeder
             $ps5 = UnitPS::where('model', 'PS5')->first();
             if ($ps5) {
                 $start = Carbon::now()->subHours(3);
-                $due = Carbon::now()->addHours(21); // total 24 jam
+                $due = Carbon::now()->addHours(21);
                 $hours = $start->diffInHours($due);
                 $subtotal = $ps5->price_per_hour * $hours;
 
@@ -218,8 +213,7 @@ class DatabaseSeeder extends Seeder
                 }
             }
 
-            // Seed Keranjang Saya (agar langsung terlihat saat uji peminjaman)
-            // Tambah 1 PS4 dan 1 Game FIFA 24 ke keranjang pelanggan jika belum ada
+            // Seed Keranjang
             if ($ps4) {
                 Cart::firstOrCreate(
                     ['user_id' => $pelanggan->id, 'type' => 'unitps', 'item_id' => $ps4->id],
@@ -231,7 +225,7 @@ class DatabaseSeeder extends Seeder
                     ]
                 );
             }
-            if (isset($fifa) && $fifa) {
+            if ($fifa) {
                 Cart::firstOrCreate(
                     ['user_id' => $pelanggan->id, 'type' => 'game', 'item_id' => $fifa->id],
                     [
