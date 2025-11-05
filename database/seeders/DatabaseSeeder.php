@@ -38,9 +38,46 @@ class DatabaseSeeder extends Seeder
 
         // Seed Unit PS (tersedia untuk disewa)
         $units = [
-            ['name' => 'PS4 Slim', 'brand' => 'Sony', 'model' => 'PS4', 'serial_number' => 'PS4-1001', 'price_per_hour' => 15000, 'stok' => 3],
-            ['name' => 'PS5 Standard', 'brand' => 'Sony', 'model' => 'PS5', 'serial_number' => 'PS5-2001', 'price_per_hour' => 25000, 'stok' => 2],
-            ['name' => 'PS3 Super Slim', 'brand' => 'Sony', 'model' => 'PS3', 'serial_number' => 'PS3-3001', 'price_per_hour' => 10000, 'stok' => 1],
+            [
+                'name' => 'PS4 Slim', 
+                'brand' => 'Sony', 
+                'model' => 'PS4', 
+                'serial_number' => 'PS4-1001', 
+                'price_per_hour' => 15000, 
+                'stock' => 3
+            ],
+            [
+                'name' => 'PS5 Standard', 
+                'brand' => 'Sony', 
+                'model' => 'PS5', 
+                'serial_number' => 'PS5-2001', 
+                'price_per_hour' => 25000, 
+                'stock' => 2
+            ],
+            [
+                'name' => 'PS3 Super Slim', 
+                'brand' => 'Sony', 
+                'model' => 'PS3', 
+                'serial_number' => 'PS3-3001', 
+                'price_per_hour' => 10000, 
+                'stock' => 4
+            ],
+            [
+                'name' => 'PS4 Pro', 
+                'brand' => 'Sony', 
+                'model' => 'PS4', 
+                'serial_number' => 'PS4-1002', 
+                'price_per_hour' => 18000, 
+                'stock' => 2
+            ],
+            [
+                'name' => 'PS5 Digital', 
+                'brand' => 'Sony', 
+                'model' => 'PS5', 
+                'serial_number' => 'PS5-2002', 
+                'price_per_hour' => 23000, 
+                'stock' => 1
+            ],
         ];
         foreach ($units as $u) {
             UnitPS::updateOrCreate(
@@ -51,25 +88,44 @@ class DatabaseSeeder extends Seeder
 
         // Seed Games
         $games = [
-            ['judul' => 'FIFA 24', 'title' => 'FIFA 24', 'platform' => 'PS5', 'genre' => 'Sports', 'stok' => 5, 'harga_per_hari' => 20000],
-            ['judul' => 'God of War', 'title' => 'God of War', 'platform' => 'PS4', 'genre' => 'Action', 'stok' => 4, 'harga_per_hari' => 18000],
-            ['judul' => 'The Last of Us', 'title' => 'The Last of Us', 'platform' => 'PS3', 'genre' => 'Adventure', 'stok' => 3, 'harga_per_hari' => 15000],
+            ['judul' => 'FIFA 24', 'platform' => 'PS5', 'genre' => 'Sports', 'stok' => 5, 'harga_per_hari' => 20000, 'kondisi' => 'baik'],
+            ['judul' => 'God of War Ragnarok', 'platform' => 'PS5', 'genre' => 'Action', 'stok' => 4, 'harga_per_hari' => 25000, 'kondisi' => 'baik'],
+            ['judul' => 'The Last of Us Part II', 'platform' => 'PS4', 'genre' => 'Adventure', 'stok' => 3, 'harga_per_hari' => 18000, 'kondisi' => 'baik'],
+            ['judul' => 'Spider-Man Miles Morales', 'platform' => 'PS5', 'genre' => 'Action', 'stok' => 6, 'harga_per_hari' => 22000, 'kondisi' => 'baik'],
+            ['judul' => 'Uncharted 4', 'platform' => 'PS4', 'genre' => 'Adventure', 'stok' => 5, 'harga_per_hari' => 17000, 'kondisi' => 'baik'],
+            ['judul' => 'Horizon Forbidden West', 'platform' => 'PS5', 'genre' => 'RPG', 'stok' => 4, 'harga_per_hari' => 23000, 'kondisi' => 'baik'],
+            ['judul' => 'Gran Turismo 7', 'platform' => 'PS5', 'genre' => 'Racing', 'stok' => 3, 'harga_per_hari' => 21000, 'kondisi' => 'baik'],
+            ['judul' => 'Resident Evil Village', 'platform' => 'PS4', 'genre' => 'Horror', 'stok' => 4, 'harga_per_hari' => 19000, 'kondisi' => 'baik'],
+            ['judul' => 'Ghost of Tsushima', 'platform' => 'PS4', 'genre' => 'Action', 'stok' => 5, 'harga_per_hari' => 20000, 'kondisi' => 'baik'],
+            ['judul' => 'Ratchet & Clank', 'platform' => 'PS5', 'genre' => 'Adventure', 'stok' => 3, 'harga_per_hari' => 22000, 'kondisi' => 'baik'],
+            ['judul' => 'Call of Duty MW3', 'platform' => 'PS5', 'genre' => 'Shooter', 'stok' => 6, 'harga_per_hari' => 24000, 'kondisi' => 'baik'],
+            ['judul' => 'Assassins Creed Valhalla', 'platform' => 'PS4', 'genre' => 'RPG', 'stok' => 4, 'harga_per_hari' => 18000, 'kondisi' => 'baik'],
         ];
         foreach ($games as $g) {
             Game::updateOrCreate(
-                ['title' => $g['title'], 'platform' => $g['platform']],
+                ['judul' => $g['judul'], 'platform' => $g['platform']],
                 $g
             );
         }
 
         // Seed Accessories
         $accessories = [
-            ['nama' => 'DualSense Controller', 'name' => 'DualSense Controller', 'jenis' => 'Controller', 'type' => 'controller', 'stok' => 5, 'harga_per_hari' => 10000],
-            ['nama' => 'Headset PS', 'name' => 'PS Headset', 'jenis' => 'Headset', 'type' => 'headset', 'stok' => 3, 'harga_per_hari' => 12000],
+            ['nama' => 'DualSense Controller White', 'jenis' => 'Controller', 'stok' => 5, 'harga_per_hari' => 10000, 'kondisi' => 'baik'],
+            ['nama' => 'DualSense Controller Black', 'jenis' => 'Controller', 'stok' => 4, 'harga_per_hari' => 10000, 'kondisi' => 'baik'],
+            ['nama' => 'DualShock 4 Controller', 'jenis' => 'Controller', 'stok' => 6, 'harga_per_hari' => 8000, 'kondisi' => 'baik'],
+            ['nama' => 'PS5 Pulse 3D Headset', 'jenis' => 'Headset', 'stok' => 3, 'harga_per_hari' => 15000, 'kondisi' => 'baik'],
+            ['nama' => 'PS4 Gaming Headset', 'jenis' => 'Headset', 'stok' => 4, 'harga_per_hari' => 12000, 'kondisi' => 'baik'],
+            ['nama' => 'DualSense Charging Station', 'jenis' => 'Charger', 'stok' => 4, 'harga_per_hari' => 8000, 'kondisi' => 'baik'],
+            ['nama' => 'PS VR2 Headset', 'jenis' => 'VR', 'stok' => 2, 'harga_per_hari' => 35000, 'kondisi' => 'baik'],
+            ['nama' => 'PS VR (Gen 1)', 'jenis' => 'VR', 'stok' => 3, 'harga_per_hari' => 25000, 'kondisi' => 'baik'],
+            ['nama' => 'HD Camera', 'jenis' => 'Camera', 'stok' => 2, 'harga_per_hari' => 10000, 'kondisi' => 'baik'],
+            ['nama' => 'Media Remote', 'jenis' => 'Remote', 'stok' => 3, 'harga_per_hari' => 5000, 'kondisi' => 'baik'],
+            ['nama' => 'Racing Wheel', 'jenis' => 'Wheel', 'stok' => 2, 'harga_per_hari' => 30000, 'kondisi' => 'baik'],
+            ['nama' => 'Move Controllers (Pair)', 'jenis' => 'Controller', 'stok' => 3, 'harga_per_hari' => 12000, 'kondisi' => 'baik'],
         ];
         foreach ($accessories as $a) {
             Accessory::updateOrCreate(
-                ['name' => $a['name']],
+                ['nama' => $a['nama'], 'jenis' => $a['jenis']],
                 $a
             );
         }
@@ -80,7 +136,7 @@ class DatabaseSeeder extends Seeder
 
         if ($pelanggan) {
             $ps4 = UnitPS::where('model', 'PS4')->first();
-            $fifa = Game::where('title', 'FIFA 24')->first();
+            $fifa = Game::where('judul', 'FIFA 24')->first();
 
             // 1) Rental selesai (returned)
             if ($ps4 && $fifa) {
@@ -168,8 +224,8 @@ class DatabaseSeeder extends Seeder
                 Cart::firstOrCreate(
                     ['user_id' => $pelanggan->id, 'type' => 'unitps', 'item_id' => $ps4->id],
                     [
-                        'name' => $ps4->nama ?? $ps4->name,
-                        'price' => (float) ($ps4->harga_per_jam ?? $ps4->price_per_hour ?? 0),
+                        'name' => $ps4->name,
+                        'price' => (float) $ps4->price_per_hour,
                         'price_type' => 'per_jam',
                         'quantity' => 1,
                     ]
@@ -179,8 +235,8 @@ class DatabaseSeeder extends Seeder
                 Cart::firstOrCreate(
                     ['user_id' => $pelanggan->id, 'type' => 'game', 'item_id' => $fifa->id],
                     [
-                        'name' => $fifa->judul ?? $fifa->title,
-                        'price' => (float) ($fifa->harga_per_hari ?? $fifa->price_per_day ?? 0),
+                        'name' => $fifa->judul,
+                        'price' => (float) $fifa->harga_per_hari,
                         'price_type' => 'per_hari',
                         'quantity' => 1,
                     ]
