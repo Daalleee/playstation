@@ -25,6 +25,11 @@ use App\Http\Controllers\Owner\StatusProdukController;
 use App\Http\Controllers\Owner\LaporanController;
 use App\Http\Controllers\Kasir\TransaksiController;
 use App\Http\Controllers\Admin\ImpersonateController;
+use App\Http\Controllers\MidtransController;
+
+// Midtrans webhook (must be outside auth middleware)
+Route::post('midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
+Route::get('midtrans/status/{orderId}', [MidtransController::class, 'checkStatus'])->name('midtrans.status');
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -154,6 +159,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->middleware(['throttle:3,1', 'ensure.profile.complete']) // Max 3 requests per minute + check profile
         ->name('pelanggan.rentals.store');
     Route::get('pelanggan/rentals/{rental}', [PelangganRentalController::class, 'show'])->name('pelanggan.rentals.show');
+    Route::post('pelanggan/rentals/{rental}/return', [PelangganRentalController::class, 'returnRental'])->name('pelanggan.rentals.return');
 });
 
 Route::middleware(['web', 'auth', 'can:access-pemilik'])->prefix('pemilik')->name('pemilik.')->group(function () {
@@ -167,6 +173,11 @@ Route::middleware(['web', 'auth', 'can:access-kasir'])->prefix('kasir')->name('k
     Route::get('transaksi/{rental}', [TransaksiController::class, 'show'])->name('transaksi.show'); // detail
     Route::post('transaksi/{rental}/pengembalian', [TransaksiController::class, 'pengembalian'])->name('transaksi.pengembalian'); // konfirmasi
     Route::post('transaksi/{rental}/aktifkan', [TransaksiController::class, 'aktifkan'])->name('transaksi.aktifkan'); // aktifkan sewa setelah dibayar
+    
+    // Kasir - Rentals Management
+    Route::get('rentals', [KasirRentalController::class, 'index'])->name('rentals.index');
+    Route::get('rentals/{rental}', [KasirRentalController::class, 'show'])->name('rentals.show');
+    Route::post('rentals/{rental}/confirm-return', [KasirRentalController::class, 'confirmReturn'])->name('rentals.confirm-return');
 });
 
 Route::middleware(['web', 'auth'])->group(function () {

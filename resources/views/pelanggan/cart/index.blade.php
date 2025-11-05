@@ -180,6 +180,23 @@
             background: #e74c3c;
         }
 
+        .btn-warning {
+            background: #f39c12;
+            border: none;
+            color: #fff;
+            font-weight: 800;
+            padding: .55rem 1rem;
+            border-radius: .6rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+            color: #fff;
+        }
+
         @media (max-width: 991.98px) {
             .dash-layout {
                 flex-direction: column;
@@ -225,26 +242,54 @@
                             </thead>
                             <tbody>
                                 @forelse($cartItems as $item)
-                                    <tr>
-                                        <td>{{ $item->name }}</td>
-                                        <td>{{ ucfirst($item->type) }}</td>
-                                        <td>Rp
-                                            {{ number_format($item->price, 0, ',', '.') }}/{{ $item->price_type == 'per_jam' ? 'jam' : 'hari' }}
+                                    @php
+                                        $itemData = $item->item;
+                                        $availableStock = $item->getAvailableStock();
+                                        $hasStock = $item->hasEnoughStock();
+                                    @endphp
+                                    <tr class="{{ !$hasStock ? 'table-warning' : '' }}">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="{{ $item->item_image }}" alt="{{ $item->item_name }}" 
+                                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 0.5rem;">
+                                                <div>
+                                                    <div class="fw-bold">{{ $item->item_name }}</div>
+                                                    @if(!$hasStock)
+                                                        <small class="text-warning">⚠️ Stok tidak mencukupi (tersedia: {{ $availableStock }})</small>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </td>
+                                        <td>
+                                            @php
+                                                $typeLabel = match($item->type) {
+                                                    'unitps' => 'Unit PS',
+                                                    'game' => 'Game',
+                                                    'accessory' => 'Aksesoris',
+                                                    default => ucfirst($item->type)
+                                                };
+                                            @endphp
+                                            {{ $typeLabel }}
+                                        </td>
+                                        <td>Rp {{ number_format($item->price, 0, ',', '.') }}/{{ $item->price_type == 'per_jam' ? 'jam' : 'hari' }}</td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <button type="button" class="btn btn-sm btn-outline-secondary" 
-                                                        onclick="decreaseQuantity('{{ $item->type }}', {{ $item->item_id }})">-</button>
+                                                        onclick="decreaseQuantity('{{ $item->type }}', {{ $item->item_id }})"
+                                                        {{ $item->quantity <= 1 ? 'disabled' : '' }}>-</button>
                                                 <span id="quantity_{{ $item->type }}_{{ $item->item_id }}" 
+                                                      data-price="{{ $item->price }}"
+                                                      data-max-stock="{{ $availableStock }}"
                                                       data-original-value="{{ $item->quantity }}">{{ $item->quantity }}</span>
                                                 <button type="button" class="btn btn-sm btn-outline-secondary" 
-                                                        onclick="increaseQuantity('{{ $item->type }}', {{ $item->item_id }})">+</button>
+                                                        onclick="increaseQuantity('{{ $item->type }}', {{ $item->item_id }})"
+                                                        {{ $item->quantity >= $availableStock ? 'disabled' : '' }}>+</button>
                                             </div>
                                         </td>
-                                        <td id="total_{{ $item->type }}_{{ $item->item_id }}">Rp {{ number_format($item->price * $item->quantity, 0, ',', '.') }}</td>
+                                        <td id="total_{{ $item->type }}_{{ $item->item_id }}">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
                                         <td>
                                             <form method="POST" action="{{ route('pelanggan.cart.remove') }}"
-                                                class="d-inline">
+                                                class="d-inline" onsubmit="return confirm('Hapus item ini dari keranjang?')">
                                                 @csrf
                                                 <input type="hidden" name="type" value="{{ $item->type }}">
                                                 <input type="hidden" name="item_id" value="{{ $item->item_id }}">
@@ -254,7 +299,13 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center">Keranjang Anda kosong.</td>
+                                        <td colspan="6" class="text-center py-4">
+                                            <div class="text-muted">
+                                                <i class="bi bi-cart-x fs-1"></i>
+                                                <p class="mt-2">Keranjang Anda kosong.</p>
+                                                <a href="{{ route('pelanggan.unitps.index') }}" class="btn btn-cta mt-2">Mulai Belanja</a>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -263,12 +314,22 @@
                         <div class="mt-4 d-flex justify-content-between align-items-center">
                             @php
                                 $total = $cartItems->sum(fn($item) => $item->price * $item->quantity);
+                                $user = auth()->user();
+                                $needsProfileUpdate = empty($user->phone) || empty($user->address);
                             @endphp
                             <div class="fw-bold fs-5">Total: Rp {{ number_format($total, 0, ',', '.') }}</div>
                             <div>
-                                <a href="{{ route('pelanggan.rentals.create') }}"
-                                    class="btn btn-cta me-2 {{ $cartItems->isEmpty() ? 'disabled' : '' }}">Buat
-                                    Penyewaan</a>
+                                @if($needsProfileUpdate && !$cartItems->isEmpty())
+                                    <a href="{{ route('pelanggan.profile.edit') }}" 
+                                       class="btn btn-warning me-2"
+                                       onclick="alert('Silakan lengkapi nomor telepon dan alamat Anda terlebih dahulu sebelum melakukan penyewaan.')">
+                                        <i class="bi bi-exclamation-triangle"></i> Lengkapi Profil Dulu
+                                    </a>
+                                @else
+                                    <a href="{{ route('pelanggan.rentals.create') }}"
+                                        class="btn btn-cta me-2 {{ $cartItems->isEmpty() ? 'disabled' : '' }}">Buat
+                                        Penyewaan</a>
+                                @endif
                                 @if (!$cartItems->isEmpty())
                                     <form method="POST" action="{{ route('pelanggan.cart.clear') }}" class="d-inline">
                                         @csrf
@@ -288,10 +349,33 @@
     </div>
     
     <script>
+        // Function to update grand total
+        function updateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('[id^="total_"]').forEach(element => {
+                const text = element.textContent.replace(/[^\d]/g, '');
+                const value = parseInt(text) || 0;
+                grandTotal += value;
+            });
+            
+            const grandTotalElement = document.querySelector('.fw-bold.fs-5');
+            if(grandTotalElement) {
+                const formattedTotal = 'Total: Rp ' + grandTotal.toLocaleString('id-ID').replace(/\,/g, '.');
+                grandTotalElement.textContent = formattedTotal;
+            }
+        }
+        
         // Function to increase quantity
         function increaseQuantity(type, itemId) {
             const quantityElement = document.getElementById('quantity_' + type + '_' + itemId);
             const currentQty = parseInt(quantityElement.textContent);
+            const maxStock = parseInt(quantityElement.dataset.maxStock || 999);
+            
+            if(currentQty >= maxStock) {
+                showFlashMessage('Jumlah sudah mencapai stok maksimal (' + maxStock + ')', 'warning');
+                return;
+            }
+            
             const newQuantity = currentQty + 1;
             updateCartQuantity(type, itemId, newQuantity);
         }
@@ -300,10 +384,14 @@
         function decreaseQuantity(type, itemId) {
             const quantityElement = document.getElementById('quantity_' + type + '_' + itemId);
             const currentQty = parseInt(quantityElement.textContent);
-            if(currentQty > 1) {
-                const newQuantity = currentQty - 1;
-                updateCartQuantity(type, itemId, newQuantity);
+            
+            if(currentQty <= 1) {
+                showFlashMessage('Jumlah minimal adalah 1', 'warning');
+                return;
             }
+            
+            const newQuantity = currentQty - 1;
+            updateCartQuantity(type, itemId, newQuantity);
         }
         
         // Function to update cart quantity
@@ -363,17 +451,18 @@
                     
                     // Update row total
                     const totalElement = document.getElementById('total_' + type + '_' + itemId);
-                    const priceCell = document.querySelector(`#quantity_${type}_${itemId}`).closest('tr').querySelector('td:nth-child(3)').textContent;
-                    const priceMatch = priceCell.match(/Rp\s*([\d.]+)/);
-                    if(priceMatch) {
-                        const priceStr = priceMatch[1].replace(/\./g, '');
-                        const price = parseFloat(priceStr);
-                        if(!isNaN(price)) {
-                            const newTotal = price * newQuantity;
-                            const formattedTotal = 'Rp ' + newTotal.toLocaleString('id-ID').replace(/\,/g, '.');
-                            totalElement.textContent = formattedTotal;
-                        }
-                    }
+                    const price = parseFloat(quantityElement.dataset.price || 0);
+                    const newTotal = price * newQuantity;
+                    const formattedTotal = 'Rp ' + newTotal.toLocaleString('id-ID').replace(/\,/g, '.');
+                    totalElement.textContent = formattedTotal;
+                    
+                    // Update grand total
+                    updateGrandTotal();
+                    
+                    // Update button states
+                    const maxStock = parseInt(quantityElement.dataset.maxStock || 999);
+                    if(minusBtn) minusBtn.disabled = (newQuantity <= 1);
+                    if(plusBtn) plusBtn.disabled = (newQuantity >= maxStock);
                     
                     // Show success message
                     showFlashMessage(data.message, 'success');

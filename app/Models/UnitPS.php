@@ -16,7 +16,7 @@ class UnitPS extends Model
         'id',
         'name',
         'brand',
-        'model', 
+        'model',
         'serial_number',
         'price_per_hour',
         'stock',

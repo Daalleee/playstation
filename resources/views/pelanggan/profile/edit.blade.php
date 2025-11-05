@@ -33,6 +33,20 @@
   @if(session('status'))
         <div class="alert alert-success" role="alert">{{ session('status') }}</div>
       @endif
+      
+      @if(session('error'))
+        <div class="alert alert-danger" role="alert">{{ session('error') }}</div>
+      @endif
+      
+      @if($errors->any())
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
 
       @if(session('warning'))
         <div style="background:#ff6b6b; color:#fff; border-radius:.8rem; padding:1rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem;">
@@ -75,12 +89,18 @@
               <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="input-dark">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Telepon</label>
-              <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="input-dark">
+              <label class="form-label">Telepon <span class="text-danger">*</span></label>
+              <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" required class="input-dark" placeholder="Contoh: 081234567890">
+              @error('phone')
+                <small class="text-danger">{{ $message }}</small>
+              @enderror
             </div>
             <div class="col-md-6">
-              <label class="form-label">Alamat</label>
-              <input type="text" name="address" value="{{ old('address', $user->address) }}" class="input-dark">
+              <label class="form-label">Alamat <span class="text-danger">*</span></label>
+              <input type="text" name="address" value="{{ old('address', $user->address) }}" required class="input-dark" placeholder="Alamat lengkap Anda">
+              @error('address')
+                <small class="text-danger">{{ $message }}</small>
+              @enderror
             </div>
             <div class="col-12">
               <label class="form-label">Password Baru (kosongkan jika tidak ingin diubah)</label>

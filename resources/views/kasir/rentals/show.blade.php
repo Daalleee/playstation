@@ -1,42 +1,94 @@
 @include('kasir.partials.nav')
-<h1>Detail Rental #{{ $rental->id }}</h1>
+<h1>Detail Rental {{ $rental->kode ?? '#'.$rental->id }}</h1>
 
 @if(session('status'))
-    <div>{{ session('status') }}</div>
+    <div style="padding: 1rem; background: #28a745; color: white; border-radius: 0.25rem; margin-bottom: 1rem;">{{ session('status') }}</div>
 @endif
 
-<p>Pelanggan: {{ optional($rental->customer)->name }}</p>
-<p>Status: {{ $rental->status }}</p>
-<p>Subtotal: {{ number_format($rental->subtotal,2) }}</p>
-<p>Diskon: {{ number_format($rental->discount,2) }}</p>
-<p>Total: {{ number_format($rental->total,2) }}</p>
-<p>Dibayar: {{ number_format($rental->paid,2) }}</p>
-
-<h3>Items</h3>
-<ul>
-@foreach($rental->items as $it)
-    <li>{{ class_basename($it->rentable_type) }} #{{ $it->rentable_id }} x {{ $it->quantity }} = {{ number_format($it->total,2) }}</li>
-@endforeach
-</ul>
-
-@if($rental->status==='ongoing')
-<form method="POST" action="{{ route('kasir.rentals.return', $rental) }}" onsubmit="return confirm('Kembalikan rental?')">
-    @csrf
-    <button type="submit">Proses Pengembalian</button>
-</form>
+@if(session('error'))
+    <div style="padding: 1rem; background: #dc3545; color: white; border-radius: 0.25rem; margin-bottom: 1rem;">{{ session('error') }}</div>
 @endif
 
-<h3>Pembayaran</h3>
-<form method="POST" action="{{ route('kasir.rentals.payments.store', $rental) }}">
-    @csrf
-    <select name="method">
-        <option value="cash">Cash</option>
-        <option value="transfer">Transfer</option>
-        <option value="ewallet">eWallet</option>
-    </select>
-    <input type="number" step="0.01" name="amount" placeholder="Jumlah" required>
-    <input type="text" name="reference" placeholder="Referensi (opsional)">
-    <button type="submit">Tambah Pembayaran</button>
-    @error('amount')<div>{{ $message }}</div>@enderror
-</form>
+<div style="background: #f8f9fa; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1rem;">
+    <p><strong>Pelanggan:</strong> {{ optional($rental->customer)->name }}</p>
+    <p><strong>Email:</strong> {{ optional($rental->customer)->email }}</p>
+    <p><strong>Telepon:</strong> {{ optional($rental->customer)->phone ?? '-' }}</p>
+    <p><strong>Alamat:</strong> {{ optional($rental->customer)->address ?? '-' }}</p>
+    <p><strong>Status:</strong> 
+        @php
+          $statusText = match($rental->status) {
+            'pending' => 'Menunggu Pembayaran',
+            'sedang_disewa' => 'Sedang Disewa',
+            'menunggu_konfirmasi' => '⚠️ Menunggu Konfirmasi Pengembalian',
+            'selesai' => '✅ Selesai',
+            'cancelled' => 'Dibatalkan',
+            default => ucfirst($rental->status)
+          };
+        @endphp
+        <strong>{{ $statusText }}</strong>
+    </p>
+    <p><strong>Tanggal Sewa:</strong> {{ $rental->start_at ? \Carbon\Carbon::parse($rental->start_at)->format('d/m/Y') : '-' }}</p>
+    <p><strong>Tanggal Kembali:</strong> {{ $rental->due_at ? \Carbon\Carbon::parse($rental->due_at)->format('d/m/Y') : '-' }}</p>
+    @if($rental->returned_at)
+    <p><strong>Dikembalikan pada:</strong> {{ \Carbon\Carbon::parse($rental->returned_at)->format('d/m/Y H:i') }}</p>
+    @endif
+    <p><strong>Total:</strong> Rp {{ number_format($rental->total, 0, ',', '.') }}</p>
+    <p><strong>Dibayar:</strong> Rp {{ number_format($rental->paid ?? 0, 0, ',', '.') }}</p>
+    <p><strong>Status Pembayaran:</strong> 
+        @if($rental->paid >= $rental->total)
+            <span style="background:#28a745; color:#fff; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">✓ LUNAS</span>
+        @elseif($rental->paid > 0)
+            <span style="background:#ffc107; color:#000; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">⚠ KURANG BAYAR (Rp {{ number_format($rental->total - $rental->paid, 0, ',', '.') }})</span>
+        @else
+            <span style="background:#dc3545; color:#fff; border-radius:999px; padding:.3rem .8rem; font-size:.9rem; font-weight:700;">✗ BELUM LUNAS</span>
+        @endif
+    </p>
+</div>
+
+<h3>Item yang Disewa</h3>
+<table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+    <thead>
+        <tr style="background: #f8f9fa;">
+            <th>Item</th>
+            <th>Jumlah</th>
+            <th>Harga</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($rental->items as $it)
+        <tr>
+            <td>
+                @php
+                    $itemName = 'Item';
+                    if($it->rentable) {
+                        $itemName = $it->rentable->name ?? $it->rentable->nama ?? $it->rentable->judul ?? 'Item';
+                    }
+                @endphp
+                {{ $itemName }} ({{ class_basename($it->rentable_type) }})
+            </td>
+            <td>{{ $it->quantity }}</td>
+            <td>Rp {{ number_format($it->price, 0, ',', '.') }}</td>
+            <td>Rp {{ number_format($it->total, 0, ',', '.') }}</td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+
+@if($rental->status === 'menunggu_konfirmasi')
+<div style="background: #fff3cd; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1rem; border-left: 4px solid #ffc107;">
+    <h4 style="margin-top: 0;">⚠️ Pengembalian Menunggu Konfirmasi</h4>
+    <p>Pelanggan telah mengajukan pengembalian. Silakan periksa kondisi barang dan konfirmasi pengembalian.</p>
+    <form method="POST" action="{{ route('kasir.rentals.confirm-return', $rental) }}" onsubmit="return confirm('Apakah Anda yakin ingin mengkonfirmasi pengembalian ini? Stok akan dikembalikan.')">
+        @csrf
+        <button type="submit" style="padding: 0.5rem 1rem; background: #28a745; color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: bold;">
+            ✓ Konfirmasi Pengembalian
+        </button>
+    </form>
+</div>
+@endif
+
+<div style="margin-top: 1rem;">
+    <a href="{{ route('kasir.rentals.index') }}" style="padding: 0.5rem 1rem; background: #6c757d; color: white; text-decoration: none; border-radius: 0.25rem;">Kembali ke Daftar</a>
+</div>
 

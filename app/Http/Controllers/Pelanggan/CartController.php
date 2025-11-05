@@ -72,7 +72,8 @@ class CartController extends Controller
         }
         
         // Check stock
-        if($item->stok < $request->quantity) {
+        $stockField = $request->type === 'unitps' ? 'stock' : 'stok';
+        if($item->$stockField < $request->quantity) {
             if($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -91,7 +92,8 @@ class CartController extends Controller
         if($existingCartItem) {
             // Update quantity
             $newQuantity = $existingCartItem->quantity + $request->quantity;
-            if($newQuantity > $item->stok) {
+            $stockField = $request->type === 'unitps' ? 'stock' : 'stok';
+            if($newQuantity > $item->$stockField) {
                 if($request->wantsJson()) {
                     return response()->json([
                         'success' => false,
@@ -103,13 +105,16 @@ class CartController extends Controller
             $existingCartItem->update(['quantity' => $newQuantity]);
         } else {
             // Add new item to cart
+            $price = $request->type === 'unitps' ? $item->price_per_hour : $item->harga_per_hari;
+            $name = $request->type === 'unitps' ? $item->name : ($item->nama ?? $item->judul);
+            
             Cart::create([
                 'user_id' => auth()->id(),
                 'type' => $request->type,
                 'item_id' => $request->id,
                 'quantity' => $request->quantity,
-                'price' => $request->type === 'unitps' ? $item->harga_per_jam : $item->harga_per_hari,
-                'name' => $item->nama ?? $item->judul ?? $item->name,
+                'price' => $price,
+                'name' => $name,
                 'price_type' => $request->price_type,
             ]);
         }
@@ -158,7 +163,8 @@ class CartController extends Controller
             
             if($modelClass) {
                 $item = $modelClass::find($request->item_id);
-                if($item && $item->stok >= $request->quantity) {
+                $stockField = $request->type === 'unitps' ? 'stock' : 'stok';
+                if($item && $item->$stockField >= $request->quantity) {
                     $cartItem->update(['quantity' => $request->quantity]);
                     $message = 'Jumlah item telah diperbarui!';
                     if($request->wantsJson()) {

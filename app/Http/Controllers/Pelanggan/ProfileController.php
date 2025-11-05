@@ -64,6 +64,13 @@ class ProfileController extends Controller
             ]);
         }
 
+        // Check if there's a redirect URL after update
+        $redirectUrl = session('redirect_after_update');
+        if ($redirectUrl) {
+            session()->forget('redirect_after_update');
+            return redirect($redirectUrl)->with('status', '✅ Profil berhasil diperbarui! Silakan lanjutkan pemesanan Anda.');
+        }
+        
         return redirect()->route('pelanggan.profile.show')->with('status', '✅ Profil berhasil diperbarui! Sekarang Anda bisa melakukan pemesanan rental.');
     }
 }

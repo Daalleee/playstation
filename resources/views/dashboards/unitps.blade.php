@@ -64,17 +64,20 @@
               <div class="col">
                 <div class="dash-card">
                   <div class="dash-frame">
-                    @if($unit->foto)
-                      <img src="{{ asset('storage/' . $unit->foto) }}" alt="{{ $unit->nama }}" class="img-fluid">
-                    @else
-                      <img src="https://placehold.co/300x200/49497A/FFFFFF?text=Unit+PS" alt="{{ $unit->nama }}" class="img-fluid">
-                    @endif
+                    <img src="https://placehold.co/300x200/49497A/FFFFFF?text={{ urlencode($unit->model) }}" alt="{{ $unit->name }}" class="img-fluid">
                   </div>
                   <div class="card-content">
                     <div class="p-2 flex-grow-1">
-                      <h5 class="mb-1 text-center text-white fw-bold">{{ $unit->nama }}</h5>
-                      <div class="fw-bold text-price mb-1 text-center mt-2">Rp {{ number_format($unit->harga_per_jam, 0, ',', '.') }}/jam</div>
-                      <div class="text-center">Stok: {{ $unit->stok }}</div>
+                      <h5 class="mb-1 text-center text-white fw-bold">{{ $unit->name }}</h5>
+                      <div class="text-center text-light mb-1">{{ $unit->model }} - {{ $unit->brand }}</div>
+                      <div class="fw-bold text-price mb-1 text-center mt-2">Rp {{ number_format($unit->price_per_hour, 0, ',', '.') }}/jam</div>
+                      <div class="text-center">
+                        @php 
+                          $stok = $unit->stock ?? 0;
+                          $badgeClass = $stok > 5 ? 'badge-success' : ($stok > 0 ? 'badge-warning' : 'badge-danger');
+                        @endphp
+                        <span class="{{ $badgeClass }} px-3 py-1 rounded-pill">{{ $stok }} Unit</span>
+                      </div>
                     </div>
                     <div class="pt-2 mt-auto">
                       <a href="{{ route('pelanggan.rentals.create') }}?type=unitps&id={{ $unit->id }}" class="btn btn-cta w-100">Sewa Unit</a>

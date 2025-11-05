@@ -146,4 +146,51 @@ class RentalController extends Controller
 
         return redirect()->route('kasir.rentals.show', $rental)->with('status', 'Rental dikembalikan');
     }
+
+    /**
+     * Kasir mengkonfirmasi pengembalian dari user
+     */
+    public function confirmReturn(Rental $rental)
+    {
+        Gate::authorize('access-kasir');
+        
+        // Hanya bisa konfirmasi jika status menunggu_konfirmasi
+        if ($rental->status !== 'menunggu_konfirmasi') {
+            return back()->with('error', 'Penyewaan ini tidak dalam status menunggu konfirmasi.');
+        }
+
+        DB::transaction(function () use ($rental) {
+            // Restore stock untuk semua item
+            $rental->load('items');
+            foreach ($rental->items as $item) {
+                if ($item->rentable) {
+                    // Check if it's UnitPS (uses 'stock') or other models (use 'stok')
+                    $isUnitPS = $item->rentable instanceof \App\Models\UnitPS;
+                    
+                    if ($isUnitPS) {
+                        $item->rentable->stock += $item->quantity;
+                    } else {
+                        $item->rentable->stok += $item->quantity;
+                    }
+                    
+                    $item->rentable->save();
+                    
+                    \Log::info('Stock restored by cashier confirmation', [
+                        'item_type' => get_class($item->rentable),
+                        'item_id' => $item->rentable->id,
+                        'quantity_restored' => $item->quantity,
+                    ]);
+                }
+            }
+
+            // Update rental status menjadi selesai
+            $rental->update([
+                'status' => 'selesai',
+                'handled_by' => auth()->id(),
+            ]);
+        });
+
+        return redirect()->route('kasir.rentals.show', $rental)
+            ->with('status', 'Pengembalian berhasil dikonfirmasi. Stok telah dikembalikan.');
+    }
 }

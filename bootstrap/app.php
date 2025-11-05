@@ -11,6 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Exclude Midtrans webhook from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'midtrans/notification',
+        ]);
+        
         $middleware->alias([
             'ensure.profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
         ]);

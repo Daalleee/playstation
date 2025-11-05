@@ -35,14 +35,24 @@
         <h2>Riwayat Penyewaan</h2>
       </div>
 
+      @if(session('status'))
+        <div class="alert alert-success">{{ session('status') }}</div>
+      @endif
+      
+      @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+      @endif
+
       <form method="GET" class="filter-row">
         <div>
           <label class="mb-1 d-block fw-bold">Status</label>
           <select name="status" class="select-dark">
             <option value="">Semua Status</option>
-            <option value="active">Aktif</option>
-            <option value="completed">Selesai</option>
-            <option value="returned">Dikembalikan</option>
+            <option value="pending">Menunggu Pembayaran</option>
+            <option value="sedang_disewa">Sedang Disewa</option>
+            <option value="menunggu_konfirmasi">Menunggu Konfirmasi</option>
+            <option value="selesai">Selesai</option>
+            <option value="cancelled">Dibatalkan</option>
           </select>
         </div>
         <div>
@@ -68,18 +78,66 @@
                 <th>Item Disewa</th>
                 <th>Total Harga</th>
                 <th>Status</th>
+                <th>Pembayaran</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colspan="6" class="text-center">Belum ada riwayat penyewaan.</td>
-              </tr>
+              @forelse($rentals as $rental)
+                <tr>
+                  <td>{{ $rental->kode ?? '#'.$rental->id }}</td>
+                  <td>{{ $rental->created_at->format('d/m/Y') }}</td>
+                  <td>
+                    @foreach($rental->items->take(2) as $item)
+                      @php
+                        $itemName = 'Item';
+                        if($item->rentable) {
+                          $itemName = $item->rentable->name ?? $item->rentable->nama ?? $item->rentable->judul ?? 'Item';
+                        }
+                      @endphp
+                      <div>{{ $itemName }}</div>
+                    @endforeach
+                    @if($rental->items->count() > 2)
+                      <small class="text-muted">+{{ $rental->items->count() - 2 }} lainnya</small>
+                    @endif
+                  </td>
+                  <td>Rp {{ number_format($rental->total, 0, ',', '.') }}</td>
+                  <td>
+                    @php
+                      $statusBadge = match($rental->status) {
+                        'pending' => ['class' => 'badge-warning', 'text' => 'Menunggu Pembayaran'],
+                        'sedang_disewa' => ['class' => 'badge-success', 'text' => 'Sedang Disewa'],
+                        'menunggu_konfirmasi' => ['class' => 'badge-warn', 'text' => 'Menunggu Konfirmasi'],
+                        'selesai' => ['class' => 'badge-ok', 'text' => 'Selesai'],
+                        'cancelled' => ['class' => 'badge-danger', 'text' => 'Dibatalkan'],
+                        default => ['class' => 'badge-warning', 'text' => ucfirst($rental->status)]
+                      };
+                    @endphp
+                    <span class="{{ $statusBadge['class'] }}">{{ $statusBadge['text'] }}</span>
+                  </td>
+                  <td>
+                    @if($rental->paid >= $rental->total)
+                      <span class="badge-success" style="font-weight:700;">✓ LUNAS</span>
+                    @elseif($rental->paid > 0)
+                      <span class="badge-warn" style="font-weight:700;">⚠ KURANG</span>
+                    @else
+                      <span class="badge-danger" style="font-weight:700;">✗ BELUM</span>
+                    @endif
+                  </td>
+                  <td>
+                    <a href="{{ route('pelanggan.rentals.show', $rental) }}" class="btn-detail">Detail</a>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="7" class="text-center">Belum ada riwayat penyewaan.</td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>
         <div class="mt-3">
-          <!-- Pagination would go here -->
+          {{ $rentals->links() }}
         </div>
       </div>
     </main>
