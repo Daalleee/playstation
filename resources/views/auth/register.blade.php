@@ -80,7 +80,7 @@
         <span class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.1.37 2.29.57 3.58.6a1 1 0 011 1V20a1 1 0 01-1 1C10.85 21 3 13.15 3 3a1 1 0 011-1h2.46a1 1 0 011 1.01c.03 1.29.23 2.48.6 3.58a1 1 0 01-.24 1.01l-2.2 2.2z"/></svg>
         </span>
-        <input type="text" id="reg_phone" name="phone" value="{{ old('phone', '+62') }}" required placeholder="Nomor Telepon (+62 diikuti 8-20 digit)" inputmode="tel" autocomplete="tel" pattern="^\+62[0-9]{8,20}$" title="Masukkan nomor dengan format: +62 diikuti 8-20 digit angka" />
+        <input type="text" id="reg_phone" name="phone" value="{{ old('phone') }}" required placeholder="Nomor Telepon (contoh: +6281234567890 atau 081234567890)" inputmode="tel" autocomplete="tel" title="Masukkan nomor dengan format: +62xxxxxxxxx atau 08xxxxxxxxx (minimal 7 digit, maksimal 13 digit setelah awalan)" />
         @error('phone')<small class="error-text">{{ $message }}</small>@enderror
       </div>
 
@@ -96,21 +96,22 @@
         <span class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1a5 5 0 00-5 5v3H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-8a2 2 0 00-2-2h-2V6a5 5 0 00-5-5zm-3 8V6a3 3 0 116 0v3H9z"/></svg>
         </span>
-        <input type="password" name="password" id="password" required placeholder="Password" autocomplete="new-password" />
+        <input type="password" name="password" id="password" value="{{ old('password') ?: session('password') }}" required placeholder="Password" autocomplete="new-password" />
         <button type="button" class="toggle-pass" id="togglePassword" aria-label="Tampilkan password">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/></svg>
         </button>
         @error('password')<small class="error-text">{{ $message }}</small>@enderror
       </div>
 
-      <div class="form-underline" style="padding-right:36px;">
+      <div class="form-underline @error('password_confirmation') error @enderror" style="padding-right:36px;">
         <span class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1a5 5 0 00-5 5v3H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-8a2 2 0 00-2-2h-2V6a5 5 0 00-5-5zm-3 8V6a3 3 0 116 0v3H9z"/></svg>
         </span>
-        <input type="password" name="password_confirmation" id="password_confirmation" required placeholder="Konfirmasi Password" autocomplete="new-password" />
+        <input type="password" name="password_confirmation" id="password_confirmation" value="{{ old('password_confirmation') ?: session('password_confirmation') }}" required placeholder="Konfirmasi Password" autocomplete="new-password" />
         <button type="button" class="toggle-pass" id="togglePassword2" aria-label="Tampilkan password">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/></svg>
         </button>
+        @error('password_confirmation')<small class="error-text">{{ $message }}</small>@enderror
       </div>
 
       <button type="submit" class="btn-primary-login">Register</button>
@@ -141,16 +142,51 @@
     setupToggle('togglePassword2','password_confirmation');
     const phoneInput = document.getElementById('reg_phone');
     if (phoneInput) {
-      const prefix = '+62';
-      function ensurePrefix() {
-        if (!phoneInput.value || !phoneInput.value.startsWith(prefix)) {
-          const digits = phoneInput.value.replace(/[^0-9]/g,'');
-          phoneInput.value = prefix + digits;
+      function formatPhoneInput() {
+        let value = phoneInput.value;
+        
+        // Jika input dimulai dengan 62 (tanpa tanda +), ubah ke +62
+        if (value.startsWith('62') && !value.startsWith('+62')) {
+          const digits = value.replace(/[^\d]/g, ''); // Hapus semua karakter kecuali digit
+          phoneInput.value = '+' + digits;
+        }
+        // Jika input dimulai dengan 08, biarkan apa adanya
+        else if (value.startsWith('08')) {
+          // Biarkan format 08xxx apa adanya
+        }
+        // Jika input dimulai dengan hanya digit dan dimulai dengan 62
+        else if (/^\d+$/.test(value) && value.startsWith('62')) {
+          phoneInput.value = '+' + value;
+        }
+        // Jika input dimulai dengan hanya digit dan dimulai dengan 8
+        else if (/^\d+$/.test(value) && value.startsWith('8')) {
+          phoneInput.value = '+62' + value;
+        }
+        // Untuk format lain, hanya bersihkan karakter tidak valid
+        else if (value.startsWith('+')) {
+          // Jika diawali +, hanya hapus karakter non-digit (kecuali + di awal)
+          let parts = value.split('');
+          let cleaned = parts[0]; // Ambil karakter pertama (+)
+          for (let i = 1; i < parts.length; i++) {
+            if (/\d/.test(parts[i])) {
+              cleaned += parts[i];
+            }
+          }
+          if (cleaned !== value) {
+            phoneInput.value = cleaned;
+          }
+        } else {
+          // Jika tidak diawali +, hanya hapus karakter non-digit
+          const cleaned = value.replace(/[^\d]/g, '');
+          if (cleaned !== value) {
+            phoneInput.value = cleaned;
+          }
         }
       }
-      phoneInput.addEventListener('focus', ensurePrefix);
-      phoneInput.addEventListener('input', ensurePrefix);
-      ensurePrefix();
+      
+      phoneInput.addEventListener('input', formatPhoneInput);
+      // Jalankan sekali untuk memformat nilai lama (old input)
+      setTimeout(formatPhoneInput, 100); // Gunakan timeout agar old value sudah dimuat
     }
   })();
 </script>
