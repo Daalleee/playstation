@@ -50,7 +50,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="mt-2">{{ $users->withQueryString()->links() }}</div>
+
     </div>
     
     <style>

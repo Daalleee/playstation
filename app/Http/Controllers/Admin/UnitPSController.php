@@ -16,13 +16,15 @@ class UnitPSController extends Controller
         $units = UnitPS::select('id', 'name', 'model', 'brand', 'serial_number', 'price_per_hour', 'stock', 'nama', 'merek', 'nomor_seri', 'harga_per_jam', 'stok', 'foto', 'kondisi')
             ->latest()
             ->withCount('rentalItems')
-            ->paginate(10);
+            ->get();
+
         return view('admin.unitps.index', compact('units'));
     }
 
     public function create()
     {
         Gate::authorize('access-admin');
+
         return view('admin.unitps.create');
     }
 
@@ -72,12 +74,14 @@ class UnitPSController extends Controller
         }
 
         UnitPS::create($data);
+
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dibuat');
     }
 
     public function edit(UnitPS $unitp)
     {
         Gate::authorize('access-admin');
+
         return view('admin.unitps.edit', ['unit' => $unitp]);
     }
 
@@ -88,7 +92,7 @@ class UnitPSController extends Controller
             'nama' => ['required', 'string', 'max:255'],
             'merek' => ['required', 'string', 'max:255'],
             'model' => ['required', 'string', 'max:100'],
-            'nomor_seri' => ['required', 'string', 'max:255', 'unique:unit_ps,nomor_seri,' . $unitp->id, 'regex:/^[A-Za-z0-9]+$/'],
+            'nomor_seri' => ['required', 'string', 'max:255', 'unique:unit_ps,nomor_seri,'.$unitp->id, 'regex:/^[A-Za-z0-9]+$/'],
             'harga_per_jam' => ['required', 'numeric', 'min:0', 'max:999999'],
             'stok' => ['required', 'integer', 'min:0', 'max:1000'],
             'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
@@ -130,6 +134,7 @@ class UnitPSController extends Controller
         }
 
         $unitp->update($data);
+
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS diperbarui');
     }
 
@@ -145,6 +150,7 @@ class UnitPSController extends Controller
             return redirect()->route('admin.unitps.index')->with('status', 'Unit PS tidak bisa dihapus karena masih terkait transaksi yang belum dikembalikan');
         }
         $unitp->delete();
+
         return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dihapus');
     }
 }

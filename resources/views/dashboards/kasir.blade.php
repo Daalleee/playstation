@@ -60,8 +60,5 @@
                 </tbody>
             </table>
         </div>
-        <div class="d-flex justify-content-center">
-            {{ $activeRentals->links() }}
-        </div>
     </div>
 @endsection

@@ -3,23 +3,23 @@
 namespace App\Http\Controllers\Kasir;
 
 use App\Http\Controllers\Controller;
+use App\Models\Accessory;
+use App\Models\Game;
 use App\Models\Rental;
 use App\Models\RentalItem;
 use App\Models\UnitPS;
-use App\Models\Game;
-use App\Models\Accessory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Carbon;
 
 class RentalController extends Controller
 {
     public function index()
     {
         Gate::authorize('access-kasir');
-        $rentals = Rental::with(['customer', 'items.rentable'])->latest()->paginate(10);
+        $rentals = Rental::with(['customer', 'items.rentable'])->latest()->get();
+
         return view('kasir.rentals.index', compact('rentals'));
     }
 
@@ -29,6 +29,7 @@ class RentalController extends Controller
         $units = UnitPS::where('stok', '>', 0)->orderBy('nama')->get();
         $games = Game::where('stok', '>', 0)->orderBy('judul')->get();
         $accessories = Accessory::where('stok', '>', 0)->orderBy('nama')->get();
+
         return view('kasir.rentals.create', compact('units', 'games', 'accessories'));
     }
 
@@ -65,9 +66,9 @@ class RentalController extends Controller
 
             foreach ($validated['items'] as $item) {
                 [$rentableType, $model] = match ($item['type']) {
-                    'unit_ps' => [UnitPS::class, new UnitPS()],
-                    'game' => [Game::class, new Game()],
-                    'accessory' => [Accessory::class, new Accessory()],
+                    'unit_ps' => [UnitPS::class, new UnitPS],
+                    'game' => [Game::class, new Game],
+                    'accessory' => [Accessory::class, new Accessory],
                 };
 
                 $rentable = $model->newQuery()->lockForUpdate()->findOrFail($item['id']);
@@ -113,13 +114,14 @@ class RentalController extends Controller
     {
         Gate::authorize('access-kasir');
         $rental->load(['customer', 'items', 'payments']);
+
         return view('kasir.rentals.show', compact('rental'));
     }
 
     public function return(Rental $rental)
     {
         Gate::authorize('access-kasir');
-        if (!in_array($rental->status, ['ongoing', 'active'])) {
+        if (! in_array($rental->status, ['ongoing', 'active'])) {
             return back()->with('status', 'Rental tidak dalam status ongoing/active');
         }
 
@@ -153,7 +155,7 @@ class RentalController extends Controller
     public function confirmReturn(Rental $rental)
     {
         Gate::authorize('access-kasir');
-        
+
         // Hanya bisa konfirmasi jika status menunggu_konfirmasi
         if ($rental->status !== 'menunggu_konfirmasi') {
             return back()->with('error', 'Penyewaan ini tidak dalam status menunggu konfirmasi.');
@@ -166,15 +168,15 @@ class RentalController extends Controller
                 if ($item->rentable) {
                     // Check if it's UnitPS (uses 'stock') or other models (use 'stok')
                     $isUnitPS = $item->rentable instanceof \App\Models\UnitPS;
-                    
+
                     if ($isUnitPS) {
                         $item->rentable->stock += $item->quantity;
                     } else {
                         $item->rentable->stok += $item->quantity;
                     }
-                    
+
                     $item->rentable->save();
-                    
+
                     \Log::info('Stock restored by cashier confirmation', [
                         'item_type' => get_class($item->rentable),
                         'item_id' => $item->rentable->id,

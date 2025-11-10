@@ -15,13 +15,15 @@ class GameController extends Controller
         Gate::authorize('access-admin');
         $games = Game::select('id', 'judul', 'platform', 'genre', 'stok', 'harga_per_hari', 'gambar', 'kondisi')
             ->latest()
-            ->paginate(10);
+            ->get();
+
         return view('admin.games.index', compact('games'));
     }
 
     public function create()
     {
         Gate::authorize('access-admin');
+
         return view('admin.games.create');
     }
 
@@ -29,13 +31,13 @@ class GameController extends Controller
     {
         Gate::authorize('access-admin');
         $validated = $request->validate([
-            'judul' => ['required','string','max:255'],
-            'platform' => ['required','string','max:50'],
-            'genre' => ['nullable','string','max:100'],
-            'stok' => ['required','integer','min:0','max:1000'],
-            'harga_per_hari' => ['required','numeric','min:0','max:999999'],
-            'gambar' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
-            'kondisi' => ['nullable','string','max:255'],
+            'judul' => ['required', 'string', 'max:255'],
+            'platform' => ['required', 'string', 'max:50'],
+            'genre' => ['nullable', 'string', 'max:100'],
+            'stok' => ['required', 'integer', 'min:0', 'max:1000'],
+            'harga_per_hari' => ['required', 'numeric', 'min:0', 'max:999999'],
+            'gambar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
+            'kondisi' => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -51,12 +53,14 @@ class GameController extends Controller
         $validated['price_per_day'] = $validated['harga_per_hari'];
 
         Game::create($validated);
+
         return redirect()->route('admin.games.index')->with('status', 'Game dibuat');
     }
 
     public function edit(Game $game)
     {
         Gate::authorize('access-admin');
+
         return view('admin.games.edit', compact('game'));
     }
 
@@ -64,13 +68,13 @@ class GameController extends Controller
     {
         Gate::authorize('access-admin');
         $validated = $request->validate([
-            'judul' => ['required','string','max:255'],
-            'platform' => ['required','string','max:50'],
-            'genre' => ['nullable','string','max:100'],
-            'stok' => ['required','integer','min:0','max:1000'],
-            'harga_per_hari' => ['required','numeric','min:0','max:999999'],
-            'gambar' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
-            'kondisi' => ['nullable','string','max:255'],
+            'judul' => ['required', 'string', 'max:255'],
+            'platform' => ['required', 'string', 'max:50'],
+            'genre' => ['nullable', 'string', 'max:100'],
+            'stok' => ['required', 'integer', 'min:0', 'max:1000'],
+            'harga_per_hari' => ['required', 'numeric', 'min:0', 'max:999999'],
+            'gambar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
+            'kondisi' => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -89,6 +93,7 @@ class GameController extends Controller
         $validated['price_per_day'] = $validated['harga_per_hari'];
 
         $game->update($validated);
+
         return redirect()->route('admin.games.index')->with('status', 'Game diperbarui');
     }
 
@@ -104,6 +109,7 @@ class GameController extends Controller
             return redirect()->route('admin.games.index')->with('status', 'Game tidak bisa dihapus karena masih terkait transaksi yang belum dikembalikan');
         }
         $game->delete();
+
         return redirect()->route('admin.games.index')->with('status', 'Game dihapus');
     }
 }

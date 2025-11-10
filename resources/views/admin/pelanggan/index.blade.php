@@ -40,7 +40,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-2">{{ $pelanggan->links() }}</div>
+
         </div>
         
         <style>

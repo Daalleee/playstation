@@ -119,7 +119,7 @@
           </table>
         </div>
         <div class="mt-3">
-          {{ method_exists($units,'links') ? $units->withQueryString()->links() : '' }}
+
         </div>
       </div>
     </main>

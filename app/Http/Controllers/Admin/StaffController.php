@@ -16,11 +16,12 @@ class StaffController extends Controller
 
         $role = $request->query('role');
         $validRoles = ['admin', 'kasir', 'pemilik'];
-        if (!in_array($role, $validRoles)) {
+        if (! in_array($role, $validRoles)) {
             $role = 'kasir';
         }
 
-        $users = User::where('role', $role)->latest()->paginate(10);
+        $users = User::where('role', $role)->latest()->get();
+
         return view('admin.staff.index', compact('users', 'role'));
     }
 
@@ -30,7 +31,7 @@ class StaffController extends Controller
 
         $role = $request->query('role');
         $validRoles = ['admin', 'kasir', 'pemilik'];
-        if (!in_array($role, $validRoles)) {
+        if (! in_array($role, $validRoles)) {
             $role = 'kasir';
         }
 
@@ -58,13 +59,13 @@ class StaffController extends Controller
         $roleRoute = $validated['role'];
         if ($roleRoute == 'pemilik') {
             return redirect()->route('admin.pemilik.index')
-                ->with('status', 'Akun ' . $validated['role'] . ' dibuat.');
+                ->with('status', 'Akun '.$validated['role'].' dibuat.');
         } elseif ($roleRoute == 'admin') {
             return redirect()->route('admin.admin.index')
-                ->with('status', 'Akun ' . $validated['role'] . ' dibuat.');
+                ->with('status', 'Akun '.$validated['role'].' dibuat.');
         } else { // kasir
             return redirect()->route('admin.kasir.index')
-                ->with('status', 'Akun ' . $validated['role'] . ' dibuat.');
+                ->with('status', 'Akun '.$validated['role'].' dibuat.');
         }
     }
 
@@ -102,54 +103,54 @@ class StaffController extends Controller
     public function destroy(Request $request, User $user)
     {
         Gate::authorize('access-admin');
-        
+
         // Prevent deletion of current user
         if ($user->id === auth()->id()) {
             return redirect()->back()->with('error', 'Tidak dapat menghapus akun sendiri.');
         }
-        
+
         $role = $user->role;
         $user->delete();
-        
-        return redirect()->back()->with('status', 'Akun ' . $role . ' dihapus.');
+
+        return redirect()->back()->with('status', 'Akun '.$role.' dihapus.');
     }
-    
+
     public function edit(Request $request, User $user)
     {
         Gate::authorize('access-admin');
-        
+
         // Determine which role edit page to show based on the user's role
         $role = $user->role;
+
         return view('admin.staff.edit', compact('user', 'role'));
     }
-    
+
     public function update(Request $request, User $user)
     {
         Gate::authorize('access-admin');
-        
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'password' => ['nullable', 'string', 'min:8'],
         ]);
-        
+
         // Prepare data for update
         $updateData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
         ];
-        
+
         // Only update password if provided
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);
         }
-        
+
         $user->update($updateData);
-        
+
         $role = $user->role;
-        return redirect()->route('admin.' . $role . '.index')
-            ->with('status', 'Akun ' . $role . ' diperbarui.');
+
+        return redirect()->route('admin.'.$role.'.index')
+            ->with('status', 'Akun '.$role.' diperbarui.');
     }
 }
-
-

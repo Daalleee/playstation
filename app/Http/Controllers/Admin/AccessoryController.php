@@ -15,13 +15,15 @@ class AccessoryController extends Controller
         Gate::authorize('access-admin');
         $accessories = Accessory::select('id', 'nama', 'jenis', 'stok', 'harga_per_hari', 'gambar', 'kondisi')
             ->latest()
-            ->paginate(10);
+            ->get();
+
         return view('admin.accessories.index', compact('accessories'));
     }
 
     public function create()
     {
         Gate::authorize('access-admin');
+
         return view('admin.accessories.create');
     }
 
@@ -29,12 +31,12 @@ class AccessoryController extends Controller
     {
         Gate::authorize('access-admin');
         $validated = $request->validate([
-            'nama' => ['required','string','max:255'],
-            'jenis' => ['required','string','max:100'],
-            'stok' => ['required','integer','min:0','max:1000'],
-            'harga_per_hari' => ['required','numeric','min:0','max:999999'],
-            'gambar' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
-            'kondisi' => ['nullable','string','max:255'],
+            'nama' => ['required', 'string', 'max:255'],
+            'jenis' => ['required', 'string', 'max:100'],
+            'stok' => ['required', 'integer', 'min:0', 'max:1000'],
+            'harga_per_hari' => ['required', 'numeric', 'min:0', 'max:999999'],
+            'gambar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
+            'kondisi' => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -51,12 +53,14 @@ class AccessoryController extends Controller
         $validated['price_per_day'] = $validated['harga_per_hari'];
 
         Accessory::create($validated);
+
         return redirect()->route('admin.accessories.index')->with('status', 'Aksesoris dibuat');
     }
 
     public function edit(Accessory $accessory)
     {
         Gate::authorize('access-admin');
+
         return view('admin.accessories.edit', compact('accessory'));
     }
 
@@ -64,12 +68,12 @@ class AccessoryController extends Controller
     {
         Gate::authorize('access-admin');
         $validated = $request->validate([
-            'nama' => ['required','string','max:255'],
-            'jenis' => ['required','string','max:100'],
-            'stok' => ['required','integer','min:0','max:1000'],
-            'harga_per_hari' => ['required','numeric','min:0','max:999999'],
-            'gambar' => ['nullable','image','mimes:jpeg,jpg,png,webp','max:1024','dimensions:max_width=2000,max_height=2000'],
-            'kondisi' => ['nullable','string','max:255'],
+            'nama' => ['required', 'string', 'max:255'],
+            'jenis' => ['required', 'string', 'max:100'],
+            'stok' => ['required', 'integer', 'min:0', 'max:1000'],
+            'harga_per_hari' => ['required', 'numeric', 'min:0', 'max:999999'],
+            'gambar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
+            'kondisi' => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -89,6 +93,7 @@ class AccessoryController extends Controller
         $validated['price_per_day'] = $validated['harga_per_hari'];
 
         $accessory->update($validated);
+
         return redirect()->route('admin.accessories.index')->with('status', 'Aksesoris diperbarui');
     }
 
@@ -104,6 +109,7 @@ class AccessoryController extends Controller
             return redirect()->route('admin.accessories.index')->with('status', 'Aksesoris tidak bisa dihapus karena masih terkait transaksi yang belum dikembalikan');
         }
         $accessory->delete();
+
         return redirect()->route('admin.accessories.index')->with('status', 'Aksesoris dihapus');
     }
 }

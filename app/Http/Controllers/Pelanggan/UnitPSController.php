@@ -27,12 +27,12 @@ class UnitPSController extends Controller
         // Search by name
         if ($request->filled('q')) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->q . '%')
-                    ->orWhere('model', 'like', '%' . $request->q . '%');
+                $q->where('name', 'like', '%'.$request->q.'%')
+                    ->orWhere('model', 'like', '%'.$request->q.'%');
             });
         }
 
-        $units = $query->latest()->paginate(12);
+        $units = $query->latest()->get();
 
         return view('pelanggan.unitps.index', compact('units'));
     }

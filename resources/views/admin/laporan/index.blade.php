@@ -83,20 +83,18 @@
                             <tr>
                                 <th>Tanggal</th>
                                 <th>Customer</th>
-                                <th>Metode</th>
                                 <th class="text-end">Jumlah</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse(($latestPayments ?? []) as $pay)
                             <tr>
-                                <td>{{ $pay->paid_at?->format('d M Y H:i') }}</td>
+                                <td>{{ $pay->created_at?->format('d M Y H:i') ?? $pay->paid_at?->format('d M Y H:i') ?? '-' }}</td>
                                 <td>{{ $pay->rental?->customer?->name ?? '-' }}</td>
-                                <td>{{ strtoupper($pay->method ?? '-') }}</td>
                                 <td class="text-end">Rp {{ number_format($pay->amount ?? 0, 0, ',', '.') }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="4" class="text-center" style="color: #e6e8ff;">Belum ada pembayaran</td></tr>
+                            <tr><td colspan="3" class="text-center" style="color: #e6e8ff;">Belum ada pembayaran</td></tr>
                             @endforelse
                         </tbody>
                     </table>

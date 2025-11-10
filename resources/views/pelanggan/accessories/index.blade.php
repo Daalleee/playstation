@@ -116,7 +116,7 @@
           </table>
         </div>
         <div class="mt-3">
-          {{ method_exists($accessories,'links') ? $accessories->withQueryString()->links() : '' }}
+
         </div>
       </div>
     </main>

@@ -125,7 +125,7 @@
           </table>
         </div>
         <div class="mt-3">
-          {{ method_exists($games,'links') ? $games->withQueryString()->links() : '' }}
+
         </div>
       </div>
     </main>

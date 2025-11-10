@@ -21,16 +21,16 @@ class GameController extends Controller
 
         // Filter by genre
         if ($request->filled('genre')) {
-            $query->where('genre', 'like', '%' . $request->genre . '%');
+            $query->where('genre', 'like', '%'.$request->genre.'%');
         }
 
         // Search by title
         if ($request->filled('q')) {
-            $query->where('judul', 'like', '%' . $request->q . '%');
+            $query->where('judul', 'like', '%'.$request->q.'%');
         }
 
-        $games = $query->latest()->paginate(12);
-            
+        $games = $query->latest()->get();
+
         return view('pelanggan.games.index', compact('games'));
     }
 }

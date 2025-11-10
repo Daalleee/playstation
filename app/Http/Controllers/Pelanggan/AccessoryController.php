@@ -16,16 +16,16 @@ class AccessoryController extends Controller
 
         // Filter by jenis
         if ($request->filled('jenis')) {
-            $query->where('jenis', 'like', '%' . $request->jenis . '%');
+            $query->where('jenis', 'like', '%'.$request->jenis.'%');
         }
 
         // Search by name
         if ($request->filled('q')) {
-            $query->where('nama', 'like', '%' . $request->q . '%');
+            $query->where('nama', 'like', '%'.$request->q.'%');
         }
 
-        $accessories = $query->latest()->paginate(12);
-            
+        $accessories = $query->latest()->get();
+
         return view('pelanggan.accessories.index', compact('accessories'));
     }
 }

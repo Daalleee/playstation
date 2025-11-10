@@ -136,9 +136,6 @@
             </tbody>
           </table>
         </div>
-        <div class="mt-3">
-          {{ $rentals->links() }}
-        </div>
       </div>
     </main>
   </div>

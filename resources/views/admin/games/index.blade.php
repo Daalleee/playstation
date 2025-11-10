@@ -54,7 +54,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="mt-2">{{ $games->links() }}</div>
+
     </div>
     
     <style>

@@ -13,13 +13,15 @@ class PelangganController extends Controller
     public function index()
     {
         Gate::authorize('access-admin');
-        $pelanggan = User::where('role', 'pelanggan')->latest()->paginate(10);
+        $pelanggan = User::where('role', 'pelanggan')->latest()->get();
+
         return view('admin.pelanggan.index', compact('pelanggan'));
     }
 
     public function create()
     {
         Gate::authorize('access-admin');
+
         return view('admin.pelanggan.create');
     }
 
@@ -50,6 +52,7 @@ class PelangganController extends Controller
     {
         Gate::authorize('access-admin');
         abort_unless($pelanggan->role === 'pelanggan', 404);
+
         return view('admin.pelanggan.edit', compact('pelanggan'));
     }
 
@@ -69,7 +72,7 @@ class PelangganController extends Controller
         $pelanggan->email = $validated['email'];
         $pelanggan->address = $validated['address'] ?? null;
         $pelanggan->phone = $validated['phone'] ?? null;
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $pelanggan->password = Hash::make($validated['password']);
         }
         $pelanggan->save();
@@ -82,8 +85,7 @@ class PelangganController extends Controller
         Gate::authorize('access-admin');
         abort_unless($pelanggan->role === 'pelanggan', 404);
         $pelanggan->delete();
+
         return redirect()->route('admin.pelanggan.index')->with('status', 'Pelanggan dihapus');
     }
 }
-
-

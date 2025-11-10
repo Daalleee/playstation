@@ -66,6 +66,6 @@
 </table>
 
 <div style="margin-top: 1rem;">
-    {{ $rentals->links() }}
+
 </div>
 
