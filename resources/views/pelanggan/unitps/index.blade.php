@@ -78,35 +78,37 @@
             <tbody>
               @forelse($units as $unit)
                 <tr>
-                  <td>{{ $unit->id }}</td>
+                  <td>{{ $unit->id ?? 'N/A' }}</td>
                   <td>{{ $unit->name }}</td>
                   <td>{{ $unit->model }}<br><small class="text-muted">{{ $unit->brand }}</small></td>
                   <td>
                     <img src="https://placehold.co/50x50/49497A/FFFFFF?text=PS" alt="{{ $unit->name }}" style="width:50px; height:50px; object-fit:cover;">
                   </td>
                   <td>
-                    @php 
-                      $stok = $unit->stock ?? 0;
+                    @php
+                      $stok = isset($unit->instances) ? $unit->instances->whereIn('status', ['available'])->count() : 0;
                       $badgeClass = $stok > 5 ? 'badge-success' : ($stok > 0 ? 'badge-warning' : 'badge-danger');
                     @endphp
                     <span class="{{ $badgeClass }} d-block">{{ $stok }} Unit</span>
                   </td>
-                  <td>Rp {{ number_format($unit->price_per_hour, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format($unit->price_per_hour ?? 0, 0, ',', '.') }}</td>
                   <td>
                     <div class="d-flex flex-column gap-2">
                       <a href="#" class="btn-detail">Detail</a>
                       <div class="d-flex gap-2 align-items-center">
-                        <input type="number" class="input-dark" value="1" min="1" max="{{ $stok }}" 
-                               style="width: 80px;" 
-                               id="quantity_{{ $unit->id }}" 
-                               {{ $stok <= 0 ? 'disabled' : '' }}>
-                        <button type="button" class="btn-cta w-100 add-to-cart-btn" 
-                                data-type="unitps" 
-                                data-id="{{ $unit->id }}" 
+                        <input type="number" class="input-dark" value="1" min="1" 
+                               style="width: 80px;"
+                               id="quantity_{{ $unit->id }}"
+                               {{ ($unit->id === null || $stok <= 0) ? 'disabled' : '' }}
+                               @if($unit->id !== null && $stok > 0) max="{{ $stok }}" @endif>
+                        <button type="button" class="btn-cta w-100 add-to-cart-btn"
+                                data-type="unitps"
+                                data-id="{{ $unit->id }}"
                                 data-price_type="per_jam"
                                 data-stok="{{ $stok }}"
-                                {{ $stok <= 0 ? 'disabled' : '' }}>
-                          {{ $stok > 0 ? 'Tambah ke Keranjang' : 'Stok Habis' }}
+                                {{ ($unit->id === null || $stok <= 0) ? 'disabled' : '' }}
+                                {{ ($unit->id === null || $stok <= 0) ? 'title="Stok habis, unit tidak tersedia untuk disewa"' : '' }}>
+                          {{ ($unit->id !== null && $stok > 0) ? 'Tambah ke Keranjang' : 'Stok Habis' }}
                         </button>
                       </div>
                     </div>
@@ -124,14 +126,14 @@
       </div>
     </main>
   </div>
-  
+
   <script>
     // Add real-time validation for quantity inputs
     document.querySelectorAll('input[id^="quantity_"]').forEach(input => {
       input.addEventListener('input', function() {
         const max = parseInt(this.max);
         const value = parseInt(this.value);
-        
+
         if (value > max) {
           this.value = max;
         } else if (value < 1) {
@@ -139,7 +141,7 @@
         }
       });
     });
-    
+
     // Handle add to cart AJAX requests
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
       button.addEventListener('click', function() {
@@ -147,39 +149,45 @@
         const id = this.getAttribute('data-id');
         const price_type = this.getAttribute('data-price_type');
         const stok = parseInt(this.getAttribute('data-stok'));
-        
+
+        // Check if stock is zero and show warning
+        if(stok <= 0) {
+          showFlashMessage('Stok habis, unit tidak tersedia untuk disewa', 'danger');
+          return;
+        }
+
         // Get quantity from the input field
         const quantityInput = document.getElementById('quantity_' + id);
         const quantity = parseInt(quantityInput.value);
-        
+
         // Validate quantity
         if(quantity < 1 || quantity > stok) {
           showFlashMessage('Jumlah tidak valid!', 'danger');
           return;
         }
-        
+
         // Disable button to prevent multiple clicks
         this.disabled = true;
         const originalText = this.textContent;
         this.textContent = 'Memproses...';
-        
+
         // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        
+
         if (!csrfToken) {
           showFlashMessage('CSRF token tidak ditemukan. Silakan refresh halaman.', 'danger');
           this.disabled = false;
           this.textContent = originalText;
           return;
         }
-        
+
         // Create form data
         const formData = new FormData();
         formData.append('type', type);
         formData.append('id', id);
         formData.append('quantity', quantity);
         formData.append('price_type', price_type);
-        
+
         fetch('/pelanggan/cart/add', {
           method: 'POST',
           headers: {
@@ -204,7 +212,7 @@
             // Show error message
             showFlashMessage(data.message || 'Terjadi kesalahan', 'danger');
           }
-          
+
           // Restore button
           this.disabled = false;
           this.textContent = originalText;
@@ -214,7 +222,7 @@
           // Show error message
           const errorMessage = error.message || error.error || 'Terjadi kesalahan saat menambahkan ke keranjang';
           showFlashMessage(errorMessage, 'danger');
-          
+
           // Restore button
           this.disabled = false;
           this.textContent = originalText;

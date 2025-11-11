@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Rental;
 use App\Models\RentalItem;
 use App\Models\UnitPS;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class DashboardController extends Controller
@@ -17,7 +18,12 @@ class DashboardController extends Controller
         Gate::authorize('access-admin');
 
         // Gunakan eager loading dan aggregasi untuk meningkatkan performa
-        $unitPSData = UnitPS::selectRaw('*, COALESCE(stock, 0) as total_stok')->get();
+        $unitPSData = UnitPS::withCount(['instances as total_stok' => function ($query) {
+            $query->select(DB::raw('COALESCE(count(*), 0)'));
+        }, 'instances as available_stok' => function ($query) {
+            $query->where('status', 'available')->select(DB::raw('COALESCE(count(*), 0)'));
+        }])
+            ->get();
         $gameData = Game::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
         $accessoryData = Accessory::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
 
@@ -169,7 +175,7 @@ class DashboardController extends Controller
         Gate::authorize('access-pelanggan');
 
         // Get latest available items with stock > 0 for display on landing page
-        $unitps = UnitPS::where('stock', '>', 0)
+        $unitps = UnitPS::with(['instances'])  // Include all instances, not just available
             ->orderByDesc('id')
             ->limit(8)
             ->get();
@@ -191,10 +197,10 @@ class DashboardController extends Controller
     {
         Gate::authorize('access-pelanggan');
 
-        // Get latest available Unit PS with stock > 0 for display on Unit PS landing page
-        $unitps = UnitPS::where('stock', '>', 0)
+        // Get latest Unit PS (all of them, even if no stock) for display on Unit PS landing page
+        $unitps = UnitPS::with(['instances'])  // Include all instances
             ->orderByDesc('id')
-            ->get(); // Get all available units
+            ->get(); // Get all units
 
         return view('dashboards.unitps', compact('unitps'));
     }

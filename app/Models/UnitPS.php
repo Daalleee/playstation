@@ -70,6 +70,73 @@ class UnitPS extends Model
     {
         return $this->morphMany(RentalItem::class, 'rentable');
     }
+
+    public function instances()
+    {
+        return $this->hasMany(UnitPSInstance::class, 'unit_ps_id');
+    }
+
+    public function getAvailableInstancesCountAttribute()
+    {
+        return $this->instances()->where('status', 'available')->count();
+    }
+
+    public static function getFixedMasterUnits()
+    {
+        return [
+            [
+                'name' => 'PlayStation 2',
+                'model' => 'PS2',
+                'brand' => 'Sony',
+                'default_price' => 15000,
+            ],
+            [
+                'name' => 'PlayStation 3',
+                'model' => 'PS3',
+                'brand' => 'Sony',
+                'default_price' => 20000,
+            ],
+            [
+                'name' => 'PlayStation 4',
+                'model' => 'PS4',
+                'brand' => 'Sony',
+                'default_price' => 30000,
+            ],
+            [
+                'name' => 'PlayStation 5',
+                'model' => 'PS5',
+                'brand' => 'Sony',
+                'default_price' => 50000,
+            ],
+        ];
+    }
+
+    public static function isValidFixedMasterModel($model)
+    {
+        $fixedUnits = self::getFixedMasterUnits();
+        $fixedModels = array_column($fixedUnits, 'model');
+
+        // Allow exact matches or variations (like "PS5 Hitam", "PS4 Putih", etc.)
+        foreach ($fixedModels as $fixedModel) {
+            if (stripos($model, $fixedModel) === 0) { // Model starts with the fixed model
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static function getBaseModel($model)
+    {
+        $fixedUnits = self::getFixedMasterUnits();
+        $fixedModels = array_column($fixedUnits, 'model');
+
+        foreach ($fixedModels as $fixedModel) {
+            if (stripos($model, $fixedModel) === 0) {
+                return $fixedModel;
+            }
+        }
+
+        return $model;
+    }
 }
-
-

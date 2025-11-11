@@ -12,30 +12,30 @@ class CartController extends Controller
     public function index()
     {
         Gate::authorize('access-pelanggan');
-        
+
         // Get cart items from database
         $cartItems = Cart::where('user_id', auth()->id())->get();
-        
+
         return view('pelanggan.cart.index', compact('cartItems'));
     }
-    
+
     public function add(Request $request)
     {
         Gate::authorize('access-pelanggan');
-        
+
         // Validation
         $request->validate([
             'type' => 'required|in:unitps,game,accessory',
             'id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
-            'price_type' => 'required|in:per_jam,per_hari'
+            'price_type' => 'required|in:per_jam,per_hari',
         ]);
-        
+
         $quantity = $request->quantity;
-        
+
         // Get the model class based on type
         $modelClass = null;
-        switch($request->type) {
+        switch ($request->type) {
             case 'unitps':
                 $modelClass = 'App\Models\UnitPS';
                 break;
@@ -46,110 +46,187 @@ class CartController extends Controller
                 $modelClass = 'App\Models\Accessory';
                 break;
         }
-        
-        if(!$modelClass) {
+
+        if (! $modelClass) {
             $message = 'Tipe item tidak valid!';
-            if($request->wantsJson()) {
+            if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $message
+                    'message' => $message,
                 ], 400);
             }
+
             return redirect()->back()->with('error', $message);
         }
-        
+
         // Find the item
         $item = $modelClass::find($request->id);
-        if(!$item) {
+        if (! $item) {
             $message = 'Item tidak ditemukan!';
-            if($request->wantsJson()) {
+            if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $message
+                    'message' => $message,
                 ], 400);
             }
+
             return redirect()->back()->with('error', $message);
         }
-        
+
         // Check stock
         $stockField = $request->type === 'unitps' ? 'stock' : 'stok';
-        if($item->$stockField < $request->quantity) {
-            if($request->wantsJson()) {
+        $availableStock = $request->type === 'unitps'
+            ? $item->instances()->where('status', 'available')->count()
+            : $item->$stockField;
+
+        if ($availableStock < $request->quantity) {
+            if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Stok tidak mencukupi!'
+                    'message' => 'Stok tidak mencukupi!',
                 ], 400);
             }
+
             return redirect()->back()->with('error', 'Stok tidak mencukupi!');
         }
-        
+
         // Check if item already in cart
         $existingCartItem = Cart::where('user_id', auth()->id())
             ->where('type', $request->type)
             ->where('item_id', $request->id)
             ->first();
-            
-        if($existingCartItem) {
-            // Update quantity
-            $newQuantity = $existingCartItem->quantity + $request->quantity;
-            $stockField = $request->type === 'unitps' ? 'stock' : 'stok';
-            if($newQuantity > $item->$stockField) {
-                if($request->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Jumlah melebihi stok yang tersedia!'
-                    ], 400);
+
+        if ($existingCartItem) {
+            // For UnitPS, we need to check if we're increasing the quantity and reserve more instances
+            if ($request->type === 'unitps') {
+                $currentReservedCount = count($existingCartItem->reserved_instance_ids ?? []);
+                $newQuantity = $existingCartItem->quantity + $request->quantity;
+                $instancesToReserve = $newQuantity - $currentReservedCount;
+
+                if ($instancesToReserve > 0) {
+                    // Get additional available instances to reserve
+                    $availableInstances = $item->instances()
+                        ->where('status', 'available')
+                        ->limit($instancesToReserve)
+                        ->get();
+
+                    if ($availableInstances->count() < $instancesToReserve) {
+                        if ($request->wantsJson()) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Stok tidak mencukupi!',
+                            ], 400);
+                        }
+
+                        return redirect()->back()->with('error', 'Stok tidak mencukupi!');
+                    }
+
+                    $newReservedIds = $existingCartItem->reserved_instance_ids ?? [];
+                    foreach ($availableInstances as $instance) {
+                        $instance->update(['status' => 'reserved_in_cart']);
+                        $newReservedIds[] = $instance->id;
+                    }
+
+                    // Update existing cart item with new quantity and reserved instances
+                    $existingCartItem->update([
+                        'quantity' => $newQuantity,
+                        'reserved_instance_ids' => $newReservedIds,
+                    ]);
+                } else {
+                    // Quantity is not increasing, just update the quantity
+                    $existingCartItem->update(['quantity' => $newQuantity]);
                 }
-                return redirect()->back()->with('error', 'Jumlah melebihi stok yang tersedia!');
+            } else {
+                // For other items (games, accessories), update quantity normally
+                $newQuantity = $existingCartItem->quantity + $request->quantity;
+                $availableStock = $item->stok;
+
+                if ($newQuantity > $availableStock) {
+                    if ($request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Jumlah melebihi stok yang tersedia!',
+                        ], 400);
+                    }
+
+                    return redirect()->back()->with('error', 'Jumlah melebihi stok yang tersedia!');
+                }
+                $existingCartItem->update(['quantity' => $newQuantity]);
             }
-            $existingCartItem->update(['quantity' => $newQuantity]);
         } else {
-            // Add new item to cart
+            // For UnitPS, reserve specific instances when adding to cart
+            $reservedInstanceIds = [];
+            if ($request->type === 'unitps') {
+                // Get available instances and reserve them by marking as 'reserved_in_cart'
+                $availableInstances = $item->instances()
+                    ->where('status', 'available')
+                    ->limit($request->quantity)
+                    ->get();
+
+                if ($availableInstances->count() < $request->quantity) {
+                    if ($request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Stok tidak mencukupi!',
+                        ], 400);
+                    }
+
+                    return redirect()->back()->with('error', 'Stok tidak mencukupi!');
+                }
+
+                foreach ($availableInstances as $instance) {
+                    $instance->update(['status' => 'reserved_in_cart']);
+                    $reservedInstanceIds[] = $instance->id;
+                }
+            }
+
             $price = $request->type === 'unitps' ? $item->price_per_hour : $item->harga_per_hari;
             $name = $request->type === 'unitps' ? $item->name : ($item->nama ?? $item->judul);
-            
+
             Cart::create([
                 'user_id' => auth()->id(),
                 'type' => $request->type,
                 'item_id' => $request->id,
                 'quantity' => $request->quantity,
+                'reserved_instance_ids' => $reservedInstanceIds,
                 'price' => $price,
                 'name' => $name,
                 'price_type' => $request->price_type,
             ]);
         }
-        
+
         $message = 'Item berhasil ditambahkan ke keranjang!';
-        if($request->wantsJson()) {
+        if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => $message
+                'message' => $message,
             ]);
         }
+
         return redirect()->back()->with('success', $message);
     }
-    
+
     public function update(Request $request)
     {
         Gate::authorize('access-pelanggan');
-        
+
         // In a real application, this would update cart item quantity
         $request->validate([
             'type' => 'required|string',
             'item_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
         ]);
-        
+
         // Find the cart item
         $cartItem = Cart::where('user_id', auth()->id())
             ->where('type', $request->type)
             ->where('item_id', $request->item_id)
             ->first();
-            
-        if($cartItem) {
+
+        if ($cartItem) {
             // Get the actual item to check stock
             $modelClass = null;
-            switch($request->type) {
+            switch ($request->type) {
                 case 'unitps':
                     $modelClass = 'App\Models\UnitPS';
                     break;
@@ -160,83 +237,93 @@ class CartController extends Controller
                     $modelClass = 'App\Models\Accessory';
                     break;
             }
-            
-            if($modelClass) {
+
+            if ($modelClass) {
                 $item = $modelClass::find($request->item_id);
                 $stockField = $request->type === 'unitps' ? 'stock' : 'stok';
-                if($item && $item->$stockField >= $request->quantity) {
+                if ($item && $request->quantity <= $item->$stockField) {
                     $cartItem->update(['quantity' => $request->quantity]);
                     $message = 'Jumlah item telah diperbarui!';
-                    if($request->wantsJson()) {
+                    if ($request->wantsJson()) {
                         return response()->json([
                             'success' => true,
-                            'message' => $message
+                            'message' => $message,
                         ]);
                     }
+
                     return redirect()->back()->with('success', $message);
                 } else {
                     $message = 'Stok tidak mencukupi!';
-                    if($request->wantsJson()) {
+                    if ($request->wantsJson()) {
                         return response()->json([
                             'success' => false,
-                            'message' => $message
+                            'message' => $message,
                         ], 400);
                     }
+
                     return redirect()->back()->with('error', $message);
                 }
             }
         }
-        
+
         $message = 'Item tidak ditemukan di keranjang!';
-        if($request->wantsJson()) {
+        if ($request->wantsJson()) {
             return response()->json([
                 'success' => false,
-                'message' => $message
+                'message' => $message,
             ], 400);
         }
+
         return redirect()->back()->with('error', $message);
     }
-    
+
     public function remove(Request $request)
     {
         Gate::authorize('access-pelanggan');
-        
-        // In a real application, this would remove an item from cart
+
         // Find and remove the specific item
         $request->validate([
             'type' => 'required|string',
             'item_id' => 'required|integer',
         ]);
-        
-        Cart::where('user_id', auth()->id())
+
+        $cartItem = Cart::where('user_id', auth()->id())
             ->where('type', $request->type)
             ->where('item_id', $request->item_id)
-            ->delete();
-        
+            ->first();
+
+        if ($cartItem) {
+            // No need to release instances since they weren't reserved in cart
+            $cartItem->delete();
+        }
+
         $message = 'Item telah dihapus dari keranjang!';
-        if($request->wantsJson()) {
+        if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => $message
+                'message' => $message,
             ]);
         }
+
         return redirect()->back()->with('success', $message);
     }
-    
+
     public function clear(Request $request)
     {
         Gate::authorize('access-pelanggan');
-        
+
         // Clear the entire cart from database
+        // No need to release instances since they weren't reserved in cart
         Cart::where('user_id', auth()->id())->delete();
-        
+
         $message = 'Keranjang telah dibersihkan!';
-        if($request->wantsJson()) {
+        if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => $message
+                'message' => $message,
             ]);
         }
+
         return redirect()->back()->with('success', $message);
     }
 }

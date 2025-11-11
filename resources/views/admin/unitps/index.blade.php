@@ -61,7 +61,13 @@
                             <td>{{ $u->merek }}</td>
                             <td>{{ $u->nomor_seri ?? '-' }}</td>
                             <td>Rp {{ number_format($u->harga_per_jam, 0, ',', '.') }}</td>
-                            <td>{{ $u->stok }}</td>
+                            <td>
+                                @if(isset($u->available_stock))
+                                    {{ $u->available_stock }} / {{ $u->total_instances }}
+                                @else
+                                    {{ $u->stok }}
+                                @endif
+                            </td>
                             <td>{{ ucfirst($u->kondisi) }}</td>
                             <td class="text-end">
                                 <a class="btn btn-sm btn-warning me-1" href="{{ route('admin.unitps.edit', $u) }}"><i class="bi bi-pencil-square"></i></a>

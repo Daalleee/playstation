@@ -170,8 +170,29 @@
                   <input type="hidden" name="price_type" value="{{ $firstItem['price_type'] }}">
                   
                   @if($firstItem['type'] == 'unitps')
-                    <!-- For Unit PS, only allow 1 quantity -->
-                    <input type="hidden" name="quantity" value="1">
+                    <!-- For Unit PS, allow quantity based on available instances -->
+                    @php
+                        $availableStock = $firstItem['stok'] ?? 0;
+                        if (isset($firstItem['item_id'])) {
+                            $unitPS = \App\Models\UnitPS::find($firstItem['item_id']);
+                            if ($unitPS) {
+                                $availableStock = $unitPS->instances()->where('status', 'available')->count();
+                            }
+                        }
+                    @endphp
+                    @if($availableStock > 0)
+                    <div class="d-flex justify-content-center mt-3">
+                      <div class="d-flex align-items-center gap-2">
+                        <label for="quantity_direct" class="mb-0" style="font-size: 0.9rem;">Jumlah:</label>
+                        <input type="number" id="quantity_direct" name="quantity" value="{{ $firstItem['quantity'] ?? 1 }}" min="1" max="{{ $availableStock }}" class="form-control" style="width: 60px; height: 30px; font-size: 0.9rem; padding: 2px 5px;">
+                      </div>
+                    </div>
+                    @else
+                    <div class="text-center mt-3 text-danger">
+                      <p>Maaf, unit ini sedang tidak tersedia.</p>
+                      <input type="hidden" name="quantity" value="1">
+                    </div>
+                    @endif
                   @elseif($firstItem['type'] == 'game' || $firstItem['type'] == 'accessory')
                     <!-- For Games and Accessories, allow quantity adjustment -->
                     <div class="d-flex justify-content-center mt-3">
@@ -190,8 +211,29 @@
                   <input type="hidden" name="price_type" value="{{ $firstItem->price_type }}">
                   
                   @if($firstItem->type == 'unitps')
-                    <!-- For Unit PS, only allow 1 quantity -->
-                    <input type="hidden" name="quantity" value="1">
+                    <!-- For Unit PS, allow quantity based on available instances -->
+                    @php
+                        $availableStock = $firstItem->stok ?? 0;
+                        if ($firstItem->item_id) {
+                            $unitPS = \App\Models\UnitPS::find($firstItem->item_id);
+                            if ($unitPS) {
+                                $availableStock = $unitPS->instances()->where('status', 'available')->count();
+                            }
+                        }
+                    @endphp
+                    @if($availableStock > 0)
+                    <div class="d-flex justify-content-center mt-3">
+                      <div class="d-flex align-items-center gap-2">
+                        <label for="quantity_direct" class="mb-0" style="font-size: 0.9rem;">Jumlah:</label>
+                        <input type="number" id="quantity_direct" name="quantity" value="{{ $firstItem->quantity }}" min="1" max="{{ $availableStock }}" class="form-control" style="width: 60px; height: 30px; font-size: 0.9rem; padding: 2px 5px;">
+                      </div>
+                    </div>
+                    @else
+                    <div class="text-center mt-3 text-danger">
+                      <p>Maaf, unit ini sedang tidak tersedia.</p>
+                      <input type="hidden" name="quantity" value="1">
+                    </div>
+                    @endif
                   @elseif($firstItem->type == 'game' || $firstItem->type == 'accessory')
                     <!-- For Games and Accessories, allow quantity adjustment -->
                     <div class="d-flex justify-content-center mt-3">

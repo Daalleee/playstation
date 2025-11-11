@@ -129,10 +129,14 @@ class RentalController extends Controller
             $rental->load('items');
             foreach ($rental->items as $item) {
                 if ($item->rentable_type === UnitPS::class) {
-                    $unit = UnitPS::lockForUpdate()->find($item->rentable_id);
-                    if ($unit) {
-                        $unit->stok += $item->quantity;
-                        $unit->save();
+                    // For UnitPS, find the rented instances and make them available
+                    $rentedInstances = UnitPSInstance::where('unit_ps_id', $item->rentable_id)
+                        ->where('status', 'rented')
+                        ->limit($item->quantity)
+                        ->get();
+
+                    foreach ($rentedInstances as $instance) {
+                        $instance->update(['status' => 'available']);
                     }
                 } elseif ($item->rentable_type === Game::class) {
                     Game::where('id', $item->rentable_id)->lockForUpdate()->increment('stok', $item->quantity);
@@ -166,16 +170,22 @@ class RentalController extends Controller
             $rental->load('items');
             foreach ($rental->items as $item) {
                 if ($item->rentable) {
-                    // Check if it's UnitPS (uses 'stock') or other models (use 'stok')
                     $isUnitPS = $item->rentable instanceof \App\Models\UnitPS;
 
                     if ($isUnitPS) {
-                        $item->rentable->stock += $item->quantity;
+                        // For UnitPS, find the rented instances and make them available
+                        $rentedInstances = UnitPSInstance::where('unit_ps_id', $item->rentable->id)
+                            ->where('status', 'rented')
+                            ->limit($item->quantity)
+                            ->get();
+
+                        foreach ($rentedInstances as $instance) {
+                            $instance->update(['status' => 'available']);
+                        }
                     } else {
                         $item->rentable->stok += $item->quantity;
+                        $item->rentable->save();
                     }
-
-                    $item->rentable->save();
 
                     \Log::info('Stock restored by cashier confirmation', [
                         'item_type' => get_class($item->rentable),

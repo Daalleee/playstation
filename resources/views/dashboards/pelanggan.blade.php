@@ -74,10 +74,12 @@
                     <h5 class="mb-1 text-center text-white fw-bold">{{ $unit->name }}</h5>
                     <div class="text-center text-light mb-1">{{ $unit->model }} - {{ $unit->brand }}</div>
                     <div class="fw-bold text-price mb-1 text-center mt-2">Rp {{ number_format($unit->price_per_hour, 0, ',', '.') }}/jam</div>
-                    <div class="text-center">Stok: {{ $unit->stok }}</div>
+                    <div class="text-center">Stok: {{ $unit->instances->where('status', 'available')->count() }}</div>
                   </div>
                   <div class="pt-2 mt-auto">
-                    <a href="{{ route('pelanggan.rentals.create') }}?type=unitps&id={{ $unit->id }}" class="btn btn-cta w-100">Sewa Unit</a>
+                    <a href="{{ route('pelanggan.rentals.create') }}?type=unitps&id={{ $unit->id }}" class="btn btn-cta w-100 {{ $unit->instances->where('status', 'available')->count() <= 0 ? 'disabled' : '' }}">
+                      {{ $unit->instances->where('status', 'available')->count() > 0 ? 'Sewa Unit' : 'Stok Habis' }}
+                    </a>
                   </div>
                 </div>
               </div>

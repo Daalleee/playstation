@@ -226,6 +226,9 @@ class RentalController extends Controller
         try {
             DB::beginTransaction();
 
+            // Store cart items for potential rollback
+            $originalCartItems = $cartItems->toArray();
+
             // Create rental
             $rental = Rental::create([
                 'user_id' => auth()->id(),
@@ -250,6 +253,7 @@ class RentalController extends Controller
                         $itemName = $item->name ?? 'Unknown';
                         $itemPrice = $item->price ?? 0;
                         $itemPriceType = $item->price_type ?? 'per_hari';
+                        $reservedInstanceIds = $item->reserved_instance_ids ?? [];
                     } elseif (is_array($item)) {
                         // It's an array from session
                         $itemType = $item['type'] ?? null;
@@ -258,12 +262,9 @@ class RentalController extends Controller
                         $itemName = $item['name'] ?? 'Unknown';
                         $itemPrice = $item['price'] ?? 0;
                         $itemPriceType = $item['price_type'] ?? 'per_hari';
+                        $reservedInstanceIds = $item['reserved_instance_ids'] ?? [];
                     } else {
                         throw new \Exception('Format item tidak dikenal: '.gettype($item).' pada indeks: '.$index);
-                    }
-
-                    if (! $itemType || ! $itemId) {
-                        throw new \Exception("Data item tidak lengkap: item type atau ID tidak ditemukan. Type: {$itemType}, ID: {$itemId}, Indeks: {$index}");
                     }
 
                     $model = match ($itemType) {
@@ -284,7 +285,9 @@ class RentalController extends Controller
 
                     // Check stock based on item type
                     $stockField = $itemType === 'unitps' ? 'stock' : 'stok';
-                    $currentStock = $rentable->$stockField ?? 0;
+                    $currentStock = $itemType === 'unitps'
+                        ? $rentable->instances()->where('status', 'available')->count()
+                        : $rentable->$stockField ?? 0;
 
                     if ($currentStock < $itemQuantity) {
                         throw new \App\Exceptions\InsufficientStockException(
@@ -313,13 +316,49 @@ class RentalController extends Controller
                         'total' => $subtotal,
                     ]);
 
-                    // Update stock with pessimistic locking to prevent race condition
+                    // For UnitPS: instances are already reserved in cart with 'reserved_in_cart' status
+                    // We don't change status to 'rented' here - we'll wait for successful payment
                     if ($itemType === 'unitps') {
-                        $rentable->stock -= $itemQuantity;
+                        // Verify that the already reserved instances are still reserved_in_cart
+                        $cartItem = $item; // This is the cart item that contains reserved_instance_ids
+                        if (is_object($item) && ! empty($item->reserved_instance_ids)) {
+                            // Check that the reserved instances still have 'reserved_in_cart' status
+                            $reservedInstances = \App\Models\UnitPSInstance::whereIn('id', $item->reserved_instance_ids)->get();
+                            foreach ($reservedInstances as $instance) {
+                                if ($instance->status !== 'reserved_in_cart') {
+                                    throw new \App\Exceptions\InsufficientStockException(
+                                        $itemName,
+                                        1,
+                                        0
+                                    );
+                                }
+                            }
+                        } else {
+                            // If no reserved instances were found in cart, try to find and reserve available ones
+                            $availableInstances = $rentable->instances()
+                                ->where('status', 'available')
+                                ->limit($itemQuantity)
+                                ->get();
+
+                            // Check if we have enough available instances
+                            if ($availableInstances->count() < $itemQuantity) {
+                                throw new \App\Exceptions\InsufficientStockException(
+                                    $itemName,
+                                    $itemQuantity,
+                                    $availableInstances->count()
+                                );
+                            }
+
+                            // Mark these instances as reserved for this rental (will be changed to 'rented' on payment success)
+                            foreach ($availableInstances as $instance) {
+                                $instance->update(['status' => 'reserved_in_cart']);
+                            }
+                        }
                     } else {
+                        // For games and accessories, reduce the stock now but we'll handle restoration in payment webhook
                         $rentable->stok -= $itemQuantity;
+                        $rentable->save();
                     }
-                    $rentable->save();
 
                     $totalAmount += $subtotal;
                 } catch (\Exception $e) {
