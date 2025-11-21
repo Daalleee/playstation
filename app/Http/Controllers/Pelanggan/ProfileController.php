@@ -12,28 +12,30 @@ class ProfileController extends Controller
     public function show()
     {
         Gate::authorize('access-pelanggan');
-        
+
         $user = auth()->user();
-        return view('pelanggan.profile.show', compact('user'));
+
+        return view('pelanggan.profile.ecommerce_show', compact('user'));
     }
 
     public function edit()
     {
         Gate::authorize('access-pelanggan');
-        
+
         $user = auth()->user();
-        return view('pelanggan.profile.edit', compact('user'));
+
+        return view('pelanggan.profile.ecommerce_edit', compact('user'));
     }
 
     public function update(Request $request)
     {
         Gate::authorize('access-pelanggan');
-        
+
         $user = auth()->user();
-        
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'phone' => ['required', 'string', 'max:30', 'regex:/^\+62[0-9]{8,20}$/'],
             'address' => ['required', 'string', 'max:255', 'min:5'],
             'current_password' => ['nullable', 'string'],
@@ -55,10 +57,10 @@ class ProfileController extends Controller
 
         // Update password if provided
         if ($validated['password']) {
-            if (!$validated['current_password'] || !Hash::check($validated['current_password'], $user->password)) {
+            if (! $validated['current_password'] || ! Hash::check($validated['current_password'], $user->password)) {
                 return back()->withErrors(['current_password' => 'Password saat ini tidak sesuai.']);
             }
-            
+
             $user->update([
                 'password' => Hash::make($validated['password']),
             ]);
@@ -68,9 +70,10 @@ class ProfileController extends Controller
         $redirectUrl = session('redirect_after_update');
         if ($redirectUrl) {
             session()->forget('redirect_after_update');
-            return redirect($redirectUrl)->with('status', '✅ Profil berhasil diperbarui! Silakan lanjutkan pemesanan Anda.');
+
+            return redirect($redirectUrl)->with('status', 'Profil berhasil diperbarui! Silakan lanjutkan pemesanan Anda.');
         }
-        
-        return redirect()->route('pelanggan.profile.show')->with('status', '✅ Profil berhasil diperbarui! Sekarang Anda bisa melakukan pemesanan rental.');
+
+        return redirect()->route('pelanggan.profile.show')->with('status', 'Profil berhasil diperbarui! Sekarang Anda bisa melakukan pemesanan rental.');
     }
 }

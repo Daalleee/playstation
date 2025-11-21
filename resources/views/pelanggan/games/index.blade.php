@@ -35,7 +35,7 @@
         <h2>Daftar Games PlayStation</h2>
       </div>
 
-      <form method="GET" action="{{ route('pelanggan.games.list') }}" class="filter-row">
+      <form method="GET" action="{{ route('dashboard.pelanggan') }}" class="filter-row">
         <div>
           <label class="mb-1 d-block fw-bold">Platform</label>
           <select name="platform" class="select-dark">
@@ -49,14 +49,50 @@
           <label class="mb-1 d-block fw-bold">Genre</label>
           <input type="text" name="genre" value="{{ request('genre') }}" class="input-dark" placeholder="Genre" />
         </div>
-        <div>
+        <div class="position-relative">
           <label class="mb-1 d-block fw-bold">Cari Game</label>
-          <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari game" class="input-dark" />
+          <div class="position-relative">
+            <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari game" class="input-dark w-100" onkeypress="handleSearchKeyPress(event, this.form)" />
+            <button type="submit" class="search-icon-btn position-absolute top-50 start-0 translate-middle-y border-0 bg-transparent ps-3" style="margin-left: 0.5rem; z-index: 5;">
+              <i class="bi bi-search" style="color: #cfd3ff; font-size: 1.2em;"></i>
+            </button>
+          </div>
         </div>
+        <style>
+            .input-dark {
+                padding-left: 3.5rem !important;
+            }
+            .search-icon-btn {
+                cursor: pointer;
+                padding: 0;
+                width: auto;
+                height: auto;
+            }
+            .search-icon-btn:hover {
+                opacity: 0.8;
+            }
+        </style>
         <div>
           <button class="btn-cta w-100" type="submit">Cari</button>
         </div>
       </form>
+      <style>
+        .search-icon-btn {
+          cursor: pointer;
+          opacity: 0.8;
+          background: transparent !important;
+          border: none !important;
+          padding: 0 !important;
+          width: auto !important;
+          height: auto !important;
+        }
+        .search-icon-btn:hover {
+          opacity: 1;
+        }
+        .input-group-dark {
+          position: relative;
+        }
+      </style>
 
       <div class="card-dark">
         <div class="table-responsive">

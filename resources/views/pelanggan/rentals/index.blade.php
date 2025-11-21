@@ -43,30 +43,62 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
       @endif
 
-      <form method="GET" class="filter-row">
+      <form method="GET" action="{{ route('pelanggan.rentals.index') }}" class="filter-row">
         <div>
           <label class="mb-1 d-block fw-bold">Status</label>
           <select name="status" class="select-dark">
             <option value="">Semua Status</option>
-            <option value="pending">Menunggu Pembayaran</option>
-            <option value="sedang_disewa">Sedang Disewa</option>
-            <option value="menunggu_konfirmasi">Menunggu Konfirmasi</option>
-            <option value="selesai">Selesai</option>
-            <option value="cancelled">Dibatalkan</option>
+            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu Pembayaran</option>
+            <option value="sedang_disewa" {{ request('status') == 'sedang_disewa' ? 'selected' : '' }}>Sedang Disewa</option>
+            <option value="menunggu_konfirmasi" {{ request('status') == 'menunggu_konfirmasi' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
+            <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
           </select>
         </div>
         <div>
           <label class="mb-1 d-block fw-bold">Tanggal</label>
-          <input type="date" name="date" class="input-dark" />
+          <input type="date" name="date" class="input-dark" value="{{ request('date') }}" />
         </div>
-        <div>
+        <div class="position-relative">
           <label class="mb-1 d-block fw-bold">Cari Riwayat</label>
-          <input type="text" name="q" placeholder="Cari riwayat penyewaan" class="input-dark" />
+          <div class="position-relative">
+            <input type="text" name="q" placeholder="Cari riwayat penyewaan" class="input-dark w-100" value="{{ request('q') }}" onkeypress="handleRentalSearchKeyPress(event, this.form)" />
+            <button type="submit" class="search-icon-btn position-absolute top-50 start-0 translate-middle-y border-0 bg-transparent ps-3" style="margin-left: 0.5rem; z-index: 5;">
+              <i class="bi bi-search" style="color: #cfd3ff;"></i>
+            </button>
+          </div>
         </div>
+        <style>
+            .input-dark {
+                padding-left: 3.5rem !important;
+            }
+            .search-icon-btn {
+                cursor: pointer;
+                padding: 0;
+                width: auto;
+                height: auto;
+            }
+            .search-icon-btn:hover {
+                opacity: 0.8;
+            }
+        </style>
         <div>
           <button class="btn-cta w-100" type="submit">Cari</button>
         </div>
       </form>
+      <style>
+        .input-group-dark {
+          position: relative;
+        }
+      </style>
+      <script>
+        function handleRentalSearchKeyPress(event, form) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            form.submit();
+          }
+        }
+      </script>
 
       <div class="card-dark">
         <div class="table-responsive">

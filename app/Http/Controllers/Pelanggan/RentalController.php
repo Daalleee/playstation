@@ -16,16 +16,40 @@ use Illuminate\Support\Facades\Gate;
 
 class RentalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         Gate::authorize('access-pelanggan');
 
-        $rentals = Rental::where('user_id', auth()->id())
-            ->with(['items.rentable'])
-            ->latest()
-            ->get();
+        $query = Rental::where('user_id', auth()->id())
+            ->with(['items.rentable']);
 
-        return view('pelanggan.rentals.index', compact('rentals'));
+        // Search by rental code or item name
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('kode', 'like', '%'.$search.'%')
+                    ->orWhere('id', 'like', '%'.$search.'%')
+                    ->orWhereHas('items.rentable', function ($q) use ($search) {
+                        $q->where('name', 'like', '%'.$search.'%')
+                            ->orWhere('judul', 'like', '%'.$search.'%')
+                            ->orWhere('nama', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $rentals = $query->latest()->get();
+
+        return view('pelanggan.rentals.ecommerce_index', compact('rentals'));
     }
 
     public function create(Request $request)
@@ -72,7 +96,7 @@ class RentalController extends Controller
                         'stok' => $item->$stockField,
                     ]]);
 
-                    return view('pelanggan.rentals.create', ['cartItems' => $cartItems, 'directItem' => true]);
+                    return view('pelanggan.rentals.ecommerce_create', ['cartItems' => $cartItems, 'directItem' => true]);
                 }
             }
         }
@@ -106,7 +130,7 @@ class RentalController extends Controller
             }
         }
 
-        return view('pelanggan.rentals.create', ['cartItems' => $cartItems, 'directItem' => false]);
+        return view('pelanggan.rentals.ecommerce_create', ['cartItems' => $cartItems, 'directItem' => false]);
     }
 
     public function store(Request $request, MidtransService $midtrans)
@@ -478,7 +502,7 @@ class RentalController extends Controller
                 ]);
 
                 // Redirect to payment page
-                return view('pelanggan.payment.midtrans', compact('rental', 'snapToken', 'orderId'));
+                return view('pelanggan.payment.ecommerce_midtrans', compact('rental', 'snapToken', 'orderId'));
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -529,7 +553,7 @@ class RentalController extends Controller
             }
         }
 
-        return view('pelanggan.rentals.show', compact('rental'));
+        return view('pelanggan.rentals.ecommerce_show', compact('rental'));
     }
 
     /**

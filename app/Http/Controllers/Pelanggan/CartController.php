@@ -16,7 +16,7 @@ class CartController extends Controller
         // Get cart items from database
         $cartItems = Cart::where('user_id', auth()->id())->get();
 
-        return view('pelanggan.cart.index', compact('cartItems'));
+        return view('pelanggan.cart.ecommerce_index', compact('cartItems'));
     }
 
     public function add(Request $request)
@@ -204,6 +204,17 @@ class CartController extends Controller
         }
 
         return redirect()->back()->with('success', $message);
+    }
+
+    public function count(Request $request)
+    {
+        Gate::authorize('access-pelanggan');
+
+        $count = Cart::where('user_id', auth()->id())->sum('quantity');
+
+        return response()->json([
+            'count' => $count,
+        ]);
     }
 
     public function update(Request $request)

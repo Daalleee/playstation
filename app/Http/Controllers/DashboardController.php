@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Rental;
 use App\Models\RentalItem;
 use App\Models\UnitPS;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -170,63 +171,106 @@ class DashboardController extends Controller
         ));
     }
 
-    public function pelanggan()
+    public function pelanggan(Request $request)
     {
         Gate::authorize('access-pelanggan');
+
+        // Search parameter
+        $search = $request->get('q');
 
         // Get latest available items with stock > 0 for display on landing page
-        $unitps = UnitPS::with(['instances'])  // Include all instances, not just available
-            ->orderByDesc('id')
-            ->limit(8)
-            ->get();
+        $unitpsQuery = UnitPS::with(['instances']); // Include all instances, not just available
+        if ($search) {
+            $unitpsQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('model', 'like', '%'.$search.'%')
+                    ->orWhere('brand', 'like', '%'.$search.'%');
+            });
+        }
+        $unitps = $unitpsQuery->orderByDesc('id')->limit(8)->get();
 
-        $games = Game::where('stok', '>', 0)
-            ->orderByDesc('id')
-            ->limit(8)
-            ->get();
+        $gamesQuery = Game::where('stok', '>', 0);
+        if ($search) {
+            $gamesQuery->where(function ($q) use ($search) {
+                $q->where('judul', 'like', '%'.$search.'%')
+                    ->orWhere('platform', 'like', '%'.$search.'%')
+                    ->orWhere('genre', 'like', '%'.$search.'%');
+            });
+        }
+        $games = $gamesQuery->orderByDesc('id')->limit(8)->get();
 
-        $accessories = Accessory::where('stok', '>', 0)
-            ->orderByDesc('id')
-            ->limit(8)
-            ->get();
+        $accessoriesQuery = Accessory::where('stok', '>', 0);
+        if ($search) {
+            $accessoriesQuery->where(function ($q) use ($search) {
+                $q->where('nama', 'like', '%'.$search.'%')
+                    ->orWhere('jenis', 'like', '%'.$search.'%');
+            });
+        }
+        $accessories = $accessoriesQuery->orderByDesc('id')->limit(8)->get();
 
-        return view('dashboards.pelanggan', compact('unitps', 'games', 'accessories'));
+        return view('dashboards.ecommerce_pelanggan', compact('unitps', 'games', 'accessories'));
     }
 
-    public function unitpsLanding()
+    public function unitpsLanding(Request $request)
     {
         Gate::authorize('access-pelanggan');
 
-        // Get latest Unit PS (all of them, even if no stock) for display on Unit PS landing page
-        $unitps = UnitPS::with(['instances'])  // Include all instances
-            ->orderByDesc('id')
-            ->get(); // Get all units
+        // Get Unit PS with search functionality
+        $query = UnitPS::with(['instances']);
 
-        return view('dashboards.unitps', compact('unitps'));
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('model', 'like', '%'.$search.'%')
+                    ->orWhere('brand', 'like', '%'.$search.'%');
+            });
+        }
+
+        $unitps = $query->orderByDesc('id')->get(); // Get all units
+
+        return view('dashboards.ecommerce_unitps', compact('unitps'));
     }
 
-    public function gameLanding()
+    public function gameLanding(Request $request)
     {
         Gate::authorize('access-pelanggan');
 
-        // Get latest available Games with stock > 0 for display on Game landing page
-        $games = Game::where('stok', '>', 0)
-            ->orderByDesc('id')
-            ->get(); // Get all available games, not just 6
+        // Get available Games with search functionality
+        $query = Game::where('stok', '>', 0);
 
-        return view('dashboards.game', compact('games'));
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('judul', 'like', '%'.$search.'%')
+                    ->orWhere('platform', 'like', '%'.$search.'%')
+                    ->orWhere('genre', 'like', '%'.$search.'%');
+            });
+        }
+
+        $games = $query->orderByDesc('id')->get(); // Get all available games, not just 6
+
+        return view('dashboards.ecommerce_game', compact('games'));
     }
 
-    public function accessoryLanding()
+    public function accessoryLanding(Request $request)
     {
         Gate::authorize('access-pelanggan');
 
-        // Get latest available Accessories with stock > 0 for display on Accessory landing page
-        $accessories = Accessory::where('stok', '>', 0)
-            ->orderByDesc('id')
-            ->get(); // Get all available accessories, not just 6
+        // Get available Accessories with search functionality
+        $query = Accessory::where('stok', '>', 0);
 
-        return view('dashboards.accessory', compact('accessories'));
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', '%'.$search.'%')
+                    ->orWhere('jenis', 'like', '%'.$search.'%');
+            });
+        }
+
+        $accessories = $query->orderByDesc('id')->get(); // Get all available accessories, not just 6
+
+        return view('dashboards.ecommerce_accessory', compact('accessories'));
     }
 
     public function adminReport()

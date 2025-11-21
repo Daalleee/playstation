@@ -52,14 +52,58 @@
             <option value="Sony" @selected(request('brand')==='Sony')>Sony</option>
           </select>
         </div>
-        <div>
+        <div class="position-relative">
           <label class="mb-1 d-block fw-bold">Cari unit</label>
-          <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari unit PlayStation" class="input-dark" />
+          <div class="position-relative">
+            <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari unit PlayStation" class="input-dark w-100" onkeypress="handleSearchKeyPress(event, this.form)" />
+            <button type="submit" class="search-icon-btn position-absolute top-50 start-0 translate-middle-y border-0 bg-transparent ps-3" style="margin-left: 0.5rem; z-index: 5;">
+              <i class="bi bi-search" style="color: #cfd3ff; font-size: 1.2em;"></i>
+            </button>
+          </div>
         </div>
+        <style>
+            .input-dark {
+                padding-left: 3.5rem !important;
+            }
+            .search-icon-btn {
+                cursor: pointer;
+                padding: 0;
+                width: auto;
+                height: auto;
+            }
+            .search-icon-btn:hover {
+                opacity: 0.8;
+            }
+        </style>
         <div>
           <button class="btn-cta" type="submit" style="width:120px; padding:.65rem 1.5rem;">Cari</button>
         </div>
       </form>
+      <style>
+        .search-icon-btn {
+          cursor: pointer;
+          opacity: 0.8;
+          background: transparent !important;
+          border: none !important;
+          padding: 0 !important;
+          width: auto !important;
+          height: auto !important;
+        }
+        .search-icon-btn:hover {
+          opacity: 1;
+        }
+        .input-group-dark {
+          position: relative;
+        }
+      </style>
+      <script>
+        function handleSearchKeyPress(event, form) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            form.submit();
+          }
+        }
+      </script>
 
       <div class="card-dark">
         <div class="table-responsive">

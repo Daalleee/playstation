@@ -1,31 +1,30 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\GoogleController;
-use App\Http\Controllers\Admin\PelangganController;
-use App\Http\Controllers\Admin\UnitPSController;
-use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\AccessoryController;
-use App\Http\Controllers\Kasir\RentalController as KasirRentalController;
-use App\Http\Controllers\Kasir\PaymentController as KasirPaymentController;
-use App\Http\Controllers\Pelanggan\UnitPSController as PelangganUnitPSController;
-use App\Http\Controllers\Pelanggan\GameController as PelangganGameController;
-use App\Http\Controllers\Pelanggan\AccessoryController as PelangganAccessoryController;
-use App\Http\Controllers\Pelanggan\ProfileController as PelangganProfileController;
-use App\Http\Controllers\Pelanggan\CartController as PelangganCartController;
-use App\Http\Controllers\Pelanggan\RentalController as PelangganRentalController;
-use App\Http\Controllers\Admin\StaffController;
-use App\Http\Controllers\Owner\StatusProdukController;
-use App\Http\Controllers\Owner\LaporanController;
-use App\Http\Controllers\Kasir\TransaksiController;
+use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\ImpersonateController;
+use App\Http\Controllers\Admin\PelangganController;
+use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Admin\UnitPSController;
+use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Kasir\RentalController as KasirRentalController;
+use App\Http\Controllers\Kasir\TransaksiController;
 use App\Http\Controllers\MidtransController;
+use App\Http\Controllers\Owner\LaporanController;
+use App\Http\Controllers\Owner\StatusProdukController;
+use App\Http\Controllers\Pelanggan\AccessoryController as PelangganAccessoryController;
+use App\Http\Controllers\Pelanggan\CartController as PelangganCartController;
+use App\Http\Controllers\Pelanggan\GameController as PelangganGameController;
+use App\Http\Controllers\Pelanggan\ProfileController as PelangganProfileController;
+use App\Http\Controllers\Pelanggan\RentalController as PelangganRentalController;
+use App\Http\Controllers\Pelanggan\UnitPSController as PelangganUnitPSController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Midtrans webhook (must be outside auth middleware)
 Route::post('midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
@@ -34,6 +33,7 @@ Route::get('midtrans/status/{orderId}', [MidtransController::class, 'checkStatus
 Route::get('/', function () {
     if (Auth::check()) {
         $role = Auth::user()->role;
+
         return match ($role) {
             'admin' => redirect()->route('dashboard.admin'),
             'kasir' => redirect()->route('dashboard.kasir'),
@@ -42,6 +42,7 @@ Route::get('/', function () {
             default => redirect()->route('dashboard.pelanggan'),
         };
     }
+
     return view('landing');
 });
 
@@ -50,9 +51,10 @@ Route::view('/landing', 'landing')->name('landing');
 
 // Serve files from the public disk without requiring the /public/storage symlink
 Route::get('/media/{path}', function (string $path) {
-    if (!Storage::disk('public')->exists($path)) {
+    if (! Storage::disk('public')->exists($path)) {
         abort(404);
     }
+
     return Storage::disk('public')->response($path);
 })->where('path', '.*')->name('media');
 
@@ -74,12 +76,12 @@ Route::get('/auth', function () {
 Route::middleware(['web', 'auth'])->group(function () {
     // Admin - Pelanggan
     Route::resource('admin/pelanggan', PelangganController::class)->parameters([
-        'pelanggan' => 'pelanggan'
+        'pelanggan' => 'pelanggan',
     ])->names('admin.pelanggan');
 
     // Admin - UnitPS
     Route::resource('admin/unitps', UnitPSController::class)->parameters([
-        'unitps' => 'unitp'
+        'unitps' => 'unitp',
     ])->names('admin.unitps');
 
     // Admin - Games
@@ -91,7 +93,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     // Admin - Staff management (fallback and specific routes)
     Route::get('admin/staff', [StaffController::class, 'index'])->name('admin.staff.index');
     Route::get('admin/staff/create', [StaffController::class, 'create'])->name('admin.staff.create');
-    
+
     // Admin - Kelola Admin
     Route::get('admin/admin', [StaffController::class, 'adminIndex'])->name('admin.admin.index');
     Route::get('admin/admin/create', [StaffController::class, 'adminCreate'])->name('admin.admin.create');
@@ -99,7 +101,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('admin/admin/{user}/edit', [StaffController::class, 'edit'])->name('admin.admin.edit');
     Route::put('admin/admin/{user}', [StaffController::class, 'update'])->name('admin.admin.update');
     Route::delete('admin/admin/{user}', [StaffController::class, 'destroy'])->name('admin.admin.destroy');
-    
+
     // Admin - Kelola Pemilik
     Route::get('admin/pemilik', [StaffController::class, 'pemilikIndex'])->name('admin.pemilik.index');
     Route::get('admin/pemilik/create', [StaffController::class, 'pemilikCreate'])->name('admin.pemilik.create');
@@ -107,7 +109,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('admin/pemilik/{user}/edit', [StaffController::class, 'edit'])->name('admin.pemilik.edit');
     Route::put('admin/pemilik/{user}', [StaffController::class, 'update'])->name('admin.pemilik.update');
     Route::delete('admin/pemilik/{user}', [StaffController::class, 'destroy'])->name('admin.pemilik.destroy');
-    
+
     // Admin - Kelola Kasir
     Route::get('admin/kasir', [StaffController::class, 'kasirIndex'])->name('admin.kasir.index');
     Route::get('admin/kasir/create', [StaffController::class, 'kasirCreate'])->name('admin.kasir.create');
@@ -127,6 +129,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/');
     })->name('logout');
 });
@@ -151,6 +154,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('pelanggan/cart/update', [PelangganCartController::class, 'update'])->name('pelanggan.cart.update');
     Route::post('pelanggan/cart/remove', [PelangganCartController::class, 'remove'])->name('pelanggan.cart.remove');
     Route::post('pelanggan/cart/clear', [PelangganCartController::class, 'clear'])->name('pelanggan.cart.clear');
+    Route::get('pelanggan/cart/count', [PelangganCartController::class, 'count'])->name('pelanggan.cart.count');
 
     // Pelanggan - Rentals
     Route::get('pelanggan/rentals', [PelangganRentalController::class, 'index'])->name('pelanggan.rentals.index');
@@ -173,7 +177,7 @@ Route::middleware(['web', 'auth', 'can:access-kasir'])->prefix('kasir')->name('k
     Route::get('transaksi/{rental}', [TransaksiController::class, 'show'])->name('transaksi.show'); // detail
     Route::post('transaksi/{rental}/pengembalian', [TransaksiController::class, 'pengembalian'])->name('transaksi.pengembalian'); // konfirmasi
     Route::post('transaksi/{rental}/aktifkan', [TransaksiController::class, 'aktifkan'])->name('transaksi.aktifkan'); // aktifkan sewa setelah dibayar
-    
+
     // Kasir - Rentals Management
     Route::get('rentals', [KasirRentalController::class, 'index'])->name('rentals.index');
     Route::get('rentals/{rental}', [KasirRentalController::class, 'show'])->name('rentals.show');
