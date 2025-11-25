@@ -108,11 +108,11 @@
                                         </td>
                                         <td>
                                             @if($rental->paid >= $rental->total)
-                                                <span class="badge bg-success">✓ LUNAS</span>
+                                                <span class="badge bg-success">LUNAS</span>
                                             @elseif($rental->paid > 0)
-                                                <span class="badge bg-warning">⚠ KURANG</span>
+                                                <span class="badge bg-warning">KURANG</span>
                                             @else
-                                                <span class="badge bg-danger">✗ BELUM</span>
+                                                <span class="badge bg-danger"> Belum Lunas</span>
                                             @endif
                                         </td>
                                         <td>

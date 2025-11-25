@@ -42,6 +42,9 @@
                 <a href="{{ route('pelanggan.games.index') }}" class="btn btn-outline-light btn-lg px-4 py-2">
                     <i class="bi bi-disc me-2"></i>Jelajahi Games
                 </a>
+                  <a href="{{ route('pelanggan.accessories.index') }}" class="btn btn-outline-light btn-lg px-4 py-2">
+                    <i class="bi bi-disc me-2"></i>Jelajahi Aksesoris
+                </a>
             </div>
         </div>
     </section>
@@ -77,18 +80,19 @@
         }
     </script>
 
-    <div class="category-nav">
+{{-- untuk kategori semua produk --}}
+    {{-- <div class="category-nav">
         <a href="{{ route('dashboard.pelanggan', ['q' => request('q')]) }}" class="category-item {{ !request('model') && !request()->routeIs('pelanggan.games.*') && !request()->routeIs('pelanggan.accessories.*') && !request()->routeIs('pelanggan.unitps.*') ? 'active' : '' }}">Semua Produk</a>
         <a href="{{ route('pelanggan.unitps.index', ['q' => request('q'), 'model' => 'PlayStation 5']) }}" class="category-item {{ request('model') == 'PlayStation 5' || request()->routeIs('pelanggan.unitps.*') ? 'active' : '' }}">PlayStation 5</a>
         <a href="{{ route('pelanggan.unitps.index', ['q' => request('q'), 'model' => 'PlayStation 4']) }}" class="category-item {{ request('model') == 'PlayStation 4' || request()->routeIs('pelanggan.unitps.*') ? 'active' : '' }}">PlayStation 4</a>
         <a href="{{ route('pelanggan.games.index', ['q' => request('q')]) }}" class="category-item {{ request()->routeIs('pelanggan.games.*') ? 'active' : '' }}">Games</a>
         <a href="{{ route('pelanggan.accessories.index', ['q' => request('q')]) }}" class="category-item {{ request()->routeIs('pelanggan.accessories.*') ? 'active' : '' }}">Aksesoris</a>
-    </div>
+    </div> --}}
 
     <!-- Featured PlayStation Units -->
     <section class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="section-title">Unit PlayStation Terpopuler</h2>
+            <h2 class="section-title">Unit PlayStation</h2>
             <a href="{{ route('pelanggan.unitps.index') }}" class="btn btn-outline-primary">
                 <i class="bi bi-arrow-right me-1"></i>Lihat Semua
             </a>

@@ -43,18 +43,19 @@
         }
     </script>
 
-    <div class="category-nav">
+{{-- untuk kategori unit ps --}}
+    {{-- <div class="category-nav">
         <div class="category-item active">Semua</div>
         <div class="category-item">PlayStation 5</div>
         <div class="category-item">PlayStation 4</div>
         <div class="category-item">PlayStation 3</div>
         <div class="category-item">PlayStation 2</div>
-    </div>
+    </div> --}}
 
     <!-- PlayStation Units -->
     <section class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="section-title">Unit PlayStation Tersedia</h2>
+            <h2 class="section-title">Unit PlayStation</h2>
         </div>
         
         <div class="row g-4">

@@ -43,13 +43,14 @@
         }
     </script>
 
-    <div class="category-nav">
+{{-- untuk kategori game --}}
+    {{-- <div class="category-nav">
         <div class="category-item active">Semua</div>
         <div class="category-item">Action</div>
         <div class="category-item">Adventure</div>
         <div class="category-item">RPG</div>
         <div class="category-item">Sports</div>
-    </div>
+    </div> --}}
 
     <!-- Games -->
     <section class="mb-5">

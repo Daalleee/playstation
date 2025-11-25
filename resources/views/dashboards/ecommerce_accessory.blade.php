@@ -43,18 +43,19 @@
         }
     </script>
 
-    <div class="category-nav">
+{{-- untuk kategori game --}}
+    {{-- <div class="category-nav">
         <div class="category-item active">Semua</div>
         <div class="category-item">Controller</div>
         <div class="category-item">Charging Station</div>
         <div class="category-item">Headset</div>
         <div class="category-item">Memory Card</div>
-    </div>
+    </div> --}}
 
     <!-- Accessories -->
     <section class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="section-title">Aksesoris Tersedia</h2>
+            <h2 class="section-title">Aksesoris</h2>
         </div>
         
         <div class="row g-4">
