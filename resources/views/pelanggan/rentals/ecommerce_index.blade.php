@@ -1,6 +1,6 @@
 @extends('layouts.ecommerce')
 
-@section('title', 'Rental History - PlayStation Rental')
+@section('title', 'Rental History - PlayStation')
 
 @section('content')
 <div class="container">

@@ -1,6 +1,6 @@
 @extends('layouts.ecommerce')
 
-@section('title', 'Detail Penyewaan #' . $rental->id . ' - PlayStation Rental')
+@section('title', 'Detail Penyewaan #' . $rental->id . ' - PlayStation')
 
 @section('content')
 <div class="container">

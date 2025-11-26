@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Rental PlayStation') - PlayStation Rental</title>
+    <title>@yield('title', 'Rental PlayStation') - PlayStation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -242,7 +242,7 @@
                 <!-- Logo on the left -->
                 <div class="d-flex align-items-center">
                     <i class="bi bi-playstation fs-4 me-2"></i>
-                    <span class="h6 mb-0 fw-bold text-white">PlayStation Rental</span>
+                    <span class="h6 mb-0 fw-bold text-white">PlayStation</span>
                 </div>
 
                 <!-- Mobile menu button -->
@@ -360,7 +360,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <h5>PlayStation Rental</h5>
+                    <h5>PlayStation</h5>
                     <p>Tempat terbaik untuk menyewa PlayStation, games, dan aksesoris dengan harga terjangkau.</p>
                 </div>
                 <div class="col-md-4 mb-4">
@@ -383,7 +383,7 @@
             </div>
             <hr class="my-4">
             <div class="text-center">
-                <p class="mb-0">&copy; {{ date('Y') }} PlayStation Rental. All rights reserved.</p>
+                <p class="mb-0">&copy; {{ date('Y') }} PlayStation. All rights reserved.</p>
             </div>
         </div>
     </footer>
