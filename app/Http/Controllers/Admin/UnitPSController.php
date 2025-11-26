@@ -38,6 +38,7 @@ class UnitPSController extends Controller
             'stok' => ['required', 'integer', 'min:0', 'max:1000'],
             'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
             'kondisi' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', 'string', 'in:Tersedia,Disewa,Maintenance'],
         ], [
             'nomor_seri.regex' => 'Nomor seri hanya boleh berisi huruf dan angka.',
             'nomor_seri.unique' => 'Nomor seri sudah digunakan.',
@@ -59,6 +60,7 @@ class UnitPSController extends Controller
             'price_per_hour' => $validated['harga_per_jam'],
             'stock' => $validated['stok'],
             'kondisi' => $validated['kondisi'] ?? null,
+            'status' => $validated['status'],
             // Also populate Indonesian fields
             'nama' => $validated['nama'],
             'merek' => $validated['merek'],
@@ -93,6 +95,7 @@ class UnitPSController extends Controller
             'stok' => ['required', 'integer', 'min:0', 'max:1000'],
             'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
             'kondisi' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', 'string', 'in:Tersedia,Disewa,Maintenance'],
         ], [
             'nomor_seri.regex' => 'Nomor seri hanya boleh berisi huruf dan angka.',
             'nomor_seri.unique' => 'Nomor seri sudah digunakan.',
@@ -117,6 +120,7 @@ class UnitPSController extends Controller
             'price_per_hour' => $validated['harga_per_jam'],
             'stock' => $validated['stok'],
             'kondisi' => $validated['kondisi'] ?? null,
+            'status' => $validated['status'],
             // Also populate Indonesian fields
             'nama' => $validated['nama'],
             'merek' => $validated['merek'],

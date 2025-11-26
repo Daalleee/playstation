@@ -21,7 +21,59 @@
         .nav-link{color:var(--muted);padding:12px 14px;border-radius:12px;display:flex;align-items:center;gap:12px;text-decoration:none}
         .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.08);color:#fff}
         .card{background: #49497A; color:var(--text);border:0;box-shadow:0 6px 24px rgba(0,0,0,.25)}
-        .kpi-pill{background:rgba(255,255,255,.08); border-radius:18px; padding:22px; text-align:center; font-weight:700;}
+        .kpi-pill{
+            background: radial-gradient(circle at top left, rgba(129,140,248,.4), transparent 55%) rgba(15,23,42,.7);
+            border-radius: 20px;
+            padding: 18px 20px;
+            border: 1px solid rgba(148,163,184,.6);
+            box-shadow: 0 14px 32px rgba(15,23,42,.8);
+            backdrop-filter: blur(10px);
+            transition: transform .16s ease-out, box-shadow .16s ease-out, border-color .16s ease-out;
+        }
+        .kpi-pill:hover{
+            transform: translateY(-2px);
+            box-shadow: 0 20px 46px rgba(15,23,42,.9);
+            border-color: rgba(191,219,254,.9);
+        }
+        .kpi-pill--clickable{ cursor:pointer; }
+        .kpi-pill--active{
+            border-color: rgba(191,219,254,.98);
+            box-shadow: 0 24px 56px rgba(59,130,246,.7);
+        }
+        .kpi-label{
+            font-size: .78rem;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: .25rem;
+        }
+        .kpi-value{
+            font-size: 1.9rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .kpi-icon{
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#fff;
+            box-shadow: 0 10px 25px rgba(15,23,42,.8);
+        }
+        .kpi-icon i{
+            font-size: 1.5rem;
+        }
+        .kpi-icon--purple{
+            background: radial-gradient(circle at top, #6366f1, #312e81);
+        }
+        .kpi-icon--amber{
+            background: radial-gradient(circle at top, #f97316, #92400e);
+        }
+        .kpi-icon--green{
+            background: radial-gradient(circle at top, #22c55e, #065f46);
+        }
         .table{color:var(--text); background-color: #49497A;}
         .table thead th{background:#2d3192;color:#dbe0ff;border:0}
         .table tbody tr{background: #5a5a8a;}

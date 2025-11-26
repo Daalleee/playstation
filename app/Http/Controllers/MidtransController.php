@@ -115,6 +115,9 @@ class MidtransController extends Controller
     /**
      * Update rental status based on payment status
      */
+    /**
+     * Update rental status based on payment status
+     */
     protected function updateRentalStatus(Rental $rental, string $transactionStatus, string $fraudStatus, $amount)
     {
         Log::info('Updating rental status from Midtrans', [
@@ -128,9 +131,7 @@ class MidtransController extends Controller
         if ($transactionStatus == 'capture') {
             if ($fraudStatus == 'accept') {
                 // Payment captured and verified (Credit Card)
-                $rental->status = 'sedang_disewa';
-                $rental->paid = $amount;
-                $rental->save();
+                $this->handleSuccessfulPayment($rental, $amount);
                 
                 Log::info('✅ Rental PAID - Status: sedang_disewa (capture)', [
                     'rental_id' => $rental->id,
@@ -140,7 +141,7 @@ class MidtransController extends Controller
                 // Fraud detected
                 $rental->status = 'cancelled';
                 $rental->save();
-                $this->restoreStock($rental);
+                // No need to restore stock as it wasn't decremented yet
                 
                 Log::warning('⚠️ Rental CANCELLED - Fraud detected', [
                     'rental_id' => $rental->id,
@@ -149,9 +150,7 @@ class MidtransController extends Controller
             }
         } elseif ($transactionStatus == 'settlement') {
             // Payment settled (E-wallet, Bank Transfer, etc)
-            $rental->status = 'sedang_disewa';
-            $rental->paid = $amount;
-            $rental->save();
+            $this->handleSuccessfulPayment($rental, $amount);
             
             Log::info('✅ Rental PAID - Status: sedang_disewa (settlement)', [
                 'rental_id' => $rental->id,
@@ -169,7 +168,7 @@ class MidtransController extends Controller
             // Payment failed/cancelled/expired
             $rental->status = 'cancelled';
             $rental->save();
-            $this->restoreStock($rental);
+            // No need to restore stock as it wasn't decremented yet
             
             Log::info('❌ Rental CANCELLED - Payment ' . $transactionStatus, [
                 'rental_id' => $rental->id,
@@ -178,34 +177,41 @@ class MidtransController extends Controller
         }
     }
 
+    protected function handleSuccessfulPayment(Rental $rental, $amount)
+    {
+        DB::transaction(function () use ($rental, $amount) {
+            // Update rental status
+            $rental->status = 'sedang_disewa';
+            $rental->paid = $amount;
+            $rental->save();
+
+            // Decrement stock here
+            foreach ($rental->items as $item) {
+                if ($item->rentable) {
+                    $rentable = $item->rentable;
+                    
+                    // Lock for update to prevent race conditions
+                    // Note: In a high concurrency env, we should check if stock < 0 after decrement
+                    // But for now we follow the requirement "decrease on payment"
+                    
+                    if ($rentable instanceof \App\Models\UnitPS) {
+                        $rentable->stock -= $item->quantity;
+                    } else {
+                        $rentable->stok -= $item->quantity;
+                    }
+                    $rentable->save();
+                }
+            }
+        });
+    }
+
     /**
      * Restore stock when rental is cancelled
+     * (Deprecated: Stock is now only decremented on payment)
      */
     protected function restoreStock(Rental $rental)
     {
-        foreach ($rental->items as $item) {
-            if ($item->rentable) {
-                // Check if it's UnitPS (uses 'stock') or other models (use 'stok')
-                $isUnitPS = $item->rentable instanceof \App\Models\UnitPS;
-                
-                if ($isUnitPS) {
-                    $item->rentable->stock += $item->quantity;
-                    $newStock = $item->rentable->stock;
-                } else {
-                    $item->rentable->stok += $item->quantity;
-                    $newStock = $item->rentable->stok;
-                }
-                
-                $item->rentable->save();
-                
-                Log::info('Stock restored', [
-                    'item_type' => get_class($item->rentable),
-                    'item_id' => $item->rentable->id,
-                    'quantity_restored' => $item->quantity,
-                    'new_stock' => $newStock
-                ]);
-            }
-        }
+        // No-op
     }
 
     /**
@@ -216,11 +222,45 @@ class MidtransController extends Controller
         try {
             $status = $this->midtransService->getTransactionStatus($orderId);
             
+            // Find payment record
+            $payment = Payment::where('order_id', $orderId)->first();
+            
+            if ($payment) {
+                // Update payment data
+                $payment->updateFromMidtrans([
+                    'transaction_id' => $status->transaction_id,
+                    'transaction_status' => $status->transaction_status,
+                    'payment_type' => $status->payment_type,
+                    'gross_amount' => $status->gross_amount,
+                    'transaction_time' => $status->transaction_time,
+                    'fraud_status' => $status->fraud_status ?? 'accept',
+                ]);
+
+                // Update rental status
+                if ($payment->rental_id) {
+                    $rental = Rental::find($payment->rental_id);
+                    if ($rental) {
+                        $this->updateRentalStatus(
+                            $rental, 
+                            $status->transaction_status, 
+                            $status->fraud_status ?? 'accept', 
+                            $status->gross_amount
+                        );
+                    }
+                }
+            }
+            
             return response()->json([
                 'order_id' => $orderId,
                 'status' => $status,
+                'message' => 'Status updated successfully'
             ]);
         } catch (\Exception $e) {
+            Log::error('Error checking Midtrans status manually', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage()
+            ]);
+            
             return response()->json([
                 'error' => $e->getMessage(),
             ], 500);

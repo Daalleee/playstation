@@ -60,9 +60,22 @@ class Cart extends Model
      */
     public function getItemImageAttribute()
     {
-        if ($this->item && $this->item->gambar) {
-            return asset('storage/' . $this->item->gambar);
+        if (!$this->item) {
+            return 'https://placehold.co/100x100/49497A/FFFFFF?text=No+Image';
         }
+
+        // UnitPS uses 'foto', others use 'gambar'
+        $imageField = $this->type === 'unitps' ? 'foto' : 'gambar';
+        $imagePath = $this->item->$imageField;
+
+        if ($imagePath) {
+            // Check if it's a full URL (e.g. from seeder)
+            if (str_starts_with($imagePath, 'http')) {
+                return $imagePath;
+            }
+            return asset('storage/' . $imagePath);
+        }
+        
         return 'https://placehold.co/100x100/49497A/FFFFFF?text=No+Image';
     }
 
