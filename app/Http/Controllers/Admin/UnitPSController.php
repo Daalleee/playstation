@@ -69,10 +69,52 @@ class UnitPSController extends Controller
     public function store(Request $request)
     {
         Gate::authorize('access-admin');
+        $validated = $request->validate([
+            'nama' => ['required', 'string', 'max:255'],
+            'merek' => ['required', 'string', 'max:255'],
+            'model' => ['required', 'string', 'max:100'],
+            'nomor_seri' => ['required', 'string', 'max:255', 'unique:unit_ps,nomor_seri', 'regex:/^[A-Za-z0-9]+$/'],
+            'harga_per_jam' => ['required', 'numeric', 'min:0', 'max:999999'],
+            'stok' => ['required', 'integer', 'min:0', 'max:1000'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
+            'kondisi' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', 'string', 'in:Tersedia,Disewa,Maintenance'],
+        ], [
+            'nomor_seri.regex' => 'Nomor seri hanya boleh berisi huruf dan angka.',
+            'nomor_seri.unique' => 'Nomor seri sudah digunakan.',
+        ]);
 
-        // In the fixed master unit system, we don't allow creating new units
-        // Redirect to index with an error message
-        return redirect()->route('admin.unitps.index')->with('status', 'Hanya unit master yang diizinkan - gunakan fitur edit untuk mengubah unit yang sudah ada.');
+        if ($request->hasFile('foto')) {
+            $path = $request->file('foto')->store('images/unitps', 'public');
+            $validated['foto'] = $path;
+        } else {
+            unset($validated['foto']);
+        }
+
+        // Kompatibilitas kolom lama - mapping field Indonesia ke field database
+        $data = [
+            'name' => $validated['nama'],
+            'brand' => $validated['merek'],
+            'model' => $validated['model'],
+            'serial_number' => $validated['nomor_seri'],
+            'price_per_hour' => $validated['harga_per_jam'],
+            'stock' => $validated['stok'],
+            'kondisi' => $validated['kondisi'] ?? null,
+            'status' => $validated['status'],
+            // Also populate Indonesian fields
+            'nama' => $validated['nama'],
+            'merek' => $validated['merek'],
+            'nomor_seri' => $validated['nomor_seri'],
+            'harga_per_jam' => $validated['harga_per_jam'],
+            'stok' => $validated['stok'],
+        ];
+
+        if (isset($validated['foto'])) {
+            $data['foto'] = $validated['foto'];
+        }
+
+        UnitPS::create($data);
+        return redirect()->route('admin.unitps.index')->with('status', 'Unit PS dibuat');
     }
 
     public function edit(UnitPS $unitp)
@@ -99,8 +141,7 @@ class UnitPSController extends Controller
             'stok' => ['required', 'integer', 'min:0', 'max:1000'], // Allow 0 stock for master units
             'foto' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
             'kondisi' => ['nullable', 'string', 'max:255'],
-            'serial_numbers' => ['required', 'array', 'size:'.$request->input('stok')],
-            'serial_numbers.*' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z0-9]+$/', 'distinct'],
+            'status' => ['required', 'string', 'in:Tersedia,Disewa,Maintenance'],
         ], [
             'serial_numbers.regex' => 'Nomor seri hanya boleh berisi huruf dan angka.',
             'serial_numbers.distinct' => 'Nomor seri harus unik.',
@@ -161,6 +202,7 @@ class UnitPSController extends Controller
             'price_per_hour' => $validated['harga_per_jam'],
             'stock' => $validated['stok'],
             'kondisi' => $validated['kondisi'] ?? null,
+            'status' => $validated['status'],
             // Also populate Indonesian fields
             'nama' => $validated['nama'],
             'merek' => $validated['merek'],

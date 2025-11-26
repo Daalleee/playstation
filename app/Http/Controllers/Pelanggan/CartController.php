@@ -154,45 +154,30 @@ class CartController extends Controller
                 $existingCartItem->update(['quantity' => $newQuantity]);
             }
         } else {
-            // For UnitPS, reserve specific instances when adding to cart
-            $reservedInstanceIds = [];
-            if ($request->type === 'unitps') {
-                // Get available instances and reserve them by marking as 'reserved_in_cart'
-                $availableInstances = $item->instances()
-                    ->where('status', 'available')
-                    ->limit($request->quantity)
-                    ->get();
-
-                if ($availableInstances->count() < $request->quantity) {
-                    if ($request->wantsJson()) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Stok tidak mencukupi!',
-                        ], 400);
-                    }
-
-                    return redirect()->back()->with('error', 'Stok tidak mencukupi!');
+            // Add new item to cart
+            $price = $request->type === 'unitps' ? $item->harga_per_jam : $item->harga_per_hari;
+            $name = $request->type === 'unitps' ? $item->nama : ($item->nama ?? $item->judul);
+            
+            try {
+                Cart::create([
+                    'user_id' => auth()->id(),
+                    'type' => $request->type,
+                    'item_id' => $request->id,
+                    'quantity' => $request->quantity,
+                    'price' => $price,
+                    'name' => $name,
+                    'price_type' => $request->price_type,
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Cart Add Error: ' . $e->getMessage());
+                if($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Server Error: ' . $e->getMessage()
+                    ], 500);
                 }
-
-                foreach ($availableInstances as $instance) {
-                    $instance->update(['status' => 'reserved_in_cart']);
-                    $reservedInstanceIds[] = $instance->id;
-                }
+                return redirect()->back()->with('error', 'Server Error: ' . $e->getMessage());
             }
-
-            $price = $request->type === 'unitps' ? $item->price_per_hour : $item->harga_per_hari;
-            $name = $request->type === 'unitps' ? $item->name : ($item->nama ?? $item->judul);
-
-            Cart::create([
-                'user_id' => auth()->id(),
-                'type' => $request->type,
-                'item_id' => $request->id,
-                'quantity' => $request->quantity,
-                'reserved_instance_ids' => $reservedInstanceIds,
-                'price' => $price,
-                'name' => $name,
-                'price_type' => $request->price_type,
-            ]);
         }
 
         $message = 'Item berhasil ditambahkan ke keranjang!';

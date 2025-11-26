@@ -19,37 +19,43 @@ class RentalController extends Controller
     public function index(Request $request)
     {
         Gate::authorize('access-pelanggan');
-
+        
         $query = Rental::where('user_id', auth()->id())
             ->with(['items.rentable']);
-
-        // Search by rental code or item name
-        if ($request->filled('q')) {
-            $search = $request->q;
-            $query->where(function ($q) use ($search) {
-                $q->where('kode', 'like', '%'.$search.'%')
-                    ->orWhere('id', 'like', '%'.$search.'%')
-                    ->orWhereHas('items.rentable', function ($q) use ($search) {
-                        $q->where('name', 'like', '%'.$search.'%')
-                            ->orWhere('judul', 'like', '%'.$search.'%')
-                            ->orWhere('nama', 'like', '%'.$search.'%');
-                    });
-            });
-        }
-
-        // Filter by status
+            
+        // Filter by Status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-
-        // Filter by date
+        
+        // Filter by Date
         if ($request->filled('date')) {
             $query->whereDate('created_at', $request->date);
         }
-
-        $rentals = $query->latest()->get();
-
-        return view('pelanggan.rentals.ecommerce_index', compact('rentals'));
+        
+        // Search by Code or Item Name
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function($q) use ($search) {
+                $q->where('kode', 'like', "%{$search}%")
+                  ->orWhereHas('items', function($qi) use ($search) {
+                      $qi->whereHasMorph('rentable', ['App\Models\UnitPS', 'App\Models\Game', 'App\Models\Accessory'], function($qii, $type) use ($search) {
+                          if ($type === 'App\Models\UnitPS') {
+                              $qii->where('name', 'like', "%{$search}%")
+                                  ->orWhere('model', 'like', "%{$search}%");
+                          } elseif ($type === 'App\Models\Game') {
+                              $qii->where('judul', 'like', "%{$search}%");
+                          } elseif ($type === 'App\Models\Accessory') {
+                              $qii->where('nama', 'like', "%{$search}%");
+                          }
+                      });
+                  });
+            });
+        }
+        
+        $rentals = $query->latest()->paginate(10);
+            
+        return view('pelanggan.rentals.index', compact('rentals'));
     }
 
     public function create(Request $request)
@@ -340,49 +346,13 @@ class RentalController extends Controller
                         'total' => $subtotal,
                     ]);
 
-                    // For UnitPS: instances are already reserved in cart with 'reserved_in_cart' status
-                    // We don't change status to 'rented' here - we'll wait for successful payment
-                    if ($itemType === 'unitps') {
-                        // Verify that the already reserved instances are still reserved_in_cart
-                        $cartItem = $item; // This is the cart item that contains reserved_instance_ids
-                        if (is_object($item) && ! empty($item->reserved_instance_ids)) {
-                            // Check that the reserved instances still have 'reserved_in_cart' status
-                            $reservedInstances = \App\Models\UnitPSInstance::whereIn('id', $item->reserved_instance_ids)->get();
-                            foreach ($reservedInstances as $instance) {
-                                if ($instance->status !== 'reserved_in_cart') {
-                                    throw new \App\Exceptions\InsufficientStockException(
-                                        $itemName,
-                                        1,
-                                        0
-                                    );
-                                }
-                            }
-                        } else {
-                            // If no reserved instances were found in cart, try to find and reserve available ones
-                            $availableInstances = $rentable->instances()
-                                ->where('status', 'available')
-                                ->limit($itemQuantity)
-                                ->get();
-
-                            // Check if we have enough available instances
-                            if ($availableInstances->count() < $itemQuantity) {
-                                throw new \App\Exceptions\InsufficientStockException(
-                                    $itemName,
-                                    $itemQuantity,
-                                    $availableInstances->count()
-                                );
-                            }
-
-                            // Mark these instances as reserved for this rental (will be changed to 'rented' on payment success)
-                            foreach ($availableInstances as $instance) {
-                                $instance->update(['status' => 'reserved_in_cart']);
-                            }
-                        }
-                    } else {
-                        // For games and accessories, reduce the stock now but we'll handle restoration in payment webhook
-                        $rentable->stok -= $itemQuantity;
-                        $rentable->save();
-                    }
+                    // Stock will be decremented upon successful payment in MidtransController
+                    // if ($itemType === 'unitps') {
+                    //     $rentable->stock -= $itemQuantity;
+                    // } else {
+                    //     $rentable->stok -= $itemQuantity;
+                    // }
+                    // $rentable->save();
 
                     $totalAmount += $subtotal;
                 } catch (\Exception $e) {

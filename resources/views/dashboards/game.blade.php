@@ -1,97 +1,265 @@
-@extends('layouts.app')
-@section('content')
+@extends('pelanggan.layout')
+
+@section('pelanggan_content')
 
 <style>
-  .dash-dark{ background:#2b3156; color:#e7e9ff; border-radius:0; min-height:100dvh; box-shadow:none; }
-  .dash-layout{ display:flex; gap:1rem; height: 100vh; }
-  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); height: 100vh; overflow-y: auto; position: sticky; top: 0; }
-  .dash-logo{ width:100%; display:grid; place-items:center; margin-bottom:1rem; }
-  .dash-logo .circle{ width:96px; height:96px; border-radius:50%; background:#0b3d91; display:grid; place-items:center; box-shadow:inset 0 -8px 14px rgba(0,0,0,.25); }
-  .dash-menu{ list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.4rem; }
-  .dash-menu a{ display:flex; align-items:center; gap:.6rem; padding:.6rem .8rem; border-radius:.6rem; color:#e9e9ff; text-decoration:none; font-weight:700; background:transparent; }
-  .dash-menu a:hover{ background:rgba(255,255,255,.06); }
-  .dash-icon{ width:22px; height:22px; display:inline-grid; place-items:center; }
-  .dash-main{ flex:1; overflow-y: auto; padding: 1rem; }
-  .dash-hero{ text-align:center; padding:2rem 1rem 1rem; }
-  .dash-hero h2{ font-weight:800; }
-  .dash-hero p{ color:#aeb5e6; margin-bottom:1.5rem; }
-  .dash-card{ background:#49497A; border:1px solid #5a5a8a; border-radius:1rem; padding:1rem; text-align:center; height: 100%; display: flex; flex-direction: column; }
-  .dash-frame{ background:#23284a; border:1px solid #2f3561; border-radius:.75rem; padding:0; display:flex; align-items:center; justify-content:center; height:220px; overflow:hidden; }
-  .card-content{ flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-  .dash-card img{ width:100%; height:100%; object-fit:cover; filter: drop-shadow(0 .75rem 1rem rgba(0,0,0,.35)); }
-  .dash-badge{ display:inline-block; margin-top:.75rem; background:#23284a; color:#cfd3ff; padding:.35rem .75rem; border-radius:.5rem; font-weight:700; }
-  .dash-pager .btn{ background:#23284a; color:#cfd3ff; border:none; margin:.15rem; }
-  .dash-pager .btn.active{ background:#4750c9; color:#fff; }
-  .dash-actions .btn{ border:none; }
-  .btn-cta{ background:#4750c9; color:#fff; }
-  .btn-cta:hover{ background:#5a63e0; color:#fff; }
-  .btn-cta:active{ background:#3a43a8; color:#fff; transform: scale(0.98); }
-  .text-price{ color: #7bed9f !important; font-weight: bold; } /* Light green color */
-  .badge-success{ background:#2ecc71; color:#0e1a2f; font-weight:800; }
-  .badge-warning{ background:#f39c12; color:#0e1a2f; font-weight:800; }
-  .badge-danger{ background:#e74c3c; color:#fff; font-weight:800; }
-  /* horizontal scroll area */
-  .dash-scroll{ overflow-x:auto; display:flex; gap:1rem; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:0 .5rem; }
-  .dash-page{ flex:0 0 100%; scroll-snap-align:center; }
-  .dash-scroll::-webkit-scrollbar{ height:8px; }
-  .dash-scroll::-webkit-scrollbar-thumb{ background:#2f3561; border-radius:4px; }
-  @media (max-width: 991.98px){
-    .dash-layout{ flex-direction:column; }
-    .dash-sidebar{ flex:0 0 auto; position:static; height: auto; }
-    .dash-main{ height: auto; }
+  /* Content-specific styles that complement the master layout */
+  
+  /* Hero Section */
+  .dash-hero{ 
+    text-align:center; 
+    padding: 1rem 1rem 2rem; 
+    animation: fadeInDown 0.8s ease-out;
   }
+  
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .dash-hero h2{ 
+    font-weight:800; 
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.75rem;
+    animation: gradientShift 4s ease infinite;
+    background-size: 200% 200%;
+  }
+  
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  .dash-hero p{ 
+    color: var(--text-muted); 
+    margin-bottom:1.5rem; 
+    font-size: 1.1rem;
+  }
+  
+  /* Card Styling */
+  .dash-card{ 
+    background: rgba(30, 41, 59, 0.7); /* Matches master layout card-bg with opacity */
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border); 
+    border-radius:1.25rem; 
+    padding:1.25rem; 
+    text-align:center; 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .dash-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .dash-card:hover::before {
+    opacity: 1;
+  }
+  
+  .dash-card:hover{ 
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.15),
+                0 0 0 1px rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+  
+  /* Card Frame */
+  .dash-frame{ 
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+    border: 2px solid var(--card-border); 
+    border-radius:1rem; 
+    padding:0; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    height:220px; 
+    overflow:hidden;
+    position: relative;
+    transition: transform 0.3s;
+  }
+  
+  .dash-card:hover .dash-frame {
+    transform: scale(1.05);
+  }
+  
+  .card-content{ 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+  }
+  
+  .dash-card img{ 
+    width:100%; 
+    height:100%; 
+    object-fit:cover; 
+    filter: drop-shadow(0 .75rem 1rem rgba(0,0,0,.4));
+    transition: transform 0.4s;
+  }
+  
+  .dash-card:hover img {
+    transform: scale(1.1);
+  }
+  
+  /* Price & Badge */
+  .text-price{ 
+    color: #10b981 !important; 
+    font-weight: bold; 
+    font-size: 1.25rem;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+  }
+  
+  .badge-stock {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+  }
+  
+  /* Buttons */
+  .btn-cta{ 
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
+    color: #fff;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-cta::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  .btn-cta:active::after {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .btn-cta:hover{ 
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+    color: #fff;
+  }
+  
+  /* Section Headers */
+  .section-header {
+    animation: fadeInUp 0.8s ease-out;
+  }
+  
+  /* Card Grid Animation */
+  .col {
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
+  }
+  
+  .col:nth-child(1) { animation-delay: 0.1s; }
+  .col:nth-child(2) { animation-delay: 0.2s; }
+  .col:nth-child(3) { animation-delay: 0.3s; }
+  .col:nth-child(4) { animation-delay: 0.4s; }
+  .col:nth-child(5) { animation-delay: 0.5s; }
+  .col:nth-child(6) { animation-delay: 0.6s; }
+  .col:nth-child(7) { animation-delay: 0.7s; }
+  .col:nth-child(8) { animation-delay: 0.8s; }
 </style>
 
-<div class="dash-dark p-3">
-  <div class="dash-layout">
-    @include('pelanggan.partials.sidebar')
+<div class="dash-hero">
+  <h2>Sewa Game PlayStation</h2>
+  <p>Temukan game favoritmu untuk pengalaman bermain terbaik!</p>
+</div>
 
-    <main class="dash-main">
-      <div class="dash-hero">
-        <h2>Sewa Game PlayStation</h2>
-        <p>Temukan game favoritmu untuk pengalaman bermain terbaik!</p>
-      </div>
-
-      <!-- Games Section -->
-      <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3>Game Tersedia</h3>
-          <a href="{{ route('pelanggan.games.list') }}" class="btn btn-cta">Lihat Semua</a>
-        </div>
-        @if($games->count() > 0)
-          <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 px-2">
-            @foreach($games as $game)
-              <div class="col">
-                <div class="dash-card">
-                  <div class="dash-frame">
-                    @if($game->gambar)
-                      <img src="{{ asset('storage/' . $game->gambar) }}" alt="{{ $game->judul }}" class="img-fluid">
-                    @else
-                      <img src="https://placehold.co/300x200/49497A/FFFFFF?text=Game" alt="{{ $game->judul }}" class="img-fluid">
-                    @endif
-                  </div>
-                  <div class="card-content">
-                    <div class="p-2 flex-grow-1">
-                      <h5 class="mb-1 text-center text-white fw-bold">{{ $game->judul }}</h5>
-                      <div class="fw-bold text-price mb-1 text-center mt-2">Rp {{ number_format($game->harga_per_hari, 0, ',', '.') }}/hari</div>
-                      <div class="text-center">Stok: {{ $game->stok }}</div>
-                    </div>
-                    <div class="pt-2 mt-auto">
-                      <a href="{{ route('pelanggan.rentals.create') }}?type=game&id={{ $game->id }}" class="btn btn-cta w-100">Sewa Game</a>
-                    </div>
-                  </div>
+<!-- Games Section -->
+<section class="mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-4 section-header">
+    <h3 class="text-white fw-bold m-0">
+      <i class="bi bi-controller me-2 text-primary"></i>
+      Game Tersedia
+    </h3>
+    <a href="{{ route('pelanggan.games.list') }}" class="btn btn-cta">
+      <i class="bi bi-grid-3x3-gap me-2"></i>Lihat Semua
+    </a>
+  </div>
+  
+  @if($games->count() > 0)
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 px-2">
+      @foreach($games as $game)
+        <div class="col">
+          <div class="dash-card">
+            <div class="dash-frame">
+              @if($game->gambar)
+                <img src="{{ str_starts_with($game->gambar, 'http') ? $game->gambar : asset('storage/' . $game->gambar) }}" 
+                     alt="{{ $game->judul }}" class="img-fluid">
+              @else
+                <img src="https://placehold.co/300x200/23284a/60a5fa?text={{ urlencode($game->judul) }}" alt="{{ $game->judul }}" class="img-fluid">
+              @endif
+            </div>
+            <div class="card-content">
+              <div class="p-2 flex-grow-1">
+                <h5 class="mb-2 text-center text-white fw-bold">{{ $game->judul }}</h5>
+                <div class="fw-bold text-price mb-2 text-center mt-2">
+                  Rp {{ number_format($game->harga_per_hari, 0, ',', '.') }}/hari
+                </div>
+                <div class="text-center">
+                  <span class="badge-stock">
+                    <i class="bi bi-box-seam me-1"></i>Stok: {{ $game->stok }}
+                  </span>
                 </div>
               </div>
-            @endforeach
+              <div class="pt-3 mt-auto">
+                <a href="{{ route('pelanggan.rentals.create') }}?type=game&id={{ $game->id }}" class="btn btn-cta w-100">
+                  <i class="bi bi-cart-plus me-2"></i>Sewa Sekarang
+                </a>
+              </div>
+            </div>
           </div>
-        @else
-          <div class="col-12 text-center">
-            <p>Tidak ada game tersedia saat ini.</p>
-          </div>
-        @endif
-      </section>
+        </div>
+      @endforeach
+    </div>
+  @else
+    <div class="col-12 text-center py-5">
+      <div class="text-muted">
+        <i class="bi bi-inbox display-1 mb-3 d-block"></i>
+        <p class="fs-5">Tidak ada game tersedia saat ini.</p>
+      </div>
+    </div>
+  @endif
+</section>
 
-    </main>
-  </div>
-</div>
 @endsection

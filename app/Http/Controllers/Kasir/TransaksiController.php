@@ -77,11 +77,11 @@ class TransaksiController extends Controller
         }
 
         // Cek apakah sudah pernah aktif/returned
-        if (in_array($rental->status, ['active', 'returned', 'cancelled'])) {
+        if (in_array($rental->status, ['sedang_disewa', 'selesai', 'cancelled'])) {
             return back()->withErrors(['error' => 'Transaksi sudah pernah diaktifkan atau sudah selesai.']);
         }
-
-        $rental->status = 'active';
+        
+        $rental->status = 'sedang_disewa';
         $rental->save();
 
         return back()->with('status', 'Transaksi sewa sudah diaktifkan, barang sudah diberikan ke pelanggan.');
@@ -116,7 +116,14 @@ class TransaksiController extends Controller
                     // Update stok barang dengan pessimistic locking
                     $rentable = $item->rentable()->lockForUpdate()->first();
                     if ($rentable) {
-                        $rentable->stok = ($rentable->stok ?? 0) + $item->quantity;
+                        // Check if it's UnitPS (uses 'stock') or other models (use 'stok')
+                        $isUnitPS = $rentable instanceof \App\Models\UnitPS;
+                        
+                        if ($isUnitPS) {
+                            $rentable->stock += $item->quantity;
+                        } else {
+                            $rentable->stok += $item->quantity;
+                        }
                         $rentable->save();
                     }
 
@@ -127,8 +134,8 @@ class TransaksiController extends Controller
                     }
                 }
             }
-
-            $rental->status = 'returned';
+            
+            $rental->status = 'selesai';
             $rental->returned_at = now();
             $rental->save();
         });

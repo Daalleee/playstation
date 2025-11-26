@@ -13,18 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Kasir\RentalController as KasirRentalController;
 use App\Http\Controllers\Kasir\TransaksiController;
 use App\Http\Controllers\MidtransController;
-use App\Http\Controllers\Owner\LaporanController;
-use App\Http\Controllers\Owner\StatusProdukController;
-use App\Http\Controllers\Pelanggan\AccessoryController as PelangganAccessoryController;
-use App\Http\Controllers\Pelanggan\CartController as PelangganCartController;
-use App\Http\Controllers\Pelanggan\GameController as PelangganGameController;
-use App\Http\Controllers\Pelanggan\ProfileController as PelangganProfileController;
-use App\Http\Controllers\Pelanggan\RentalController as PelangganRentalController;
-use App\Http\Controllers\Pelanggan\UnitPSController as PelangganUnitPSController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\ProfileController;
 
 // Midtrans webhook (must be outside auth middleware)
 Route::post('midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
@@ -47,7 +36,14 @@ Route::get('/', function () {
 });
 
 // Public landing page (direct link)
+// Public landing page (direct link)
 Route::view('/landing', 'landing')->name('landing');
+
+// Guest Pages
+Route::view('/about', 'pages.about')->name('about');
+Route::view('/terms', 'pages.terms')->name('terms');
+Route::view('/privacy', 'pages.privacy')->name('privacy');
+Route::view('/contact', 'pages.contact')->name('contact');
 
 // Serve files from the public disk without requiring the /public/storage symlink
 Route::get('/media/{path}', function (string $path) {
@@ -68,12 +64,22 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
+// Password Reset
+Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
+
 // Alias for default auth middleware redirect (expects route name 'login')
 Route::get('/auth', function () {
     return redirect()->route('login.show');
 })->name('login');
 
 Route::middleware(['web', 'auth'])->group(function () {
+    // Unified Profile Routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
     // Admin - Pelanggan
     Route::resource('admin/pelanggan', PelangganController::class)->parameters([
         'pelanggan' => 'pelanggan',
@@ -168,7 +174,8 @@ Route::middleware(['web', 'auth'])->group(function () {
 
 Route::middleware(['web', 'auth', 'can:access-pemilik'])->prefix('pemilik')->name('pemilik.')->group(function () {
     Route::get('status-produk', [StatusProdukController::class, 'index'])->name('status_produk');
-    Route::get('laporan', [LaporanController::class, 'index'])->name('laporan');
+    Route::get('laporan-transaksi', [LaporanController::class, 'index'])->name('laporan_transaksi');
+    Route::get('laporan-pendapatan', [LaporanController::class, 'pendapatan'])->name('laporan_pendapatan');
     Route::get('laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
 });
 
@@ -180,7 +187,10 @@ Route::middleware(['web', 'auth', 'can:access-kasir'])->prefix('kasir')->name('k
 
     // Kasir - Rentals Management
     Route::get('rentals', [KasirRentalController::class, 'index'])->name('rentals.index');
+    Route::get('rentals/create', [KasirRentalController::class, 'create'])->name('rentals.create');
+    Route::post('rentals', [KasirRentalController::class, 'store'])->name('rentals.store');
     Route::get('rentals/{rental}', [KasirRentalController::class, 'show'])->name('rentals.show');
+    Route::post('rentals/{rental}/return', [KasirRentalController::class, 'return'])->name('rentals.return');
     Route::post('rentals/{rental}/confirm-return', [KasirRentalController::class, 'confirmReturn'])->name('rentals.confirm-return');
 });
 

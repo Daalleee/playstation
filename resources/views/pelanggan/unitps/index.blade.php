@@ -1,177 +1,125 @@
-@extends('layouts.app')
-@section('content')
-<style>
-  .dash-dark{ background:#2b3156; color:#e7e9ff; border-radius:0; min-height:100dvh; }
-  .dash-layout{ display:flex; gap:1rem; height: 100vh; }
-  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); height: 100vh; overflow-y: auto; position: sticky; top: 0; }
-  .dash-main{ flex:1; overflow-y: auto; padding: 1rem; }
-  .page-hero{ text-align:center; padding:1rem; }
-  .page-hero h2{ font-weight:800; margin:0; }
-  .filter-row{ display:grid; grid-template-columns: 1fr 1fr 2fr auto; gap:1rem; margin:0 1rem 1rem; align-items:end; }
-  .select-dark, .input-dark{ width:100%; background:#23284a; color:#eef1ff; border:1px solid #2f3561; border-radius:.6rem; padding:.55rem .75rem; }
-  .btn-cta{ background:#2ecc71; border:none; color:#0e1a2f; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; min-width:120px; }
-  .card-dark{ background:#1f2446; border:none; border-radius:1rem; padding:1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); }
-  table.dark{ width:100%; color:#e7e9ff; border-collapse:collapse; }
-  table.dark th, table.dark td{ border:1px solid #2f3561; padding:.5rem .6rem; }
-  table.dark thead th{ background:#23284a; font-weight:800; }
-  .badge-ok{ background:#1a7a4f; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .badge-warn{ background:#b8651f; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .badge-danger{ background:#c0392b; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .badge-success{ background:#1e8449; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; font-weight:700; }
-  .badge-warning{ background:#d68910; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; font-weight:700; }
-  .btn-detail{ background:#5b6bb8; color:#fff; border:none; padding:.3rem .6rem; border-radius:.4rem; text-decoration:none; }
-  .btn-cta{ background:#1e8449; border:none; color:#fff; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; cursor:pointer; }
-  .btn-cta:hover{ background:#27ae60; }
-  .btn-cta:disabled{ background:#7f8c8d; cursor:not-allowed; opacity:0.6; }
-  @media (max-width: 991.98px){ .dash-layout{ flex-direction:column; } .dash-sidebar{ flex:0 0 auto; position:static; height: auto; } .dash-main{ height: auto; } .filter-row{ grid-template-columns:1fr; } }
-</style>
+@extends('pelanggan.layout')
 
-<div class="dash-dark p-3">
-  <div class="dash-layout">
-    @include('pelanggan.partials.sidebar')
+@section('pelanggan_content')
+<div class="container-fluid">
+    <!-- Header & Search -->
+    <div class="card card-hover-lift mb-4 animate-fade-in">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mb-4">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-controller me-2 text-primary icon-hover"></i><span class="gradient-text">Daftar Unit PlayStation</span></h4>
+            </div>
 
-    <main class="dash-main">
-      <div class="page-hero">
-        <h2>Daftar Unit PlayStation</h2>
-      </div>
-
-      <form method="GET" action="{{ route('pelanggan.unitps.list') }}" class="filter-row">
-        <div>
-          <label class="mb-1 d-block fw-bold">Model</label>
-          <select name="model" class="select-dark">
-            <option value="">Semua Model</option>
-            @foreach (['PS3','PS4','PS5'] as $opt)
-              <option value="{{ $opt }}" @selected(request('model')===$opt)>{{ $opt }}</option>
-            @endforeach
-          </select>
-        </div>
-        <div>
-          <label class="mb-1 d-block fw-bold">Merek</label>
-          <select name="brand" class="select-dark">
-            <option value="">Semua Merek</option>
-            <option value="Sony" @selected(request('brand')==='Sony')>Sony</option>
-          </select>
-        </div>
-        <div class="position-relative">
-          <label class="mb-1 d-block fw-bold">Cari unit</label>
-          <div class="position-relative">
-            <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari unit PlayStation" class="input-dark w-100" onkeypress="handleSearchKeyPress(event, this.form)" />
-            <button type="submit" class="search-icon-btn position-absolute top-50 start-0 translate-middle-y border-0 bg-transparent ps-3" style="margin-left: 0.5rem; z-index: 5;">
-              <i class="bi bi-search" style="color: #cfd3ff; font-size: 1.2em;"></i>
-            </button>
-          </div>
-        </div>
-        <style>
-            .input-dark {
-                padding-left: 3.5rem !important;
-            }
-            .search-icon-btn {
-                cursor: pointer;
-                padding: 0;
-                width: auto;
-                height: auto;
-            }
-            .search-icon-btn:hover {
-                opacity: 0.8;
-            }
-        </style>
-        <div>
-          <button class="btn-cta" type="submit" style="width:120px; padding:.65rem 1.5rem;">Cari</button>
-        </div>
-      </form>
-      <style>
-        .search-icon-btn {
-          cursor: pointer;
-          opacity: 0.8;
-          background: transparent !important;
-          border: none !important;
-          padding: 0 !important;
-          width: auto !important;
-          height: auto !important;
-        }
-        .search-icon-btn:hover {
-          opacity: 1;
-        }
-        .input-group-dark {
-          position: relative;
-        }
-      </style>
-      <script>
-        function handleSearchKeyPress(event, form) {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            form.submit();
-          }
-        }
-      </script>
-
-      <div class="card-dark">
-        <div class="table-responsive">
-          <table class="dark">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nama</th>
-                <th>Model/Merek</th>
-                <th>Foto</th>
-                <th>Stok</th>
-                <th>Harga/Jam</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($units as $unit)
-                <tr>
-                  <td>{{ $unit->id ?? 'N/A' }}</td>
-                  <td>{{ $unit->name }}</td>
-                  <td>{{ $unit->model }}<br><small class="text-muted">{{ $unit->brand }}</small></td>
-                  <td>
-                    <img src="https://placehold.co/50x50/49497A/FFFFFF?text=PS" alt="{{ $unit->name }}" style="width:50px; height:50px; object-fit:cover;">
-                  </td>
-                  <td>
-                    @php
-                      $stok = isset($unit->instances) ? $unit->instances->whereIn('status', ['available'])->count() : 0;
-                      $badgeClass = $stok > 5 ? 'badge-success' : ($stok > 0 ? 'badge-warning' : 'badge-danger');
-                    @endphp
-                    <span class="{{ $badgeClass }} d-block">{{ $stok }} Unit</span>
-                  </td>
-                  <td>Rp {{ number_format($unit->price_per_hour ?? 0, 0, ',', '.') }}</td>
-                  <td>
-                    <div class="d-flex flex-column gap-2">
-                      <a href="#" class="btn-detail">Detail</a>
-                      <div class="d-flex gap-2 align-items-center">
-                        <input type="number" class="input-dark" value="1" min="1" 
-                               style="width: 80px;"
-                               id="quantity_{{ $unit->id }}"
-                               {{ ($unit->id === null || $stok <= 0) ? 'disabled' : '' }}
-                               @if($unit->id !== null && $stok > 0) max="{{ $stok }}" @endif>
-                        <button type="button" class="btn-cta w-100 add-to-cart-btn"
-                                data-type="unitps"
-                                data-id="{{ $unit->id }}"
-                                data-price_type="per_jam"
-                                data-stok="{{ $stok }}"
-                                {{ ($unit->id === null || $stok <= 0) ? 'disabled' : '' }}
-                                {{ ($unit->id === null || $stok <= 0) ? 'title="Stok habis, unit tidak tersedia untuk disewa"' : '' }}>
-                          {{ ($unit->id !== null && $stok > 0) ? 'Tambah ke Keranjang' : 'Stok Habis' }}
-                        </button>
-                      </div>
+            <form method="GET" action="{{ route('pelanggan.unitps.list') }}" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label text-muted small text-uppercase fw-bold">Model</label>
+                    <select name="model" class="form-select bg-dark text-light border-secondary">
+                        <option value="">Semua Model</option>
+                        @foreach (['PS3','PS4','PS5'] as $opt)
+                            <option value="{{ $opt }}" @selected(request('model')===$opt)>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-muted small text-uppercase fw-bold">Merek</label>
+                    <select name="brand" class="form-select bg-dark text-light border-secondary">
+                        <option value="">Semua Merek</option>
+                        <option value="Sony" @selected(request('brand')==='Sony')>Sony</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-muted small text-uppercase fw-bold">Cari Unit</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" value="{{ request('q') }}" class="form-control bg-dark text-light border-secondary" placeholder="Nama unit...">
                     </div>
-                  </td>
-                </tr>
-              @empty
-                <tr><td colspan="7" class="text-center">Tidak ada unit PlayStation tersedia.</td></tr>
-              @endforelse
-            </tbody>
-          </table>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="bi bi-filter me-1 icon-hover"></i> Filter</button>
+                </div>
+            </form>
         </div>
-        <div class="mt-3">
+    </div>
 
+    <!-- Unit List -->
+    <div class="card card-glow">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama Unit</th>
+                        <th>Model/Merek</th>
+                        <th>Foto</th>
+                        <th class="text-center">Stok</th>
+                        <th>Harga/Jam</th>
+                        <th style="min-width: 200px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($units as $unit)
+                        <tr>
+                            <td><span class="font-monospace text-muted">#{{ $unit->id }}</span></td>
+                            <td class="fw-bold text-white">{{ $unit->name }}</td>
+                            <td>
+                                <span class="badge bg-secondary-subtle">{{ $unit->model }}</span>
+                                <div class="small text-muted mt-1">{{ $unit->brand }}</div>
+                            </td>
+                            <td>
+                                @if($unit->foto)
+                                    <img src="{{ str_starts_with($unit->foto, 'http') ? $unit->foto : asset('storage/' . $unit->foto) }}" 
+                                         alt="{{ $unit->name }}" 
+                                         class="rounded shadow-sm" 
+                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                @else
+                                    <div class="bg-dark rounded d-flex align-items-center justify-content-center text-muted border border-secondary" style="width: 60px; height: 60px;">
+                                        <i class="bi bi-controller"></i>
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @php 
+                                    $stok = $unit->stock ?? 0;
+                                    $badgeClass = $stok > 5 ? 'bg-success-subtle' : ($stok > 0 ? 'bg-warning-subtle' : 'bg-danger-subtle');
+                                @endphp
+                                <span class="badge {{ $badgeClass }} {{ $stok > 0 ? 'badge-pulse' : '' }}">{{ $stok }} Unit</span>
+                            </td>
+                            <td class="text-secondary fw-bold">Rp {{ number_format($unit->price_per_hour, 0, ',', '.') }}</td>
+                            <td>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <input type="number" class="form-control form-control-sm bg-dark text-light border-secondary text-center" value="1" min="1" max="{{ $stok }}" 
+                                           style="width: 60px;" 
+                                           id="quantity_{{ $unit->id }}" 
+                                           {{ $stok <= 0 ? 'disabled' : '' }}>
+                                    
+                                    <button type="button" class="btn btn-sm btn-primary add-to-cart-btn flex-grow-1" 
+                                            data-type="unitps" 
+                                            data-id="{{ $unit->id }}" 
+                                            data-price_type="per_jam"
+                                            data-stok="{{ $stok }}"
+                                            {{ $stok <= 0 ? 'disabled' : '' }}>
+                                        <i class="bi bi-cart-plus me-1"></i> {{ $stok > 0 ? 'Sewa' : 'Habis' }}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-controller fs-1 d-block mb-2 opacity-50"></i>
+                                Tidak ada unit PlayStation yang sesuai kriteria.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-      </div>
-    </main>
-  </div>
+        <div class="card-footer border-0 bg-transparent py-3">
+            {{ method_exists($units,'links') ? $units->withQueryString()->links() : '' }}
+        </div>
+    </div>
+</div>
 
-  <script>
+<script>
     // Add real-time validation for quantity inputs
     document.querySelectorAll('input[id^="quantity_"]').forEach(input => {
       input.addEventListener('input', function() {
@@ -206,22 +154,34 @@
 
         // Validate quantity
         if(quantity < 1 || quantity > stok) {
-          showFlashMessage('Jumlah tidak valid!', 'danger');
+          Swal.fire({
+            icon: 'warning',
+            title: 'Jumlah Tidak Valid',
+            text: 'Jumlah harus antara 1 dan ' + stok,
+            background: '#1e293b',
+            color: '#fff'
+          });
           return;
         }
 
         // Disable button to prevent multiple clicks
         this.disabled = true;
-        const originalText = this.textContent;
-        this.textContent = 'Memproses...';
-
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        
         // Get CSRF token
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
         if (!csrfToken) {
-          showFlashMessage('CSRF token tidak ditemukan. Silakan refresh halaman.', 'danger');
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'CSRF token tidak ditemukan. Silakan refresh halaman.',
+            background: '#1e293b',
+            color: '#fff'
+          });
           this.disabled = false;
-          this.textContent = originalText;
+          this.innerHTML = originalHTML;
           return;
         }
 
@@ -248,31 +208,58 @@
         })
         .then(data => {
           if(data.success) {
-            // Show success message
-            showFlashMessage(data.message, 'success');
+            // Show success message using SweetAlert2 Toast
+            const Toast = Swal.mixin({
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
+              background: '#1e293b',
+              color: '#fff',
+              didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+              }
+            });
+            
+            Toast.fire({
+              icon: 'success',
+              title: data.message
+            });
+            
             // Reset quantity input to 1
             quantityInput.value = 1;
           } else {
-            // Show error message
-            showFlashMessage(data.message || 'Terjadi kesalahan', 'danger');
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: data.message || 'Terjadi kesalahan',
+              background: '#1e293b',
+              color: '#fff'
+            });
           }
 
           // Restore button
           this.disabled = false;
-          this.textContent = originalText;
+          this.innerHTML = originalHTML;
         })
         .catch(error => {
           console.error('Error:', error);
-          // Show error message
           const errorMessage = error.message || error.error || 'Terjadi kesalahan saat menambahkan ke keranjang';
-          showFlashMessage(errorMessage, 'danger');
-
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: errorMessage,
+            background: '#1e293b',
+            color: '#fff'
+          });
+          
           // Restore button
           this.disabled = false;
-          this.textContent = originalText;
+          this.innerHTML = originalHTML;
         });
       });
     });
-  </script>
-</div>
+</script>
 @endsection

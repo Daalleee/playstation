@@ -1,84 +1,127 @@
-@extends('layouts.app')
-@section('content')
-<style>
-  .dash-dark{ background:#2b3156; color:#e7e9ff; border-radius:0; min-height:100dvh; }
-  .dash-layout{ display:flex; gap:1rem; height: 100vh; }
-  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); height: 100vh; overflow-y: auto; position: sticky; top: 0; }
-  .dash-logo{ width:100%; display:grid; place-items:center; margin-bottom:1rem; }
-  .dash-logo .circle{ width:96px; height:96px; border-radius:50%; background:#0b3d91; display:grid; place-items:center; box-shadow:inset 0 -8px 14px rgba(0,0,0,.25); }
-  .dash-menu{ list-style:none; padding:0; margin:1rem 0 0; display:grid; gap:.4rem; }
-  .dash-menu a{ display:flex; align-items:center; gap:.6rem; padding:.6rem .8rem; border-radius:.6rem; color:#e9e9ff; text-decoration:none; font-weight:700; }
-  .dash-menu a:hover{ background:rgba(255,255,255,.06); }
-  .dash-main{ flex:1; overflow-y: auto; padding: 1rem; }
-  .prof-hero{ padding:1.25rem 1rem; }
-  .prof-hero h2{ font-weight:800; margin:0; }
-  .prof-hero p{ color:#aeb5e6; margin:0; }
-  .card-dark{ background:#1f2446; border:none; border-radius:1rem; padding:1.25rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); }
-  .avatar{ width:120px; height:120px; border-radius:50%; background:#2b3156; display:grid; place-items:center; margin:0 auto 1rem; box-shadow:inset 0 -10px 16px rgba(0,0,0,.25); }
-  .badge-soft{ background:#23284a; color:#cfd3ff; border-radius:.5rem; padding:.35rem .6rem; display:inline-block; font-weight:700; }
-  .field{ margin-bottom:12px; }
-  .field label{ display:block; color:#cdd3ff; font-weight:700; margin-bottom:6px; }
-  .field .value{ background:#23284a; border:1px solid #2f3561; border-radius:.6rem; padding:.6rem .8rem; color:#eef1ff; }
-  .btn-cta{ background:#44c77b; color:#0e1a2f; font-weight:800; border:none; border-radius:.6rem; padding:.55rem 1rem; }
-  .btn-grey{ background:#6c757d; color:#fff; border:none; border-radius:.6rem; padding:.55rem 1rem; }
-  @media (max-width: 991.98px){ .dash-layout{ flex-direction:column; } .dash-sidebar{ flex:0 0 auto; position:static; height: auto; } .dash-main{ height: auto; } }
-</style>
+@extends('pelanggan.layout')
 
-<div class="dash-dark p-3">
-  <div class="dash-layout">
-    @include('pelanggan.partials.sidebar')
+@section('pelanggan_content')
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="card card-hover-lift mb-4 animate-fade-in">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-1 fw-bold text-primary"><i class="bi bi-person-circle me-2 text-primary"></i>Profil Pelanggan</h4>
+                <p class="mb-0 text-muted small">Kelola informasi akun dan data diri Anda</p>
+            </div>
+            <div>
+                <a href="{{ route('pelanggan.profile.edit') }}" class="btn btn-primary fw-bold">
+                    <i class="bi bi-pencil-square me-2"></i>Edit Profil
+                </a>
+            </div>
+        </div>
+    </div>
 
-    <main class="dash-main">
-      <div class="prof-hero">
-        <h2>Profil Pelanggan</h2>
-        <p>Kelola informasi akunmu</p>
-      </div>
+    @if(session('status'))
+        <div class="alert alert-success border-0 bg-success-subtle text-success mb-4 d-flex align-items-center">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <div>{{ session('status') }}</div>
+        </div>
+    @endif
 
-      @if(session('status'))
-        <div class="alert alert-success" role="alert">{{ session('status') }}</div>
-      @endif
-
-      <div class="row g-3">
+    <div class="row g-4">
+        <!-- Profile Card -->
         <div class="col-lg-4">
-          <div class="card-dark text-center h-100">
-            <div class="avatar">
-              <svg width="56" height="56" viewBox="0 0 24 24" fill="#cfd3ff"><path d="M12 2a5 5 0 100 10 5 5 0 000-10zm0 12c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/></svg>
+            <div class="card h-100 text-center p-4">
+                <div class="card-body">
+                    <div class="position-relative d-inline-block mb-4">
+                        <div class="rounded-circle bg-dark d-flex align-items-center justify-content-center mx-auto shadow-lg" 
+                             style="width: 120px; height: 120px; border: 4px solid var(--card-border);">
+                            <i class="bi bi-person-fill display-1 text-muted"></i>
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 bg-success rounded-circle border border-dark p-2" 
+                             style="width: 24px; height: 24px;"></div>
+                    </div>
+                    
+                    <h4 class="fw-bold text-white mb-1">{{ $user->name }}</h4>
+                    <p class="text-muted mb-4">{{ $user->email }}</p>
+                    
+                    <div class="d-flex flex-column gap-2 text-start">
+                        <div class="p-3 rounded bg-dark border border-secondary">
+                            <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Status Akun</small>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="badge bg-success-subtle">Aktif</span>
+                                <i class="bi bi-shield-check text-success ms-auto"></i>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded bg-dark border border-secondary">
+                            <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.7rem;">Bergabung Sejak</small>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="text-white fw-bold">{{ $user->created_at->format('d M Y') }}</span>
+                                <i class="bi bi-calendar-check text-primary ms-auto"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <h5 class="fw-bold mb-1">{{ $user->name }}</h5>
-            <div class="text-muted mb-3">{{ $user->email }}</div>
-            <div class="d-grid gap-2 text-start">
-              <div class="badge-soft">Status: Aktif</div>
-              <div class="badge-soft">Telepon: {{ $user->phone ?? '-' }}</div>
-              <div class="badge-soft">Terdaftar: {{ $user->created_at->format('d M Y') }}</div>
-            </div>
-          </div>
         </div>
+
+        <!-- Details Card -->
         <div class="col-lg-8">
-          <div class="card-dark h-100">
-            <div class="field">
-              <label>Nama Lengkap</label>
-              <div class="value">{{ $user->name }}</div>
+            <div class="card h-100">
+                <div class="card-header bg-transparent border-bottom border-secondary">
+                    <h5 class="mb-0 fw-bold text-white">Informasi Pribadi</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-bold mb-2">Nama Lengkap</label>
+                                <div class="form-control bg-dark text-white border-secondary">{{ $user->name }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-bold mb-2">Email</label>
+                                <div class="form-control bg-dark text-white border-secondary">{{ $user->email }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-bold mb-2">Nomor Telepon</label>
+                                <div class="form-control bg-dark text-white border-secondary d-flex align-items-center justify-content-between">
+                                    <span>{{ $user->phone ?? '-' }}</span>
+                                    @if(empty($user->phone))
+                                        <i class="bi bi-exclamation-circle text-warning" data-bs-toggle="tooltip" title="Wajib diisi untuk penyewaan"></i>
+                                    @else
+                                        <i class="bi bi-check-circle text-success"></i>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="text-muted small text-uppercase fw-bold mb-2">Alamat Lengkap</label>
+                                <div class="form-control bg-dark text-white border-secondary d-flex align-items-center justify-content-between">
+                                    <span class="text-truncate">{{ $user->address ?? '-' }}</span>
+                                    @if(empty($user->address))
+                                        <i class="bi bi-exclamation-circle text-warning" data-bs-toggle="tooltip" title="Wajib diisi untuk penyewaan"></i>
+                                    @else
+                                        <i class="bi bi-check-circle text-success"></i>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if(empty($user->phone) || empty($user->address))
+                        <div class="alert alert-warning border-0 bg-warning-subtle text-warning mt-4 mb-0 d-flex align-items-start">
+                            <i class="bi bi-exclamation-triangle-fill me-3 fs-4 mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Profil Belum Lengkap</h6>
+                                <p class="mb-2 small">Mohon lengkapi <strong>Nomor Telepon</strong> dan <strong>Alamat</strong> Anda untuk dapat melakukan penyewaan unit atau game.</p>
+                                <a href="{{ route('pelanggan.profile.edit') }}" class="btn btn-sm btn-warning fw-bold text-dark">Lengkapi Sekarang</a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
             </div>
-            <div class="field">
-              <label>Email</label>
-              <div class="value">{{ $user->email }}</div>
-            </div>
-            <div class="field">
-              <label>Telepon</label>
-              <div class="value">{{ $user->phone ?? '-' }}</div>
-            </div>
-            <div class="field">
-              <label>Alamat</label>
-              <div class="value">{{ $user->address ?? '-' }}</div>
-            </div>
-            <div class="mt-3 d-flex gap-2">
-              <a href="{{ route('pelanggan.profile.edit') }}" class="btn btn-cta">Edit Profil</a>
-              <a href="{{ route('dashboard.pelanggan') }}" class="btn btn-grey">Kembali</a>
-            </div>
-          </div>
         </div>
-      </div>
-    </main>
-  </div>
+    </div>
 </div>
 @endsection

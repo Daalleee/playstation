@@ -29,8 +29,8 @@ class RentalController extends Controller
         $units = UnitPS::where('stok', '>', 0)->orderBy('nama')->get();
         $games = Game::where('stok', '>', 0)->orderBy('judul')->get();
         $accessories = Accessory::where('stok', '>', 0)->orderBy('nama')->get();
-
-        return view('kasir.rentals.create', compact('units', 'games', 'accessories'));
+        $customers = \App\Models\User::where('role', 'pelanggan')->orderBy('name')->get();
+        return view('kasir.rentals.create', compact('units', 'games', 'accessories', 'customers'));
     }
 
     public function store(Request $request)
@@ -55,7 +55,7 @@ class RentalController extends Controller
                 'handled_by' => Auth::id(),
                 'start_at' => $validated['start_at'],
                 'due_at' => $validated['due_at'] ?? null,
-                'status' => 'ongoing',
+                'status' => 'sedang_disewa',
                 'subtotal' => 0,
                 'discount' => $validated['discount'] ?? 0,
                 'total' => 0,
@@ -74,13 +74,13 @@ class RentalController extends Controller
                 $rentable = $model->newQuery()->lockForUpdate()->findOrFail($item['id']);
 
                 if ($item['type'] === 'unit_ps') {
-                    if ($rentable->stok < $item['quantity']) {
+                    if ($rentable->stock < $item['quantity']) {
                         abort(422, 'Stok Unit PS tidak cukup');
                     }
-                    $rentable->stok -= $item['quantity'];
-                    if ($rentable->stok === 0) {
-                        $rentable->status = 'rented';
-                    }
+                    $rentable->stock -= $item['quantity'];
+                    // if ($rentable->stock === 0) {
+                    //     $rentable->status = 'rented';
+                    // }
                     $rentable->save();
                 } else {
                     if ($rentable->stok < $item['quantity']) {
@@ -121,22 +121,18 @@ class RentalController extends Controller
     public function return(Rental $rental)
     {
         Gate::authorize('access-kasir');
-        if (! in_array($rental->status, ['ongoing', 'active'])) {
-            return back()->with('status', 'Rental tidak dalam status ongoing/active');
+        if (!in_array($rental->status, ['sedang_disewa'])) {
+            return back()->with('status', 'Rental tidak dalam status sedang_disewa');
         }
 
         DB::transaction(function () use ($rental) {
             $rental->load('items');
             foreach ($rental->items as $item) {
                 if ($item->rentable_type === UnitPS::class) {
-                    // For UnitPS, find the rented instances and make them available
-                    $rentedInstances = UnitPSInstance::where('unit_ps_id', $item->rentable_id)
-                        ->where('status', 'rented')
-                        ->limit($item->quantity)
-                        ->get();
-
-                    foreach ($rentedInstances as $instance) {
-                        $instance->update(['status' => 'available']);
+                    $unit = UnitPS::lockForUpdate()->find($item->rentable_id);
+                    if ($unit) {
+                        $unit->stock += $item->quantity;
+                        $unit->save();
                     }
                 } elseif ($item->rentable_type === Game::class) {
                     Game::where('id', $item->rentable_id)->lockForUpdate()->increment('stok', $item->quantity);
@@ -146,7 +142,7 @@ class RentalController extends Controller
             }
 
             $rental->returned_at = now();
-            $rental->status = 'returned';
+            $rental->status = 'selesai';
             $rental->save();
         });
 

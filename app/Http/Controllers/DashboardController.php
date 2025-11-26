@@ -29,36 +29,28 @@ class DashboardController extends Controller
         $accessoryData = Accessory::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
 
         $unitAvailable = $unitPSData->sum('total_stok');
-        $unitRented = RentalItem::whereHas('rental', function ($q) {
-            $q->where('status', 'active');
-        })
+        $unitRented = RentalItem::whereHas('rental', function ($q) { $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']); })
             ->where('rentable_type', UnitPS::class)
             ->sum('quantity');
         $unitDamaged = 0; // Unit PS tidak memiliki field kondisi
         $unitTotal = $unitAvailable + $unitRented;
 
         $gameAvailable = $gameData->sum('total_stok');
-        $gameRented = RentalItem::whereHas('rental', function ($q) {
-            $q->where('status', 'active');
-        })
+        $gameRented = RentalItem::whereHas('rental', function ($q) { $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']); })
             ->where('rentable_type', Game::class)
             ->sum('quantity');
         $gameDamaged = Game::where('kondisi', 'rusak')->count();
         $gameTotal = $gameAvailable + $gameRented;
 
         $accAvailable = $accessoryData->sum('total_stok');
-        $accRented = RentalItem::whereHas('rental', function ($q) {
-            $q->where('status', 'active');
-        })
+        $accRented = RentalItem::whereHas('rental', function ($q) { $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']); })
             ->where('rentable_type', Accessory::class)
             ->sum('quantity');
         $accDamaged = Accessory::where('kondisi', 'rusak')->count();
         $accTotal = $accAvailable + $accRented;
 
         // Ambil rental yang aktif untuk menghitung jumlah sewa per item
-        $activeRentalItems = RentalItem::whereHas('rental', function ($q) {
-            $q->where('status', 'active');
-        })
+        $activeRentalItems = RentalItem::whereHas('rental', function ($q) { $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']); })
             ->whereIn('rentable_type', [UnitPS::class, Game::class, Accessory::class])
             ->selectRaw('rentable_type, rentable_id, SUM(quantity) as total_rented')
             ->groupBy('rentable_type', 'rentable_id')
@@ -130,44 +122,54 @@ class DashboardController extends Controller
     public function kasir()
     {
         Gate::authorize('access-kasir');
-        $activeRentals = Rental::with(['customer', 'items.rentable'])
-            ->whereIn('status', ['active', 'paid'])
-            ->orderByDesc('created_at')
-            ->get();
+        
+        // Statistics
+        $unpaidCount = Rental::whereColumn('paid', '<', 'total')
+            ->where('status', '!=', 'cancelled')
+            ->count();
+            
+        $activeCount = Rental::whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi'])
+            ->count();
+            
+        $completedTodayCount = Rental::where('status', 'selesai')
+            ->whereDate('returned_at', now()->today())
+            ->count();
 
-        return view('dashboards.kasir', compact('activeRentals'));
+        $rentals = Rental::with(['customer','items.rentable'])
+            ->orderByDesc('created_at')
+            ->paginate(10);
+            
+        return view('dashboards.kasir', compact('rentals', 'unpaidCount', 'activeCount', 'completedTodayCount'));
     }
 
     public function pemilik()
     {
         Gate::authorize('access-pemilik');
-        // KPI: Unit tersedia dan total transaksi hari ini
+        
+        // KPI Cards Data
         $availableUnits = UnitPS::count();
+        $availableGames = Game::count();
+        $availableAccessories = Accessory::count();
         $todaysTransactions = Rental::whereDate('created_at', now()->toDateString())->count();
 
-        // Tabel: Transaksi terbaru
-        $recentTransactions = Rental::with(['customer'])
-            ->orderByDesc('created_at')
-            ->get();
-
-        // Chart: Pendapatan 7 hari terakhir - optimized
+        // Revenue 7 Days (Simple Calculation for KPI Card)
         $start = now()->copy()->subDays(6)->startOfDay();
         $end = now()->endOfDay();
-        $paymentData = Payment::whereBetween('paid_at', [$start, $end])
-            ->selectRaw('DATE(paid_at) as payment_date, SUM(amount) as total_amount')
-            ->groupBy('payment_date')
-            ->pluck('total_amount', 'payment_date');
+        $revTotal7 = Payment::whereBetween('paid_at', [$start, $end])->sum('amount');
 
-        $revLabels = [];
-        $revData = [];
-        for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
-            $key = $d->format('Y-m-d');
-            $revLabels[] = $d->format('d M');
-            $revData[] = (int) ($paymentData[$key] ?? 0);
-        }
+        // Recent Transactions (Limit 5 for Dashboard)
+        $recentTransactions = Rental::with(['customer', 'items.rentable'])
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
 
         return view('dashboards.pemilik', compact(
-            'availableUnits', 'todaysTransactions', 'recentTransactions', 'revLabels', 'revData'
+            'availableUnits', 
+            'availableGames',
+            'availableAccessories',
+            'todaysTransactions', 
+            'revTotal7', 
+            'recentTransactions'
         ));
     }
 
@@ -285,8 +287,9 @@ class DashboardController extends Controller
 
         // Ringkasan transaksi
         $rentalsTotal = Rental::count();
-        $rentalsActive = Rental::where('status', 'active')->count();
-        $rentalsReturned = Rental::where('status', 'returned')->count();
+        $rentalsTotal = Rental::count();
+        $rentalsActive = Rental::whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi'])->count();
+        $rentalsReturned = Rental::where('status', 'selesai')->count();
 
         // Pembayaran terakhir - gunakan eager loading terbatas
         $latestPayments = Payment::with(['rental' => function ($query) {

@@ -27,6 +27,7 @@ class UnitPS extends Model
         'stok',
         'foto',
         'kondisi',
+        'status',
         'created_at',
         'updated_at',
     ];
@@ -63,7 +64,17 @@ class UnitPS extends Model
 
     public function getStokAttribute()
     {
-        return $this->attributes['stok'] ?? $this->attributes['stock'] ?? 0;
+        // Prioritize stok if it has a non-zero value, otherwise fallback to stock
+        // If both are 0, it returns 0.
+        $stok = $this->attributes['stok'] ?? 0;
+        $stock = $this->attributes['stock'] ?? 0;
+        
+        return $stok > 0 ? $stok : $stock;
+    }
+
+    public function getKondisiAttribute()
+    {
+        return $this->attributes['kondisi'] ?? 'baik';
     }
 
     public function rentalItems(): MorphMany

@@ -31,6 +31,8 @@ class MidtransService
         if (app()->environment('local', 'development')) {
             Config::$curlOptions[CURLOPT_SSL_VERIFYPEER] = false;
             Config::$curlOptions[CURLOPT_SSL_VERIFYHOST] = 0;
+            // Fix "Could not resolve host" by forcing IPv4
+            Config::$curlOptions[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
         }
     }
 
