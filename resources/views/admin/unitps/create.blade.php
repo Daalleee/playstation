@@ -75,6 +75,17 @@
                     <div class="text-danger small">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="col-md-6">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select" required>
+                    <option value="Tersedia" {{ old('status') == 'Tersedia' ? 'selected' : '' }}>Tersedia</option>
+                    <option value="Disewa" {{ old('status') == 'Disewa' ? 'selected' : '' }}>Disewa</option>
+                    <option value="Maintenance" {{ old('status') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                </select>
+                @error('status')
+                    <div class="text-danger small">{{ $message }}</div>
+                @enderror
+            </div>
             <div class="col-12">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Simpan</button>
                 <a href="{{ route('admin.unitps.index') }}" class="btn btn-danger"><i class="bi bi-x me-1"></i> Batal</a>

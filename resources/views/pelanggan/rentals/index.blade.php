@@ -1,146 +1,152 @@
-@extends('layouts.app')
-@section('content')
-<style>
-  .dash-dark{ background:#2b3156; color:#e7e9ff; border-radius:0; min-height:100dvh; }
-  .dash-layout{ display:flex; gap:1rem; height: 100vh; }
-  .dash-sidebar{ flex:0 0 280px; background:#3a2a70; border-radius:1rem; padding:1.25rem 1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); height: 100vh; overflow-y: auto; position: sticky; top: 0; }
-  .dash-main{ flex:1; overflow-y: auto; padding: 1rem; }
-  .page-hero{ text-align:center; padding:1rem; }
-  .page-hero h2{ font-weight:800; margin:0; }
-  .filter-row{ display:grid; grid-template-columns: 1fr 1fr 2fr auto; gap:1rem; margin:0 1rem 1rem; align-items:end; }
-  .select-dark, .input-dark{ width:100%; background:#23284a; color:#eef1ff; border:1px solid #2f3561; border-radius:.6rem; padding:.55rem .75rem; }
-  .btn-cta{ background:#2ecc71; border:none; color:#0e1a2f; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; min-width:120px; }
-  .card-dark{ background:#1f2446; border:none; border-radius:1rem; padding:1rem; box-shadow:0 1rem 2rem rgba(0,0,0,.25); }
-  table.dark{ width:100%; color:#e7e9ff; border-collapse:collapse; }
-  table.dark th, table.dark td{ border:1px solid #2f3561; padding:.5rem .6rem; }
-  table.dark thead th{ background:#23284a; font-weight:800; }
-  .badge-ok{ background:#1a7a4f; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .badge-warn{ background:#b8651f; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .badge-danger{ background:#c0392b; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; }
-  .badge-success{ background:#1e8449; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; font-weight:700; }
-  .badge-warning{ background:#d68910; color:#fff; border-radius:999px; padding:.2rem .6rem; font-size:.85rem; font-weight:700; }
-  .btn-detail{ background:#5b6bb8; color:#fff; border:none; padding:.3rem .6rem; border-radius:.4rem; text-decoration:none; }
-  .btn-cta{ background:#1e8449; border:none; color:#fff; font-weight:800; padding:.55rem 1rem; border-radius:.6rem; cursor:pointer; }
-  .btn-cta:hover{ background:#27ae60; }
-  .btn-cta:disabled{ background:#7f8c8d; cursor:not-allowed; opacity:0.6; }
-  @media (max-width: 991.98px){ .dash-layout{ flex-direction:column; } .dash-sidebar{ flex:0 0 auto; position:static; height: auto; } .dash-main{ height: auto; } .filter-row{ grid-template-columns:1fr; } }
-</style>
+@extends('pelanggan.layout')
 
-<div class="dash-dark p-3">
-  <div class="dash-layout">
-    @include('pelanggan.partials.sidebar')
+@section('pelanggan_content')
+<div class="container-fluid">
+    <!-- Header & Filter -->
+    <div class="card card-hover-lift mb-4 animate-fade-in">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mb-4">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary icon-hover"></i><span class="gradient-text">Riwayat Penyewaan Saya</span></h4>
+            </div>
 
-    <main class="dash-main">
-      <div class="page-hero">
-        <h2>Riwayat Penyewaan</h2>
-      </div>
+            @if(session('status'))
+                <div class="alert alert-success bg-success-subtle border-success text-success mb-4">{{ session('status') }}</div>
+            @endif
+            
+            @if(session('error'))
+                <div class="alert alert-danger bg-danger-subtle border-danger text-danger mb-4">{{ session('error') }}</div>
+            @endif
 
-      @if(session('status'))
-        <div class="alert alert-success">{{ session('status') }}</div>
-      @endif
-      
-      @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-      @endif
-
-      <form method="GET" class="filter-row">
-        <div>
-          <label class="mb-1 d-block fw-bold">Status</label>
-          <select name="status" class="select-dark">
-            <option value="">Semua Status</option>
-            <option value="pending">Menunggu Pembayaran</option>
-            <option value="sedang_disewa">Sedang Disewa</option>
-            <option value="menunggu_konfirmasi">Menunggu Konfirmasi</option>
-            <option value="selesai">Selesai</option>
-            <option value="cancelled">Dibatalkan</option>
-          </select>
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label text-muted small text-uppercase fw-bold">Status</label>
+                    <select name="status" class="form-select bg-dark text-light border-secondary">
+                        <option value="">Semua Status</option>
+                        <option value="pending">Menunggu Pembayaran</option>
+                        <option value="sedang_disewa">Sedang Disewa</option>
+                        <option value="menunggu_konfirmasi">Menunggu Konfirmasi</option>
+                        <option value="selesai">Selesai</option>
+                        <option value="cancelled">Dibatalkan</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-muted small text-uppercase fw-bold">Tanggal</label>
+                    <input type="date" name="date" class="form-control bg-dark text-light border-secondary" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-muted small text-uppercase fw-bold">Cari Riwayat</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" class="form-control bg-dark text-light border-secondary" placeholder="ID Transaksi...">
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="bi bi-filter me-1"></i> Filter</button>
+                </div>
+            </form>
         </div>
-        <div>
-          <label class="mb-1 d-block fw-bold">Tanggal</label>
-          <input type="date" name="date" class="input-dark" />
-        </div>
-        <div>
-          <label class="mb-1 d-block fw-bold">Cari Riwayat</label>
-          <input type="text" name="q" placeholder="Cari riwayat penyewaan" class="input-dark" />
-        </div>
-        <div>
-          <button class="btn-cta w-100" type="submit">Cari</button>
-        </div>
-      </form>
+    </div>
 
-      <div class="card-dark">
+    <!-- Rental List -->
+    <div class="card">
         <div class="table-responsive">
-          <table class="dark">
-            <thead>
-              <tr>
-                <th>No. Transaksi</th>
-                <th>Tanggal</th>
-                <th>Item Disewa</th>
-                <th>Total Harga</th>
-                <th>Status</th>
-                <th>Pembayaran</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($rentals as $rental)
-                <tr>
-                  <td>{{ $rental->kode ?? '#'.$rental->id }}</td>
-                  <td>{{ $rental->created_at->format('d/m/Y') }}</td>
-                  <td>
-                    @foreach($rental->items->take(2) as $item)
-                      @php
-                        $itemName = 'Item';
-                        if($item->rentable) {
-                          $itemName = $item->rentable->name ?? $item->rentable->nama ?? $item->rentable->judul ?? 'Item';
-                        }
-                      @endphp
-                      <div>{{ $itemName }}</div>
-                    @endforeach
-                    @if($rental->items->count() > 2)
-                      <small class="text-muted">+{{ $rental->items->count() - 2 }} lainnya</small>
-                    @endif
-                  </td>
-                  <td>Rp {{ number_format($rental->total, 0, ',', '.') }}</td>
-                  <td>
-                    @php
-                      $statusBadge = match($rental->status) {
-                        'pending' => ['class' => 'badge-warning', 'text' => 'Menunggu Pembayaran'],
-                        'sedang_disewa' => ['class' => 'badge-success', 'text' => 'Sedang Disewa'],
-                        'menunggu_konfirmasi' => ['class' => 'badge-warn', 'text' => 'Menunggu Konfirmasi'],
-                        'selesai' => ['class' => 'badge-ok', 'text' => 'Selesai'],
-                        'cancelled' => ['class' => 'badge-danger', 'text' => 'Dibatalkan'],
-                        default => ['class' => 'badge-warning', 'text' => ucfirst($rental->status)]
-                      };
-                    @endphp
-                    <span class="{{ $statusBadge['class'] }}">{{ $statusBadge['text'] }}</span>
-                  </td>
-                  <td>
-                    @if($rental->paid >= $rental->total)
-                      <span class="badge-success" style="font-weight:700;">✓ LUNAS</span>
-                    @elseif($rental->paid > 0)
-                      <span class="badge-warn" style="font-weight:700;">⚠ KURANG</span>
-                    @else
-                      <span class="badge-danger" style="font-weight:700;">✗ BELUM</span>
-                    @endif
-                  </td>
-                  <td>
-                    <a href="{{ route('pelanggan.rentals.show', $rental) }}" class="btn-detail">Detail</a>
-                  </td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="7" class="text-center">Belum ada riwayat penyewaan.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>No. Transaksi</th>
+                        <th>Tanggal</th>
+                        <th>Durasi</th>
+                        <th>Item Disewa</th>
+                        <th>Total Harga</th>
+                        <th>Status</th>
+                        <th>Pembayaran</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($rentals as $rental)
+                        <tr>
+                            <td><span class="font-monospace text-muted">{{ $rental->kode ?? '#'.$rental->id }}</span></td>
+                            <td>{{ $rental->created_at->format('d/m/Y') }}</td>
+                            <td>
+                                @php
+                                    $start = \Carbon\Carbon::parse($rental->start_at);
+                                    $end = \Carbon\Carbon::parse($rental->due_at);
+                                    $diff = $start->diffInDays($end);
+                                    if ($diff == 0) {
+                                        $diff = $start->diffInHours($end);
+                                        $duration = $diff . ' Jam';
+                                    } else {
+                                        $duration = $diff . ' Hari';
+                                    }
+                                @endphp
+                                <span class="badge bg-secondary-subtle">{{ $duration }}</span>
+                            </td>
+                            <td>
+                                @foreach($rental->items->take(2) as $item)
+                                    @php
+                                        $itemName = 'Item';
+                                        if($item->rentable) {
+                                            $itemName = $item->rentable->name ?? $item->rentable->nama ?? $item->rentable->judul ?? 'Item';
+                                        }
+                                    @endphp
+                                    <div class="text-white small">{{ $itemName }}</div>
+                                @endforeach
+                                @if($rental->items->count() > 2)
+                                    <small class="text-muted">+{{ $rental->items->count() - 2 }} lainnya</small>
+                                @endif
+                            </td>
+                            <td class="text-secondary fw-bold">Rp {{ number_format($rental->total, 0, ',', '.') }}</td>
+                            <td>
+                                @php
+                                    $statusClass = match($rental->status) {
+                                        'pending' => 'bg-warning-subtle',
+                                        'sedang_disewa' => 'bg-primary-subtle',
+                                        'menunggu_konfirmasi' => 'bg-info-subtle',
+                                        'selesai' => 'bg-success-subtle',
+                                        'cancelled' => 'bg-danger-subtle',
+                                        default => 'bg-secondary-subtle'
+                                    };
+                                    $statusText = match($rental->status) {
+                                        'pending' => 'Menunggu Pembayaran',
+                                        'sedang_disewa' => 'Sedang Disewa',
+                                        'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
+                                        'selesai' => 'Selesai',
+                                        'cancelled' => 'Dibatalkan',
+                                        default => ucfirst($rental->status)
+                                    };
+                                @endphp
+                                <span class="badge {{ $statusClass }}">{{ $statusText }}</span>
+                            </td>
+                            <td>
+                                @if($rental->paid >= $rental->total)
+                                    <span class="badge bg-success text-white"><i class="bi bi-check-lg me-1"></i>LUNAS</span>
+                                @elseif($rental->paid > 0)
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>KURANG</span>
+                                @else
+                                    <span class="badge bg-danger text-white"><i class="bi bi-x-lg me-1"></i>BELUM</span>
+                                @endif
+                            </td>
+                            <td>
+                                <a href="{{ route('pelanggan.rentals.show', $rental) }}" class="btn btn-sm btn-info text-white">
+                                    <i class="bi bi-eye me-1"></i> Detail
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-clock-history fs-1 d-block mb-2 opacity-50"></i>
+                                Belum ada riwayat penyewaan.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        <div class="mt-3">
-          {{ $rentals->links() }}
+        <div class="card-footer border-0 bg-transparent py-3">
+            {{ $rentals->links() }}
         </div>
-      </div>
-    </main>
-  </div>
+    </div>
 </div>
 @endsection

@@ -43,27 +43,5 @@
             <div class="mt-2">{{ $pelanggan->links() }}</div>
         </div>
         
-        <style>
-            /* Apply the same purple theme and grid lines as dashboard */
-            .card{background: #17153B; color: white; border:0; box-shadow: 0 6px 24px rgba(0,0,0,.25)}
-            .table{color: white; background-color: #17153B; border-collapse: collapse;}
-            .table thead{background: #2E236C;}
-            .table thead th{background: #2E236C;color:#dbe0ff;border:1px solid #433D8B; padding: 0.75rem;}
-            .table tbody{background: #17153B;}
-            .table tbody tr{background: #17153B; transition: background-color 0.2s ease;}
-            .table tbody tr:hover{background: #2E236C;}
-            .table tbody tr+tr{border-top: 1px solid #433D8B;}
-            .table td, .table th{background-color: inherit; color: white; border:1px solid #433D8B; padding: 0.75rem;}
-            .table-responsive{background: #17153B;}
-            
-            /* Bright action buttons */
-            .btn-warning {background-color: #ffc107 !important; border-color: #ffc107 !important; color: #000 !important;}
-            .btn-danger {background-color: #dc3545 !important; border-color: #dc3545 !important; color: #fff !important;}
-            .btn-warning:hover {background-color: #e0a800 !important; border-color: #d39e00 !important;}
-            .btn-danger:hover {background-color: #c82333 !important; border-color: #bd2130 !important;}
-            
-            /* Override any Bootstrap default styles */
-            .table>:not(caption)>*>*{background-color: inherit; color: white;}
-            .table *, .card * {background-color: inherit;}
-        </style>
+
 @endsection

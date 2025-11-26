@@ -87,11 +87,22 @@
                     @endif
                 </div>
             </div>
-            <div class="col-12">
+            <div class="col-md-6">
                 <label class="form-label">Kondisi</label>
                 <input type="text" name="kondisi" value="{{ old('kondisi', $unit->kondisi ?? 'Baik') }}"
                     class="form-control" placeholder="Contoh: Mulus, ada sedikit baret">
                 @error('kondisi')
+                    <div class="text-danger small">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select" required>
+                    <option value="Tersedia" {{ old('status', $unit->status ?? 'Tersedia') == 'Tersedia' ? 'selected' : '' }}>Tersedia</option>
+                    <option value="Disewa" {{ old('status', $unit->status ?? 'Tersedia') == 'Disewa' ? 'selected' : '' }}>Disewa</option>
+                    <option value="Maintenance" {{ old('status', $unit->status ?? 'Tersedia') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                </select>
+                @error('status')
                     <div class="text-danger small">{{ $message }}</div>
                 @enderror
             </div>
