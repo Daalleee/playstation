@@ -510,9 +510,9 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-icon">
-                <i class="bi bi-controller"></i>
+                <i class="bi bi-playstation"></i>
             </div>
-            <span class="logo-text">RentalPS</span>
+            <span class="logo-text">PlayStation</span>
         </div>
         
         <nav class="sidebar-menu">
