@@ -29,28 +29,36 @@ class DashboardController extends Controller
         $accessoryData = Accessory::selectRaw('*, COALESCE(stok, 0) as total_stok')->get();
 
         $unitAvailable = $unitPSData->sum('total_stok');
-        $unitRented = RentalItem::whereHas('rental', function ($q) { $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']); })
+        $unitRented = RentalItem::whereHas('rental', function ($q) {
+            $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']);
+        })
             ->where('rentable_type', UnitPS::class)
             ->sum('quantity');
         $unitDamaged = 0; // Unit PS tidak memiliki field kondisi
         $unitTotal = $unitAvailable + $unitRented;
 
         $gameAvailable = $gameData->sum('total_stok');
-        $gameRented = RentalItem::whereHas('rental', function ($q) { $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']); })
+        $gameRented = RentalItem::whereHas('rental', function ($q) {
+            $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']);
+        })
             ->where('rentable_type', Game::class)
             ->sum('quantity');
         $gameDamaged = Game::where('kondisi', 'rusak')->count();
         $gameTotal = $gameAvailable + $gameRented;
 
         $accAvailable = $accessoryData->sum('total_stok');
-        $accRented = RentalItem::whereHas('rental', function ($q) { $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']); })
+        $accRented = RentalItem::whereHas('rental', function ($q) {
+            $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']);
+        })
             ->where('rentable_type', Accessory::class)
             ->sum('quantity');
         $accDamaged = Accessory::where('kondisi', 'rusak')->count();
         $accTotal = $accAvailable + $accRented;
 
         // Ambil rental yang aktif untuk menghitung jumlah sewa per item
-        $activeRentalItems = RentalItem::whereHas('rental', function ($q) { $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']); })
+        $activeRentalItems = RentalItem::whereHas('rental', function ($q) {
+            $q->whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi']);
+        })
             ->whereIn('rentable_type', [UnitPS::class, Game::class, Accessory::class])
             ->selectRaw('rentable_type, rentable_id, SUM(quantity) as total_rented')
             ->groupBy('rentable_type', 'rentable_id')
@@ -122,30 +130,30 @@ class DashboardController extends Controller
     public function kasir()
     {
         Gate::authorize('access-kasir');
-        
+
         // Statistics
         $unpaidCount = Rental::whereColumn('paid', '<', 'total')
             ->where('status', '!=', 'cancelled')
             ->count();
-            
+
         $activeCount = Rental::whereIn('status', ['sedang_disewa', 'menunggu_konfirmasi'])
             ->count();
-            
+
         $completedTodayCount = Rental::where('status', 'selesai')
             ->whereDate('returned_at', now()->today())
             ->count();
 
-        $rentals = Rental::with(['customer','items.rentable'])
+        $rentals = Rental::with(['customer', 'items.rentable'])
             ->orderByDesc('created_at')
             ->paginate(10);
-            
+
         return view('dashboards.kasir', compact('rentals', 'unpaidCount', 'activeCount', 'completedTodayCount'));
     }
 
     public function pemilik()
     {
         Gate::authorize('access-pemilik');
-        
+
         // KPI Cards Data
         $availableUnits = UnitPS::count();
         $availableGames = Game::count();
@@ -164,11 +172,11 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboards.pemilik', compact(
-            'availableUnits', 
+            'availableUnits',
             'availableGames',
             'availableAccessories',
-            'todaysTransactions', 
-            'revTotal7', 
+            'todaysTransactions',
+            'revTotal7',
             'recentTransactions'
         ));
     }
@@ -210,7 +218,7 @@ class DashboardController extends Controller
         }
         $accessories = $accessoriesQuery->orderByDesc('id')->limit(8)->get();
 
-        return view('dashboards.ecommerce_pelanggan', compact('unitps', 'games', 'accessories'));
+        return view('dashboards.pelanggan', compact('unitps', 'games', 'accessories'));
     }
 
     public function unitpsLanding(Request $request)
@@ -231,7 +239,7 @@ class DashboardController extends Controller
 
         $unitps = $query->orderByDesc('id')->get(); // Get all units
 
-        return view('dashboards.ecommerce_unitps', compact('unitps'));
+        return view('dashboards.unitps', compact('unitps'));
     }
 
     public function gameLanding(Request $request)
@@ -252,7 +260,7 @@ class DashboardController extends Controller
 
         $games = $query->orderByDesc('id')->get(); // Get all available games, not just 6
 
-        return view('dashboards.ecommerce_game', compact('games'));
+        return view('dashboards.game', compact('games'));
     }
 
     public function accessoryLanding(Request $request)
@@ -272,7 +280,7 @@ class DashboardController extends Controller
 
         $accessories = $query->orderByDesc('id')->get(); // Get all available accessories, not just 6
 
-        return view('dashboards.ecommerce_accessory', compact('accessories'));
+        return view('dashboards.accessory', compact('accessories'));
     }
 
     public function adminReport()

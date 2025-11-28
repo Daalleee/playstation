@@ -19,42 +19,42 @@ class RentalController extends Controller
     public function index(Request $request)
     {
         Gate::authorize('access-pelanggan');
-        
+
         $query = Rental::where('user_id', auth()->id())
             ->with(['items.rentable']);
-            
+
         // Filter by Status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // Filter by Date
         if ($request->filled('date')) {
             $query->whereDate('created_at', $request->date);
         }
-        
+
         // Search by Code or Item Name
         if ($request->filled('q')) {
             $search = $request->q;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('kode', 'like', "%{$search}%")
-                  ->orWhereHas('items', function($qi) use ($search) {
-                      $qi->whereHasMorph('rentable', ['App\Models\UnitPS', 'App\Models\Game', 'App\Models\Accessory'], function($qii, $type) use ($search) {
-                          if ($type === 'App\Models\UnitPS') {
-                              $qii->where('name', 'like', "%{$search}%")
-                                  ->orWhere('model', 'like', "%{$search}%");
-                          } elseif ($type === 'App\Models\Game') {
-                              $qii->where('judul', 'like', "%{$search}%");
-                          } elseif ($type === 'App\Models\Accessory') {
-                              $qii->where('nama', 'like', "%{$search}%");
-                          }
-                      });
-                  });
+                    ->orWhereHas('items', function ($qi) use ($search) {
+                        $qi->whereHasMorph('rentable', ['App\Models\UnitPS', 'App\Models\Game', 'App\Models\Accessory'], function ($qii, $type) use ($search) {
+                            if ($type === 'App\Models\UnitPS') {
+                                $qii->where('name', 'like', "%{$search}%")
+                                    ->orWhere('model', 'like', "%{$search}%");
+                            } elseif ($type === 'App\Models\Game') {
+                                $qii->where('judul', 'like', "%{$search}%");
+                            } elseif ($type === 'App\Models\Accessory') {
+                                $qii->where('nama', 'like', "%{$search}%");
+                            }
+                        });
+                    });
             });
         }
-        
+
         $rentals = $query->latest()->paginate(10);
-            
+
         return view('pelanggan.rentals.index', compact('rentals'));
     }
 
@@ -102,7 +102,7 @@ class RentalController extends Controller
                         'stok' => $item->$stockField,
                     ]]);
 
-                    return view('pelanggan.rentals.ecommerce_create', ['cartItems' => $cartItems, 'directItem' => true]);
+                    return view('pelanggan.rentals.create', ['cartItems' => $cartItems, 'directItem' => true]);
                 }
             }
         }
@@ -136,7 +136,7 @@ class RentalController extends Controller
             }
         }
 
-        return view('pelanggan.rentals.ecommerce_create', ['cartItems' => $cartItems, 'directItem' => false]);
+        return view('pelanggan.rentals.create', ['cartItems' => $cartItems, 'directItem' => false]);
     }
 
     public function store(Request $request, MidtransService $midtrans)
@@ -472,7 +472,7 @@ class RentalController extends Controller
                 ]);
 
                 // Redirect to payment page
-                return view('pelanggan.payment.ecommerce_midtrans', compact('rental', 'snapToken', 'orderId'));
+                return view('pelanggan.payment.midtrans', compact('rental', 'snapToken', 'orderId'));
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -523,7 +523,7 @@ class RentalController extends Controller
             }
         }
 
-        return view('pelanggan.rentals.ecommerce_show', compact('rental'));
+        return view('pelanggan.rentals.show', compact('rental'));
     }
 
     /**

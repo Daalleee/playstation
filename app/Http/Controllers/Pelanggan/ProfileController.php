@@ -15,7 +15,7 @@ class ProfileController extends Controller
 
         $user = auth()->user();
 
-        return view('pelanggan.profile.ecommerce_show', compact('user'));
+        return view('pelanggan.profile.show', compact('user'));
     }
 
     public function edit()
@@ -24,7 +24,7 @@ class ProfileController extends Controller
 
         $user = auth()->user();
 
-        return view('pelanggan.profile.ecommerce_edit', compact('user'));
+        return view('pelanggan.profile.edit', compact('user'));
     }
 
     public function update(Request $request)

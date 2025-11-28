@@ -16,7 +16,7 @@ class CartController extends Controller
         // Get cart items from database
         $cartItems = Cart::where('user_id', auth()->id())->get();
 
-        return view('pelanggan.cart.ecommerce_index', compact('cartItems'));
+        return view('pelanggan.cart.index', compact('cartItems'));
     }
 
     public function add(Request $request)
@@ -157,7 +157,7 @@ class CartController extends Controller
             // Add new item to cart
             $price = $request->type === 'unitps' ? $item->harga_per_jam : $item->harga_per_hari;
             $name = $request->type === 'unitps' ? $item->nama : ($item->nama ?? $item->judul);
-            
+
             try {
                 Cart::create([
                     'user_id' => auth()->id(),
@@ -169,14 +169,15 @@ class CartController extends Controller
                     'price_type' => $request->price_type,
                 ]);
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Cart Add Error: ' . $e->getMessage());
-                if($request->wantsJson()) {
+                \Illuminate\Support\Facades\Log::error('Cart Add Error: '.$e->getMessage());
+                if ($request->wantsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Server Error: ' . $e->getMessage()
+                        'message' => 'Server Error: '.$e->getMessage(),
                     ], 500);
                 }
-                return redirect()->back()->with('error', 'Server Error: ' . $e->getMessage());
+
+                return redirect()->back()->with('error', 'Server Error: '.$e->getMessage());
             }
         }
 

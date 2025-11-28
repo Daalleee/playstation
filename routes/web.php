@@ -13,6 +13,12 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Kasir\RentalController as KasirRentalController;
 use App\Http\Controllers\Kasir\TransaksiController;
 use App\Http\Controllers\MidtransController;
+use App\Http\Controllers\Pelanggan\AccessoryController as PelangganAccessoryController;
+use App\Http\Controllers\Pelanggan\CartController as PelangganCartController;
+use App\Http\Controllers\Pelanggan\GameController as PelangganGameController;
+use App\Http\Controllers\Pelanggan\ProfileController as PelangganProfileController;
+use App\Http\Controllers\Pelanggan\RentalController as PelangganRentalController;
+use App\Http\Controllers\Pelanggan\UnitPSController as PelangganUnitPSController;
 use App\Http\Controllers\ProfileController;
 
 // Midtrans webhook (must be outside auth middleware)
